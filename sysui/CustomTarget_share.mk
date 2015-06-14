@@ -28,6 +28,8 @@ share_TRANSLATE := $(SRCDIR)/solenv/bin/desktop-translate.pl
 LAUNCHERLIST_APPS := writer calc draw impress math base startcenter
 LAUNCHERLIST := $(LAUNCHERLIST_APPS) qstart xsltfilter
 LAUNCHERS := $(foreach launcher,$(LAUNCHERLIST),$(share_SRCDIR)/menus/$(launcher).desktop)
+MENULIST := lo-it-acca-esse.directory lo-it-acca-esse.menu
+MENUS := $(foreach menu,$(MENULIST),$(share_SRCDIR)/menus/$(menu))
 
 MIMELIST := \
     text \
@@ -190,11 +192,19 @@ $(share_WORKDIR)/%/launcherlist: $(LAUNCHERS)
 	$(call gb_Output_announce,$(subst $(WORKDIR)/,,$@),$(true),ECH,1)
 	echo "$(addsuffix .desktop,$(filter-out qstart,$(LAUNCHERLIST)))" > $@
 
-
 $(share_WORKDIR)/%/openoffice.applications: $(share_SRCDIR)/mimetypes/openoffice.applications
 	mkdir -p $(dir $@)
 	$(call gb_Output_announce,$(subst $(WORKDIR)/,,$@),$(true),CAT,1)
 	cat $< | tr -d "\015" | sed -e "s/OFFICENAME/$(UNIXFILENAME.$*)/" -e "s/%PRODUCTNAME/$(PRODUCTNAME.$*) $(PRODUCTVERSION.$*)/" > $@
+
+#added rule for specific menu in linux
+define sysui_Menu_rule
+$(share_WORKDIR)/%/$(1) : $(share_SRCDIR)/menus/$(1)
+	$(call gb_Output_announce,$(subst $(WORKDIR)/,,$(1)),$(true),CAT,1)
+	cat <$$< >$$@
+endef
+
+$(foreach menu,$(MENULIST),$(eval $(call sysui_Menu_rule,$(menu))))
 
 # these .desktop files are written by brand.pl below
 # need to have a rule for these because they are targets in Package_share
@@ -220,6 +230,20 @@ $(share_WORKDIR)/%/build.flag: $(share_SRCDIR)/share/brand.pl $(LAUNCHERS) \
 	$(PERL) $(share_TRANSLATE) -p $(PRODUCTNAME.$*)$(PRODUCTVERSION) -d $(share_WORKDIR)/$* \
 		--ext "desktop" --key "UnityQuickList" $(share_WORKDIR)/launcher_unityquicklist.ulf
 	touch $@
+
+#define sysui_Menu_rule
+#$(share_WORKDIR)/%/$(1) : $(share_WORKDIR)/%/buildm.flag
+#	touch $$@
+#
+#endef
+#
+#$(foreach menu,$(MENULIST),$(eval $(call sysui_Menu_rule,$(menu))))
+#
+#$(share_WORKDIR)/%/buildm.flag: $(MENUS)
+#	mkdir -p $(dir $@)
+#	$(call gb_Output_announce,$(subst $(WORKDIR)/,,$@),$(true),CATb,1)
+#	cat $< > $@	
+#	touch $@
 
 $(eval $(call gb_CustomTarget_ulfex_rule,\
 	$(share_WORKDIR)/%.ulf,\

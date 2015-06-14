@@ -65,14 +65,14 @@ office_root=${office_prefix}/${PREFIX}
 #this symlink is needed to have the API boostrap functions running right
 ln -sf "${office_root}/program/soffice" "${DESTDIR}/${PREFIXDIR}/bin/${PREFIX}"
 
-if test "${PREFIX}" != libreoffice${PRODUCTVERSION} -a "${PREFIX}" != libreofficedev${PRODUCTVERSION}  ; then
+if test "${PREFIX}" != libreoffice${PRODUCTVERSION} -a "${PREFIX}" != libreofficedev${PRODUCTVERSION} -a "${PREFIX}" != lohs${PRODUCTVERSION} -a "${PREFIX}" != lohsdev${PRODUCTVERSION} ; then
     # compat symlinks
     mkdir -p "${DESTDIR}${office_prefix}"
     ln -sf libreoffice${PRODUCTVERSION} "${DESTDIR}${office_root}"
-    ln -sf /${PREFIXDIR}/bin/${PREFIX} "${DESTDIR}/${PREFIXDIR}/bin/libreoffice${PRODUCTVERSION}"
+    ln -sf /${PREFIXDIR}/bin/${PREFIX} "${DESTDIR}/${PREFIXDIR}/bin/${PREFIX}${PRODUCTVERSION}"
 fi
 
-test "${PREFIX}" = libreofficedev${PRODUCTVERSION} && mime_def_file="libreofficedev${PRODUCTVERSION}.xml" || mime_def_file="libreoffice${PRODUCTVERSION}.xml"
+test "${PREFIX}" = lohsdev${PRODUCTVERSION} && mime_def_file="lohsdev${PRODUCTVERSION}.xml" || mime_def_file="lohs${PRODUCTVERSION}.xml"
 mkdir -p "${DESTDIR}/${PREFIXDIR}/share/mime/packages"
 cp openoffice.org.xml "${DESTDIR}/${PREFIXDIR}/share/mime/packages/$mime_def_file"
 chmod 0644 "${DESTDIR}/${PREFIXDIR}/share/mime/packages/$mime_def_file"
@@ -102,3 +102,12 @@ if [ -n "$INTROSPECTION_SCANNER" ]; then
     g-ir-compiler "${DESTDIR}/${PREFIXDIR}/share/gir-1.0/LOKDocView-0.1.gir" \
                   --output="${DESTDIR}/${LIBDIR}/girepository-1.0/LOKDocView-0.1.typelib"
 fi
+
+#menu
+mkdir -p ${DESTDIR}/etc/xdg/menus/applications-merged
+ln -sf ${office_root}/share/xdg/lo-it-acca-esse.menu ${DESTDIR}/etc/xdg/menus/applications-merged/lo-it-acca-esse.menu
+
+#directory
+mkdir -p ${DESTDIR}/usr/share/desktop-directories
+ln -sf ${office_root}/share/xdg/lo-it-acca-esse.directory ${DESTDIR}/usr/share/desktop-directories/lo-it-acca-esse.directory
+
