@@ -80,7 +80,7 @@ $(foreach pkgformat,$(5),\
 && $(PERL) -w $< \
 	-f $(BUILDDIR)/instsetoo_native/util/openoffice.lst \
 	-l $(subst $(WHITESPACE),$(COMMA),$(strip $(2))) \
-	-p LibreOffice$(if $(ENABLE_RELEASE_BUILD),,_Dev)$(3) \
+	-p LOHS$(if $(ENABLE_RELEASE_BUILD),,_Dev)$(3) \
 	-u $(instsetoo_OUT) \
 	-buildid $(if $(filter deb0 rpm0,$(pkgformat)$(LIBO_VERSION_PATCH)),1,$(LIBO_VERSION_PATCH)) \
 	$(if $(filter WNT,$(OS)), \
@@ -98,17 +98,17 @@ $(call gb_CustomTarget_get_workdir,instsetoo_native/install)/install.phony:
 	rm -rf $(instsetoo_OUT)
 ifeq (TRUE,$(LIBO_TEST_INSTALL))
 	$(call instsetoo_native_install_command,openoffice,en-US,,,archive)
-	unzip -q -d $(TESTINSTALLDIR) $(instsetoo_OUT)/LibreOffice$(if $(ENABLE_RELEASE_BUILD),,_Dev)/archive/install/en-US/LibreOffice*_archive.zip
-	mv $(TESTINSTALLDIR)/LibreOffice*_archive/LibreOffice*/* $(TESTINSTALLDIR)/
-	rmdir $(TESTINSTALLDIR)/LibreOffice*_archive/LibreOffice*
-	rmdir $(TESTINSTALLDIR)/LibreOffice*_archive
+	unzip -q -d $(TESTINSTALLDIR) $(instsetoo_OUT)/LOHS(if $(ENABLE_RELEASE_BUILD),,_Dev)/archive/install/en-US/LOHS*_archive.zip
+	mv $(TESTINSTALLDIR)/LibreOffice*_archive/LOHS*/* $(TESTINSTALLDIR)/
+	rmdir $(TESTINSTALLDIR)/LOHS*_archive/LOHS*
+	rmdir $(TESTINSTALLDIR)/LOHS*_archive
 ifeq (ODK,$(filter ODK,$(BUILD_TYPE)))
 	$(call instsetoo_native_install_command,sdkoo,en-US,_SDK,,archive)
-	unzip -q -d $(TESTINSTALLDIR) $(instsetoo_OUT)/LibreOffice$(if $(ENABLE_RELEASE_BUILD),,_Dev)_SDK/archive/install/en-US/LibreOffice*_archive_sdk.zip
-	mv $(TESTINSTALLDIR)/LibreOffice*_archive_sdk/LibreOffice*_SDK/sdk \
+	unzip -q -d $(TESTINSTALLDIR) $(instsetoo_OUT)/LOHS$(if $(ENABLE_RELEASE_BUILD),,_Dev)_SDK/archive/install/en-US/LOHS*_archive_sdk.zip
+	mv $(TESTINSTALLDIR)/LOHS*_archive_sdk/LOHS*_SDK/sdk \
         $(TESTINSTALLDIR)/
-	rmdir $(TESTINSTALLDIR)/LibreOffice*_archive_sdk/LibreOffice*_SDK
-	rmdir $(TESTINSTALLDIR)/LibreOffice*_archive_sdk
+	rmdir $(TESTINSTALLDIR)/LOHS*_archive_sdk/LibreOffice*_SDK
+	rmdir $(TESTINSTALLDIR)/LOHS*_archive_sdk
 endif
 else # LIBO_TEST_INSTALL
 	$(call instsetoo_native_install_command,openoffice,$(if $(filter WNT,$(OS)),$(instsetoo_native_WITH_LANG),en-US),,,$(PKGFORMAT))
