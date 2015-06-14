@@ -49,7 +49,7 @@
     </Markers>
     <TimeAM>AM</TimeAM>
     <TimePM>PM</TimePM>
-    <MeasurementSystem>US</MeasurementSystem>
+    <MeasurementSystem>Metric</MeasurementSystem>
   </LC_CTYPE>
   <LC_FORMAT replaceFrom="[CURRENCY]" replaceTo="[$$-409]">
     <DateAcceptancePattern>M/D</DateAcceptancePattern>
