@@ -107,8 +107,8 @@ ifeq (ODK,$(filter ODK,$(BUILD_TYPE)))
 	unzip -q -d $(TESTINSTALLDIR) $(instsetoo_OUT)/$(PRODUCTNAME)_SDK/archive/install/en-US/LibreOffice*_archive_sdk.zip
 	mv $(TESTINSTALLDIR)/LibreOffice*_archive_sdk/LibreOffice*_SDK/sdk \
         $(TESTINSTALLDIR)/
-	rmdir $(TESTINSTALLDIR)/LibreOffice*_archive_sdk/LibreOffice*_SDK
-	rmdir $(TESTINSTALLDIR)/LibreOffice*_archive_sdk
+	rmdir $(TESTINSTALLDIR)/LOHS*_archive_sdk/LibreOffice*_SDK
+	rmdir $(TESTINSTALLDIR)/LOHS*_archive_sdk
 endif
 else # LIBO_TEST_INSTALL
 	$(call instsetoo_native_install_command,openoffice,$(if $(filter WNT,$(OS)),$(instsetoo_native_WITH_LANG),en-US),,,$(PKGFORMAT))
