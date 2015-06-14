@@ -7,7 +7,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-PRODUCTLIST := libreoffice libreofficedev oxygenoffice
+PRODUCTLIST := libreoffice libreofficedev oxygenoffice lohs lohsdev
 PKGVERSION := $(LIBO_VERSION_MAJOR).$(LIBO_VERSION_MINOR).$(LIBO_VERSION_MICRO)
 PKGVERSIONSHORT := $(LIBO_VERSION_MAJOR).$(LIBO_VERSION_MINOR)
 PRODUCTNAME.libreoffice := LibreOffice
@@ -16,5 +16,10 @@ PRODUCTNAME.oxygenoffice := OxygenOffice
 UNIXFILENAME.libreoffice := libreoffice$(PKGVERSIONSHORT)
 UNIXFILENAME.libreofficedev := libreofficedev$(PKGVERSIONSHORT)
 UNIXFILENAME.oxygenoffice := oxygenoffice$(PKGVERSIONSHORT)
+
+PRODUCTNAME.lohs := LOHS
+PRODUCTNAME.lohsdev := LOHSDev
+UNIXFILENAME.lohs := lohs$(PKGVERSIONSHORT)
+UNIXFILENAME.lohsdev := lohsdev$(PKGVERSIONSHORT)
 
 # vim: set noet sw=4 ts=4:
