@@ -48,6 +48,9 @@
     </prop>
   </node>
   <node oor:name="Office">
+    <prop oor:name="ooSetupConnectionURL" oor:type="xs:string">
+      <value>socket,host=localhost,port=8106;urp;StarOffice.ServiceManager</value>
+    </prop>
     <node oor:name="Factories">
       <node oor:name="com.sun.star.sheet.SpreadsheetDocument" oor:op="replace" install:module="calc">
         <prop oor:name="ooSetupFactoryDocumentService" oor:finalized="true">
