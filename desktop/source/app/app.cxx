@@ -127,6 +127,8 @@
 #include <sys/wait.h>
 #endif
 
+#include <comphelper/debuglogger.hxx>
+
 #ifdef _WIN32
 #ifdef _MSC_VER
 #pragma warning(push, 1) /* disable warnings within system headers */
@@ -426,6 +428,7 @@ OUString MakeStartupConfigAccessErrorMessage( OUString const & aInternalErrMsg )
 
 void FatalError(const OUString& sMessage)
 {
+    ::comphelper::writeDebugLogDefaultNameIfNotEmpty();
     OUString sProductKey = ::utl::Bootstrap::getProductKey();
     if ( sProductKey.isEmpty())
     {
@@ -1370,6 +1373,9 @@ int Desktop::Main()
 
     ResMgr::SetReadStringHook( ReplaceStringHookProc );
 
+    //init the embedded debug logger
+    ::comphelper::initDebugLog();
+
     // Startup screen
     OpenSplashScreen();
 
@@ -1649,26 +1655,31 @@ int Desktop::Main()
         catch(const css::document::CorruptedFilterConfigurationException& exFilterCfg)
         {
             RequestHandler::SetDowning();
+            SAL_WARN_DL( "desktop.app", MakeStartupErrorMessage(exFilterCfg.Message) );
             FatalError( MakeStartupErrorMessage(exFilterCfg.Message) );
         }
         catch(const css::configuration::CorruptedConfigurationException& exAnyCfg)
         {
             RequestHandler::SetDowning();
+            SAL_WARN_DL( "desktop.app", MakeStartupErrorMessage(exAnyCfg.Message) );
             FatalError( MakeStartupErrorMessage(exAnyCfg.Message) );
         }
         catch( const css::uno::Exception& exUNO)
         {
             RequestHandler::SetDowning();
+            SAL_WARN_DL( "desktop.app", exUNO.Message );
             FatalError( exUNO.Message);
         }
         catch( const std::exception& exSTD)
         {
             RequestHandler::SetDowning();
+            SAL_WARN_DL( "desktop.app", OUString::createFromAscii( exSTD.what()) );
             FatalError( OUString::createFromAscii( exSTD.what()));
         }
         catch( ...)
         {
             RequestHandler::SetDowning();
+            SAL_WARN_DL( "desktop.app", "Caught Unknown Exception: Aborting!" );
             FatalError( "Caught Unknown Exception: Aborting!");
         }
     }
@@ -1684,6 +1695,8 @@ int Desktop::Main()
 
 int Desktop::doShutdown()
 {
+    //close and flush to file the debug log event recorder
+    ::comphelper::writeDebugLogDefaultNameIfNotEmpty();
     if( ! pExecGlobals )
         return EXIT_SUCCESS;
 

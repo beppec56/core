@@ -93,9 +93,24 @@ SAL_DLLPUBLIC void SAL_CALL sal_detail_logFormat(
         SAL_DETAIL_ENABLE_LOG_INFO && (condition), SAL_DETAIL_LOG_LEVEL_INFO, \
         area, SAL_DETAIL_WHERE, __VA_ARGS__)
 
+#define SAL_DETAIL_INFO_IF_FORMAT_DL(condition, area, ...) \
+    SAL_DETAIL_LOG_FORMAT( \
+        (condition), SAL_DETAIL_LOG_LEVEL_INFO, \
+        area, SAL_DETAIL_WHERE, __VA_ARGS__)
+
 #define SAL_DETAIL_WARN_IF_FORMAT(condition, area, ...) \
     SAL_DETAIL_LOG_FORMAT( \
         SAL_DETAIL_ENABLE_LOG_WARN && (condition), SAL_DETAIL_LOG_LEVEL_WARN, \
+        area, SAL_DETAIL_WHERE, __VA_ARGS__)
+
+#define SAL_DETAIL_WARN_IF_FORMAT_DL(condition, area, ...) \
+    SAL_DETAIL_LOG_FORMAT( \
+        (condition), SAL_DETAIL_LOG_LEVEL_WARN, \
+        area, SAL_DETAIL_WHERE, __VA_ARGS__)
+
+#define SAL_DETAIL_WARN_FORMAT_DL( area, ...) \
+    SAL_DETAIL_LOG_FORMAT( \
+        SAL_LOG_TRUE, SAL_DETAIL_LOG_LEVEL_WARN, \
         area, SAL_DETAIL_WHERE, __VA_ARGS__)
 
 /** @endcond */
