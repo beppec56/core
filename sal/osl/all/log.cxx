@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <iostream>
 
 #include <stdio.h>
 #include <string.h>
@@ -53,12 +54,14 @@ enum { sal_use_syslog = false };
 
 namespace {
 
+#ifdef SAL_LOG_INFO
 bool equalStrings(
     char const * string1, std::size_t length1, char const * string2,
     std::size_t length2)
 {
     return length1 == length2 && std::memcmp(string1, string2, length1) == 0;
 }
+#endif
 
 #if !defined ANDROID
 char const * toString(sal_detail_LogLevel level) {
@@ -88,6 +91,7 @@ char const * getEnvironmentVariable() {
 
 #else
 
+#ifdef SAL_LOG_INFO
 char const * getEnvironmentVariable_() {
     char const * p1 = std::getenv("SAL_LOG");
     if (p1 == nullptr) {
@@ -104,8 +108,15 @@ char const * getEnvironmentVariable() {
     static char const * env = getEnvironmentVariable_();
     return env;
 }
+#endif
 
-void maybeOutputTimestamp(std::ostringstream &s) {
+#ifdef SAL_LOG_INFO
+void maybeOutputTimestamp(std::ostringstream &s )
+#else
+void maybeOutputTimestamp(std::ostringstream &s, bool outputTimestamp, bool outputRelativeTimer )
+#endif
+{
+#ifdef SAL_LOG_INFO
     char const * env = getEnvironmentVariable();
     if (env == nullptr)
         return;
@@ -114,6 +125,7 @@ void maybeOutputTimestamp(std::ostringstream &s) {
     for (char const * p = env;;) {
         switch (*p++) {
         case '\0':
+#endif
             if (outputTimestamp) {
                 char ts[100];
                 TimeValue systemTime;
@@ -155,7 +167,8 @@ void maybeOutputTimestamp(std::ostringstream &s) {
                 sprintf(relativeTimestamp, "%d.%03d", seconds, milliSeconds);
                 s << relativeTimestamp << ':';
             }
-            return;
+#ifdef SAL_LOG_INFO
+             return;
         case '+':
             {
                 char const * p1 = p;
@@ -178,6 +191,7 @@ void maybeOutputTimestamp(std::ostringstream &s) {
         }
     }
     return;
+#endif
 }
 
 #endif
@@ -187,6 +201,7 @@ bool isDebug(sal_detail_LogLevel level) {
         level == SAL_DETAIL_LOG_LEVEL_DEBUG_TRACE;
 }
 
+#ifdef SAL_LOG_INFO
 bool report(sal_detail_LogLevel level, char const * area) {
     if (isDebug(level))
         return true;
@@ -264,17 +279,25 @@ bool report(sal_detail_LogLevel level, char const * area) {
         p = p2;
     }
 }
+#endif
+
+static pfunc_osl_log_TraceMessage _pTraceMessage = nullptr;
 
 void log(
     sal_detail_LogLevel level, char const * area, char const * where,
     char const * message)
 {
     std::ostringstream s;
+
 #if !defined ANDROID
     // On Android, the area will be used as the "tag," and log info already
     // contains timestamp and PID.
     if (!sal_use_syslog) {
+#ifdef SAL_LOG_INFO
         maybeOutputTimestamp(s);
+#else
+        maybeOutputTimestamp(s, true, false);
+#endif
         s << toString(level) << ':';
     }
     if (!isDebug(level)) {
@@ -343,17 +366,30 @@ void log(
     } else {
         std::fputs(s.str().c_str(), stderr);
         std::fflush(stderr);
+
+        if( _pTraceMessage != nullptr )
+            _pTraceMessage(s.str().c_str());
     }
 #endif
 }
 
 }
 
+pfunc_osl_log_TraceMessage osl_setLogMessageFunc( pfunc_osl_log_TraceMessage pNewFunc )
+{
+    pfunc_osl_log_TraceMessage pOldFunc = _pTraceMessage;
+    _pTraceMessage = pNewFunc;
+    return pOldFunc;
+}
+
 void sal_detail_log(
     sal_detail_LogLevel level, char const * area, char const * where,
     char const * message)
 {
-    if (report(level, area)) {
+#ifdef SAL_LOG_INFO
+    if (report(level, area))
+#endif
+    {
         log(level, area, where, message);
     }
 }
@@ -362,7 +398,10 @@ void sal_detail_logFormat(
     sal_detail_LogLevel level, char const * area, char const * where,
     char const * format, ...)
 {
-    if (report(level, area)) {
+#ifdef SAL_LOG_INFO
+    if (report(level, area))
+#endif
+    {
         std::va_list args;
         va_start(args, format);
         osl::detail::logFormat(level, area, where, format, args);

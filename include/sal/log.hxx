@@ -26,6 +26,12 @@
 
 /// @cond INTERNAL
 
+/** a message delivery function which receives the message that will be logged */
+typedef void (SAL_CALL *pfunc_osl_log_TraceMessage)( const sal_Char* pszMessage );
+
+extern "C" SAL_DLLPUBLIC pfunc_osl_log_TraceMessage SAL_CALL osl_setLogMessageFunc(
+    pfunc_osl_log_TraceMessage pNewFunc );
+
 extern "C" SAL_DLLPUBLIC void SAL_CALL sal_detail_log(
     enum sal_detail_LogLevel level, char const * area, char const * where,
     char const * message);
@@ -295,6 +301,16 @@ inline char const * unwrapStream(SAL_UNUSED_PARAMETER StreamIgnore const &) {
         SAL_DETAIL_ENABLE_LOG_INFO, ::SAL_DETAIL_LOG_LEVEL_INFO, area, \
         SAL_WHERE, stream)
 
+#define SAL_INFO_DL(area, stream) \
+    SAL_DETAIL_LOG_STREAM( \
+        SAL_LOG_TRUE, ::SAL_DETAIL_LOG_LEVEL_INFO, area, \
+        SAL_WHERE, stream)
+
+#define SAL_INFO_DLD(area, stream)               \
+    SAL_DETAIL_LOG_STREAM( \
+        SAL_LOG_TRUE, ::SAL_DETAIL_LOG_LEVEL_INFO, area,    \
+        "", stream)
+
 /**
   Produce log entry from stream in the given log area if condition is true.
 
@@ -303,6 +319,11 @@ inline char const * unwrapStream(SAL_UNUSED_PARAMETER StreamIgnore const &) {
 #define SAL_INFO_IF(condition, area, stream)  \
     SAL_DETAIL_LOG_STREAM( \
         SAL_DETAIL_ENABLE_LOG_INFO && (condition), \
+        ::SAL_DETAIL_LOG_LEVEL_INFO, area, SAL_WHERE, stream)
+
+#define SAL_INFO_IF_DL(condition, area, stream)  \
+    SAL_DETAIL_LOG_STREAM( \
+        SAL_LOG_TRUE && (condition), \
         ::SAL_DETAIL_LOG_LEVEL_INFO, area, SAL_WHERE, stream)
 
 /**
@@ -315,6 +336,11 @@ inline char const * unwrapStream(SAL_UNUSED_PARAMETER StreamIgnore const &) {
         SAL_DETAIL_ENABLE_LOG_WARN, ::SAL_DETAIL_LOG_LEVEL_WARN, area, \
         SAL_WHERE, stream)
 
+#define SAL_WARN_DL(area, stream) \
+    SAL_DETAIL_LOG_STREAM( \
+        SAL_LOG_TRUE, ::SAL_DETAIL_LOG_LEVEL_WARN, area, \
+        SAL_WHERE, stream)
+
 /**
   Produce warning entry from stream in the given log area if condition is true.
 
@@ -323,6 +349,11 @@ inline char const * unwrapStream(SAL_UNUSED_PARAMETER StreamIgnore const &) {
 #define SAL_WARN_IF(condition, area, stream)   \
     SAL_DETAIL_LOG_STREAM( \
         SAL_DETAIL_ENABLE_LOG_WARN && (condition), \
+        ::SAL_DETAIL_LOG_LEVEL_WARN, area, SAL_WHERE, stream)
+
+#define SAL_WARN_IF_DL(condition, area, stream)   \
+    SAL_DETAIL_LOG_STREAM( \
+        (condition), \
         ::SAL_DETAIL_LOG_LEVEL_WARN, area, SAL_WHERE, stream)
 
 /**
