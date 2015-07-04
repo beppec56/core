@@ -1,4 +1,4 @@
-#
+
 # This file is part of the LibreOffice project.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -702,6 +702,7 @@ PRIVATE_1.2 { # LibreOffice 3.5
     global:
         sal_detail_log;
         sal_detail_logFormat;
+        osl_setLogMessageFunc;
 } PRIVATE_1.1;
 
 PRIVATE_textenc.1 { # LibreOffice 3.6
