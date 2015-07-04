@@ -1,0 +1,49 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/*
+ * This file is part of the LibreOffice project.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+
+
+#ifndef __com_sun_star_logging_DebugLogRing_idl__
+#define __com_sun_star_logging_DebugLogRing_idl__
+
+#include <com/sun/star/lang/IllegalArgumentException.idl>
+#include <com/sun/star/beans/NamedValue.idl>
+
+//=============================================================================
+
+module com { module sun { module star { module logging {
+
+interface XDebugLogRing;
+
+//=============================================================================
+
+/** This service allows to log the events in a ring of specified size.
+
+    @since LibreOffice 5.1
+ */
+service DebugLogRing : XDebugLogRing
+{
+    /** creates a ring of default size - 4096 messages
+     */
+    create();
+
+    /** creates a ring of specified size
+        @param nSize
+            the number of messages in a ring
+     */
+    createWithSize( [in] long nSize );
+};
+
+//=============================================================================
+
+}; }; }; };
+
+//=============================================================================
+
+#endif
