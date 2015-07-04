@@ -6,16 +6,16 @@
 --with-vendor="Acca Esse, I-10067" \
 --with-gdrive-client-id="457862564325.apps.googleusercontent.com" \
 --with-gdrive-client-secret="GYWrDtzyZQZ0_g5YoBCC6F0I" \
---with-external-tar=/srv5/git/LibO/externals \
+--with-external-tar=/cygdrive/e/sources/lo-externalsrc \
 --with-lang='en-US' \
 \
 --with-external-tar=/cygdrive/e/sources/lo-externalsrc \
 --with-junit=/cygdrive/c/sources/junit-4.10.jar \
 --with-ant-home=/cygdrive/c/sources/apache-ant-1.9.5 \
---enable-pch --disable-ccache \
---disable-activex --disable-atl \
+--enable-pch \
+--disable-ccache \
 \
---with-build-version="$(date +"%Y-%m-%d %H:%M:%S (%a, %d %b %Y)") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h))" \
+--with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h))" \
 \
 
 
