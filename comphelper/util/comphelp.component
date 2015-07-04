@@ -58,4 +58,8 @@
   <implementation name="org.openoffice.comp.comphelper.EnumerableMap">
     <service name="com.sun.star.container.EnumerableMap"/>
   </implementation>
+  <implementation name="com.sun.star.comp.logging.DebugLogRing">
+    <service name="com.sun.star.logging.DebugLogRing"/>
+    <singleton name="com.sun.star.logging.SingleDebugLogRing"/>
+  </implementation>
 </component>

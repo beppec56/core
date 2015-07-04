@@ -124,6 +124,8 @@
 #include <sys/wait.h>
 #endif
 
+#include <tools/debuglogger.hxx>
+
 #ifdef WNT
 #ifdef _MSC_VER
 #pragma warning(push, 1) /* disable warnings within system headers */
@@ -424,6 +426,7 @@ OUString MakeStartupConfigAccessErrorMessage( OUString const & aInternalErrMsg )
 
 void FatalError(const OUString& sMessage)
 {
+    ::tools::writeDebugLogDefaultNameIfNotEmpty();
     OUString sProductKey = ::utl::Bootstrap::getProductKey();
     if ( sProductKey.isEmpty())
     {
@@ -1368,6 +1371,9 @@ int Desktop::Main()
 
         SetSplashScreenProgress(25);
 
+        //init the embedded debug logger
+        ::tools::initDebugLog();
+
 #if HAVE_FEATURE_DESKTOP
         // check user installation directory for lockfile so we can be sure
         // there is no other instance using our data files from a remote host
@@ -1617,25 +1623,30 @@ int Desktop::Main()
         catch(const css::document::CorruptedFilterConfigurationException& exFilterCfg)
         {
             OfficeIPCThread::SetDowning();
+            SAL_WARN_A( "desktop.app", MakeStartupErrorMessage(exFilterCfg.Message) );
             FatalError( MakeStartupErrorMessage(exFilterCfg.Message) );
         }
         catch(const css::configuration::CorruptedConfigurationException& exAnyCfg)
         {
             OfficeIPCThread::SetDowning();
+            SAL_WARN_A( "desktop.app", MakeStartupErrorMessage(exAnyCfg.Message) );
             FatalError( MakeStartupErrorMessage(exAnyCfg.Message) );
         }
         catch( const css::uno::Exception& exUNO)
         {
             OfficeIPCThread::SetDowning();
+            SAL_WARN_A( "desktop.app", exUNO.Message );
             FatalError( exUNO.Message);
         }
         catch( const std::exception& exSTD)
         {
             OfficeIPCThread::SetDowning();
+            SAL_WARN_A( "desktop.app", OUString::createFromAscii( exSTD.what()) );
             FatalError( OUString::createFromAscii( exSTD.what()));
         }
         catch( ...)
         {
+            SAL_WARN_A( "desktop.app", "Caught Unknown Exception: Aborting!" );
             OfficeIPCThread::SetDowning();
             FatalError( "Caught Unknown Exception: Aborting!");
         }
@@ -1652,6 +1663,8 @@ int Desktop::Main()
 
 int Desktop::doShutdown()
 {
+    //close and flush to file the debug log event recorder
+    ::tools::writeDebugLogDefaultNameIfNotEmpty();
     if( ! pExecGlobals )
         return EXIT_SUCCESS;
 

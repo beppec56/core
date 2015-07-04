@@ -174,16 +174,29 @@ bool report(sal_detail_LogLevel level, char const * area) {
     }
 }
 
+static pfunc_osl_log_TraceMessage _pTraceMessage = NULL;
+
 void log(
     sal_detail_LogLevel level, char const * area, char const * where,
     char const * message)
 {
     std::ostringstream s;
+    oslDateTime currentDate;
+    TimeValue   currentTime;
+    osl_getSystemTime(&currentTime);
+    osl_getDateTimeFromTimeValue( &currentTime, &currentDate );
+    // prepend absolute datetime time to file name
+    char buff[1024];
+    snprintf( buff, sizeof buff, "%04d%02d%02d-%02d:%02d:%02d.%06ld | ",
+              currentDate.Year,currentDate.Month,currentDate.Day,
+              currentDate.Hours, currentDate.Minutes, currentDate.Seconds,
+              currentTime.Nanosec / 1000L);
+
 #if !defined ANDROID
     // On Android, the area will be used as the "tag," and log info already
     // contains the PID
     if (!sal_use_syslog) {
-        s << toString(level) << ':';
+        s << buff << toString(level) << ':';
     }
     if (level != SAL_DETAIL_LOG_LEVEL_DEBUG) {
         s << area << ':';
@@ -240,33 +253,36 @@ void log(
         syslog(prio, "%s", s.str().c_str());
 #endif
     } else {
-        std::fputs(s.str().c_str(), stderr);
-        std::fflush(stderr);
+        if( _pTraceMessage != NULL )
+            _pTraceMessage(s.str().c_str());
     }
 #endif
 }
 
 }
 
+pfunc_osl_log_TraceMessage osl_setLogMessageFunc( pfunc_osl_log_TraceMessage pNewFunc )
+{
+    pfunc_osl_log_TraceMessage pOldFunc = _pTraceMessage;
+    _pTraceMessage = pNewFunc;
+    return pOldFunc;
+}
+
 void sal_detail_log(
     sal_detail_LogLevel level, char const * area, char const * where,
     char const * message)
 {
-    if (report(level, area)) {
-        log(level, area, where, message);
-    }
+    log(level, area, where, message);
 }
 
 void sal_detail_logFormat(
     sal_detail_LogLevel level, char const * area, char const * where,
     char const * format, ...)
 {
-    if (report(level, area)) {
-        std::va_list args;
-        va_start(args, format);
-        osl::detail::logFormat(level, area, where, format, args);
-        va_end(args);
-    }
+    std::va_list args;
+    va_start(args, format);
+    osl::detail::logFormat(level, area, where, format, args);
+    va_end(args);
 }
 
 void osl::detail::logFormat(
