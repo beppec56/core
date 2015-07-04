@@ -249,6 +249,9 @@ $(eval $(call gb_UnoApi_add_idlfiles_nohdl,offapi,com/sun/star/logging,\
 	LoggerPool \
 	PlainTextFormatter \
 	SimpleLogRing \
+	DebugLogRing \
+	SingleDebugLogRing \
+	XDebugLogRing \
 ))
 $(eval $(call gb_UnoApi_add_idlfiles_nohdl,offapi,com/sun/star/mail,\
 	MailMessage \

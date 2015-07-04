@@ -96,6 +96,9 @@
 #define OSL_TRACE(...) \
     SAL_DETAIL_INFO_IF_FORMAT(OSL_DEBUG_LEVEL > 0, "legacy.osl", __VA_ARGS__)
 
+#define OSL_TRACE_A(...) \
+    SAL_DETAIL_WARN_FORMAT_A( "legacy.osl", __VA_ARGS__)
+
 #if OSL_DEBUG_LEVEL > 0
 #define OSL_ASSERT(c) \
     SAL_DETAIL_WARN_IF_FORMAT(!(c), "legacy.osl", "OSL_ASSERT: %s", #c)

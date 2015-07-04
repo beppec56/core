@@ -174,6 +174,8 @@ bool report(sal_detail_LogLevel level, char const * area) {
     }
 }
 
+static pfunc_osl_log_TraceMessage _pTraceMessage = NULL;
+
 void log(
     sal_detail_LogLevel level, char const * area, char const * where,
     char const * message)
@@ -240,12 +242,19 @@ void log(
         syslog(prio, "%s", s.str().c_str());
 #endif
     } else {
-        std::fputs(s.str().c_str(), stderr);
-        std::fflush(stderr);
+        if( _pTraceMessage != NULL )
+            _pTraceMessage(s.str().c_str());
     }
 #endif
 }
 
+}
+
+pfunc_osl_log_TraceMessage osl_setLogMessageFunc( pfunc_osl_log_TraceMessage pNewFunc )
+{
+    pfunc_osl_log_TraceMessage pOldFunc = _pTraceMessage;
+    _pTraceMessage = pNewFunc;
+    return pOldFunc;
 }
 
 void sal_detail_log(
