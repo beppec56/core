@@ -73,6 +73,7 @@ $(eval $(call gb_Library_add_exception_objects,tl,\
     tools/source/misc/getprocessworkingdir \
     tools/source/misc/solarmutex \
     tools/source/misc/toolsdll \
+    tools/source/misc/debuglogger \
     tools/source/rc/rc \
     tools/source/rc/resary \
     tools/source/rc/resmgr \

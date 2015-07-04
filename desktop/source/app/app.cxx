@@ -119,6 +119,8 @@
 #include <sys/wait.h>
 #endif
 
+#include <tools/debuglogger.hxx>
+
 #ifdef WNT
 #ifdef _MSC_VER
 #pragma warning(push, 1) /* disable warnings within system headers */
@@ -419,6 +421,7 @@ OUString MakeStartupConfigAccessErrorMessage( OUString const & aInternalErrMsg )
 
 void FatalError(const OUString& sMessage)
 {
+    ::tools::writeDebugLogIfNotEmpty("FatalError.log");
     OUString sProductKey = ::utl::Bootstrap::getProductKey();
     if ( sProductKey.isEmpty())
     {
@@ -1348,6 +1351,9 @@ int Desktop::Main()
 
         SetSplashScreenProgress(25);
 
+        //init the embedded debug logger
+        ::tools::initDebugLog();
+
 #if HAVE_FEATURE_DESKTOP
         // check user installation directory for lockfile so we can be sure
         // there is no other instance using our data files from a remote host
@@ -1627,6 +1633,8 @@ int Desktop::Main()
 
 int Desktop::doShutdown()
 {
+    //close and flush to file the debug log event recorder
+    ::tools::writeDebugLogIfNotEmpty("Desktop_doShutdown.log");
     if( ! pExecGlobals )
         return EXIT_SUCCESS;
 
