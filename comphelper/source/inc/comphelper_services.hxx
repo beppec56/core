@@ -34,6 +34,7 @@ void createRegistryInfo_OfficeInstallationDirectories();
 void createRegistryInfo_SequenceInputStream();
 void createRegistryInfo_SequenceOutputStream();
 void createRegistryInfo_UNOMemoryStream();
+void createRegistryInfo_ODebugLogRing();
 
 #endif
 
