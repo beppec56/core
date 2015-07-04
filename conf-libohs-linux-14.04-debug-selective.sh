@@ -8,7 +8,7 @@
 --with-lang='en-US' \
 --enable-debug \
 --enable-selective-debuginfo="sal/ unotools/ ucbhelper/ ucb/ sfx2/" \
---with-build-version="$(date +"%Y-%m-%d %H:%M:%S (%a, %d %b %Y)") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h))" \
+--with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h))" \
 \
 
 

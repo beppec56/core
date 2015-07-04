@@ -6,7 +6,7 @@
 --with-gdrive-client-secret="GYWrDtzyZQZ0_g5YoBCC6F0I" \
 --with-external-tar=/srv5/git/LibO/externals \
 --with-lang='en-US' \
---with-build-version="$(date +"%Y-%m-%d %H:%M:%S (%a, %d %b %Y)") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h))" \
+--with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h))" \
 \
 
 
