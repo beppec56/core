@@ -1184,7 +1184,7 @@ void DAVResourceAccess::getUserRequestHeaders(
         }
     }
     rRequestHeaders.push_back(
-        DAVRequestHeader( "User-Agent", "LibreOffice" ) );
+        DAVRequestHeader( "User-Agent", "LOHS derived from LibreOffice" ) );
 }
 
 // This function member implements the control on cyclical redirections
