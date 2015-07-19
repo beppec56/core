@@ -2980,7 +2980,7 @@ void Content::lock(
 
         uno::Any aOwnerAny;
         aOwnerAny
-            <<= OUString("LibreOffice - http://www.libreoffice.org/");
+            <<= OUString("LOHS derived from LibreOffice");
 
         ucb::Lock aLock(
             ucb::LockScope_EXCLUSIVE,

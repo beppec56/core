@@ -1147,7 +1147,7 @@ void DAVResourceAccess::getUserRequestHeaders(
         }
     }
     rRequestHeaders.push_back(
-        DAVRequestHeader( "User-Agent", "LibreOffice" ) );
+        DAVRequestHeader( "User-Agent", "LOHS derived from LibreOffice" ) );
 }
 
 
