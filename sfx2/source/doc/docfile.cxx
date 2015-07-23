@@ -125,6 +125,9 @@
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
 
+
+#include <typeinfo>
+
 using namespace ::com::sun::star;
 using namespace ::com::sun::star::uno;
 using namespace ::com::sun::star::ucb;
@@ -1014,8 +1017,10 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
                                 bUIStatus = ShowLockedDocumentDialog( aLockData, bLoading, false );
                             }
                         }
-                        catch( uno::Exception& )
-                        {}
+                        catch( uno::Exception& e)
+                        {
+                            SAL_WARN_A("sfx2.doc","Exception: "<<typeid(e).name());
+                        }
                     }
                 } while( !bResult && bUIStatus == LOCK_UI_TRY );
             }
@@ -2704,7 +2709,7 @@ void SfxMedium::CloseAndRelease()
 
 void SfxMedium::UnlockFile( bool bReleaseLockStream )
 {
-    SAL_WARN_A("sfx2.doc","SfxMedium::UnlockFile called - bReleaseLockStream: "<<bReleaseLockStream);
+    SAL_WARN_A("sfx2.doc","SfxMedium::UnlockFile called - bReleaseLockStream: "<<bReleaseLockStream );
 #if !HAVE_FEATURE_MULTIUSER_ENVIRONMENT
     (void) bReleaseLockStream;
 #else
@@ -2715,6 +2720,7 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
         if( aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTP_SCHEME ) ||
             aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTPS_SCHEME ) )
         {
+            SAL_WARN_A("sfx2.doc","performing unlock un WebDAV -  bReleaseLockStream: "<<bReleaseLockStream<<" URL "<<GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
             if ( pImp->m_bLocked )
             {
                 // an interaction handler should be used for authentication
@@ -2727,12 +2733,23 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
                     pImp->m_bLocked = false;
                     aContentToUnlock.unlock();
                 }
-                catch (ucb::CommandFailedException& )
+                catch (ucb::CommandFailedException& e)
                 {
+                    uno::Exception te;
+                    if( e.Reason >>= te)
+                    {
+                        SAL_WARN_A("sfx2.doc","Exception returned: "<<typeid(te).name());
                     //signalled when this resource can not be unlocked, for whatever reason
+                    }
+                    else
+                    {
+                        SAL_WARN_A("sfx2.doc","NO Exception returned");
+                    }
                 }
-                catch( uno::Exception& )
-                { }
+                catch( uno::Exception& e)
+                {
+                    SAL_WARN_A("sfx2.doc","Exception: "<<typeid(e).name());
+               }
             }
             return;
         }

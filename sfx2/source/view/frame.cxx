@@ -164,7 +164,10 @@ bool SfxFrame::DoClose_Impl()
         pImp->pWorkWin->DeleteControllers_Impl();
 
     if ( pImp->pCurrentViewFrame )
+    {
+        SAL_WARN_A("sfx2","Closing....");
         pImp->pCurrentViewFrame->Close();
+    }
 
     if ( pImp->bOwnsBindings )
         DELETEZ( pBindings );
