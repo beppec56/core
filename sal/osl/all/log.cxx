@@ -242,6 +242,8 @@ void log(
         syslog(prio, "%s", s.str().c_str());
 #endif
     } else {
+        std::fputs(s.str().c_str(), stderr);
+        std::fflush(stderr);
         if( _pTraceMessage != NULL )
             _pTraceMessage(s.str().c_str());
     }
