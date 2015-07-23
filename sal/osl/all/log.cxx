@@ -274,6 +274,9 @@ void log(
         if( _pTraceMessage != nullptr )
         {
             _pTraceMessage(s.str().c_str());
+            std::fputs(s.str().c_str(), stderr);
+            std::fflush(stderr);
+        }
     }
 #endif
 }
