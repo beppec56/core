@@ -254,7 +254,11 @@ void log(
 #endif
     } else {
         if( _pTraceMessage != NULL )
+        {
             _pTraceMessage(s.str().c_str());
+            std::fputs(s.str().c_str(), stderr);
+            std::fflush(stderr);
+        }
     }
 #endif
 }
