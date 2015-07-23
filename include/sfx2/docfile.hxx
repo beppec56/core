@@ -162,6 +162,7 @@ public:
 
     sal_Int8            ShowLockedDocumentDialog( const LockFileEntry& aData, bool bIsLoading, bool bOwnLock );
     void                LockOrigFileOnDemand( bool bLoading, bool bNoUI );
+    void                DisableUnlockWebDAV( bool bDisableUnlockWebDAV = true);
     void                UnlockFile( bool bReleaseLockStream );
 
     css::uno::Reference< css::embed::XStorage > GetStorage( bool bCreateTempIfNo = true );

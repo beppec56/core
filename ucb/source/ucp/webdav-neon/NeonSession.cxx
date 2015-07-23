@@ -1347,6 +1347,18 @@ void NeonSession::LOCK( const OUString & inPath,
     SAL_WARN("ucb.ucp.webdav","LOCK (set new) - inPath: "<<inPath);
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
 
+    // before issuing the lock command,
+    // better check first if we already have one on this href
+    if ( m_aNeonLockStore.findByUri(
+                         makeAbsoluteURL( inPath ) ) != 0 )
+    {
+        // we already own a lock for this href
+        // no need to ask for another
+        // TODO: add a lockdiscovery request for confirmation
+        // checking the locktoken, the only item that's unique
+        return;
+    }
+
     Init( rEnv );
 
     /* Create a depth zero, exclusive write lock, with default timeout
@@ -1401,7 +1413,10 @@ void NeonSession::LOCK( const OUString & inPath,
                                            RTL_TEXTENCODING_UTF8 ).getStr() );
     TimeValue startCall;
     osl_getSystemTime( &startCall );
-
+    // TODO: before issuing the lock command,
+    // better check first if we already have one and if
+    // we have one do a lockdiscovery for confirmation
+    // checking the locktoken, the only item that's unique
     int theRetVal = ne_lock( m_pHttpSession, theLock );
 
     if ( theRetVal == NE_OK )

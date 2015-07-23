@@ -186,6 +186,7 @@ public:
     bool m_bSalvageMode:1;
     bool m_bVersionsAlreadyLoaded:1;
     bool m_bLocked:1;
+    bool m_bDisableUnlockWebDAV:1;
     bool m_bGotDateTime:1;
     bool m_bRemoveBackup:1;
     bool m_bOriginallyReadOnly:1;
@@ -263,6 +264,7 @@ SfxMedium_Impl::SfxMedium_Impl( SfxMedium* pAntiImplP ) :
     m_bSalvageMode( false ),
     m_bVersionsAlreadyLoaded( false ),
     m_bLocked( false ),
+    m_bDisableUnlockWebDAV( false ),
     m_bGotDateTime( false ),
     m_bRemoveBackup( false ),
     m_bOriginallyReadOnly(false),
@@ -2726,6 +2728,11 @@ void SfxMedium::CloseAndRelease()
     UnlockFile( true );
 }
 
+void SfxMedium::DisableUnlockWebDAV(bool bDisableUnlockWebDAV )
+{
+    pImp->m_bDisableUnlockWebDAV = bDisableUnlockWebDAV;
+}
+
 void SfxMedium::UnlockFile( bool bReleaseLockStream )
 {
 #if !HAVE_FEATURE_MULTIUSER_ENVIRONMENT
@@ -2749,11 +2756,9 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
                                                                    Reference< ::com::sun::star::ucb::XProgressHandler >() );
                     ucbhelper::Content aContentToUnlock( GetURLObject().GetMainURL( INetURLObject::NO_DECODE ), xComEnv, comphelper::getProcessComponentContext());
                     pImp->m_bLocked = false;
-                    aContentToUnlock.unlock();
-                }
-                catch (ucb::CommandFailedException& )
-                {
-                    //signalled when this resource can not be unlocked, for whatever reason
+                    //check if WebDAV unlock was explicitly disabled
+                    if(!pImp->m_bDisableUnlockWebDAV)
+                        aContentToUnlock.unlock();
                 }
                 catch( uno::Exception& )
                 { }
