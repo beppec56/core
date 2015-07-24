@@ -963,13 +963,15 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
     if( aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTP_SCHEME ) ||
         aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTPS_SCHEME ) )
     {
-        SAL_WARN_A("sfx2.doc","SfxMedium::LockOrigFileOnDemand called, WebDAV mode - bLoading: "<<bLoading<<" bNoUI: "<<bNoUI);
+        SAL_WARN_A("sfx2.doc","SfxMedium::LockOrigFileOnDemand called, WebDAV mode - bLoading: "<<bLoading<<" bNoUI: "<<bNoUI" - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
         try
         {
             bool bResult = pImp->m_bLocked;
             // so, this is webdav stuff...
+            SAL_WARN_A("sfx2","SfxMedium::LockOrigFileOnDemand - bResult: "<<bResult);
             if ( !bResult )
             {
+                SAL_WARN_A("sfx2","SfxMedium::LockOrigFileOnDemand - bResult: "<<bResult);
                 // no read-write access is necessary on loading if the document is explicitly opened as copy
                 SFX_ITEMSET_ARG( GetItemSet(), pTemplateItem, SfxBoolItem, SID_TEMPLATE, false );
                 bResult = ( bLoading && pTemplateItem && pTemplateItem->GetValue() );
@@ -977,6 +979,7 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
 
             if ( !bResult && !IsReadOnly() )
             {
+                SAL_WARN_A("sfx2","SfxMedium::LockOrigFileOnDemand - bResult: "<<bResult);
                 sal_Int8 bUIStatus = LOCK_UI_NOLOCK;
                 do
                 {
@@ -2728,36 +2731,44 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
         if( aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTP_SCHEME ) ||
             aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTPS_SCHEME ) )
         {
-            if ( pImp->m_bLocked && pImp->m_bEnableUnlockWebDAV)
+            SAL_WARN_A("sfx2","SfxMedium::UnlockFile - Unlock WebDAV - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
+            if ( pImp->m_bLocked )
             {
-                // an interaction handler should be used for authentication
-                try {
-                    uno::Reference< ::com::sun::star::task::XInteractionHandler > xHandler = GetInteractionHandler( true );
-                    uno::Reference< ::com::sun::star::ucb::XCommandEnvironment > xComEnv;
-                    xComEnv = new ::ucbhelper::CommandEnvironment( xHandler,
-                                                                   Reference< ::com::sun::star::ucb::XProgressHandler >() );
-                    ucbhelper::Content aContentToUnlock( GetURLObject().GetMainURL( INetURLObject::NO_DECODE ), xComEnv, comphelper::getProcessComponentContext());
-                    pImp->m_bLocked = false;
-                    aContentToUnlock.unlock();
-                }
-                catch (ucb::CommandFailedException& e)
+                if( pImp->m_bEnableUnlockWebDAV )
                 {
-                    uno::Exception te;
-                    if( e.Reason >>= te)
-                    {
-                        SAL_WARN_A("sfx2.doc","Exception returned: "<<typeid(te).name());
-                    //signalled when this resource can not be unlocked, for whatever reason
+                    // an interaction handler should be used for authentication
+                    SAL_WARN_A("sfx2","SfxMedium::UnlockFile - Unlock WebDAV - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
+                    try {
+                        uno::Reference< ::com::sun::star::task::XInteractionHandler > xHandler = GetInteractionHandler( true );
+                        uno::Reference< ::com::sun::star::ucb::XCommandEnvironment > xComEnv;
+                        xComEnv = new ::ucbhelper::CommandEnvironment( xHandler,
+                                                                       Reference< ::com::sun::star::ucb::XProgressHandler >() );
+                        ucbhelper::Content aContentToUnlock( GetURLObject().GetMainURL( INetURLObject::NO_DECODE ), xComEnv, comphelper::getProcessComponentContext());
+                        pImp->m_bLocked = false;
+                        aContentToUnlock.unlock();
                     }
-                    else
+                    catch (ucb::CommandFailedException& e)
                     {
-                        SAL_WARN_A("sfx2.doc","NO Exception returned");
+                        uno::Exception te;
+                        if( e.Reason >>= te)
+                        {
+                            SAL_WARN_A("sfx2.doc","Exception returned: "<<typeid(te).name());
+                            //signalled when this resource can not be unlocked, for whatever reason
+                        }
+                        else
+                        {
+                            SAL_WARN_A("sfx2.doc","NO Exception returned");
+                        }
+                    }
+                    catch( uno::Exception& e)
+                    {
+                        SAL_WARN_A("sfx2.doc","Exception: "<<typeid(e).name());
                     }
                 }
-                catch( uno::Exception& e)
-                {
-                    SAL_WARN_A("sfx2.doc","Exception: "<<typeid(e).name());
-               }
             }
+            else
+                pImp->m_bLocked;
+
             return;
         }
     }
