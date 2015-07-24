@@ -391,7 +391,6 @@ SfxObjectShell::~SfxObjectShell()
         if ( IsDocShared() )
             FreeSharedFile();
 #endif
-        pMedium->RequestUnlockWebDAV();
         DELETEX( SfxMedium, pMedium );
     }
 

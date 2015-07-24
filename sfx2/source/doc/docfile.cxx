@@ -188,6 +188,7 @@ public:
     bool m_bSalvageMode:1;
     bool m_bVersionsAlreadyLoaded:1;
     bool m_bLocked:1;
+    bool m_bDisableUnlockWebDAV:1;
     bool m_bGotDateTime:1;
     bool m_bRemoveBackup:1;
     bool m_bOriginallyReadOnly:1;
@@ -195,8 +196,6 @@ public:
     bool m_bRemote:1;
     bool m_bInputStreamIsReadOnly:1;
     bool m_bInCheckIn:1;
-    bool m_bEnableUnlockWebDAV:1;
-
 
     OUString m_aName;
     OUString m_aLogicName;
@@ -267,6 +266,7 @@ SfxMedium_Impl::SfxMedium_Impl( SfxMedium* pAntiImplP ) :
     m_bSalvageMode( false ),
     m_bVersionsAlreadyLoaded( false ),
     m_bLocked( false ),
+    m_bDisableUnlockWebDAV( false ),
     m_bGotDateTime( false ),
     m_bRemoveBackup( false ),
     m_bOriginallyReadOnly(false),
@@ -274,7 +274,6 @@ SfxMedium_Impl::SfxMedium_Impl( SfxMedium* pAntiImplP ) :
     m_bRemote(false),
     m_bInputStreamIsReadOnly(false),
     m_bInCheckIn(false),
-    m_bEnableUnlockWebDAV(false),
     m_pSet(NULL),
     m_pURLObj(NULL),
     m_pFilter(NULL),
@@ -963,7 +962,7 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
     if( aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTP_SCHEME ) ||
         aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTPS_SCHEME ) )
     {
-        SAL_WARN_A("sfx2.doc","SfxMedium::LockOrigFileOnDemand called, WebDAV mode - bLoading: "<<bLoading<<" bNoUI: "<<bNoUI" - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
+        SAL_WARN_A("sfx2.doc","SfxMedium::LockOrigFileOnDemand called, WebDAV mode - bLoading: "<<bLoading<<" bNoUI: "<<bNoUI <<" - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
         try
         {
             bool bResult = pImp->m_bLocked;
@@ -2714,9 +2713,9 @@ void SfxMedium::CloseAndRelease()
     UnlockFile( true );
 }
 
-void SfxMedium::RequestUnlockWebDAV()
+void SfxMedium::DisableUnlockWebDAV(bool bDisableUnlockWebDAV )
 {
-    pImp->m_bEnableUnlockWebDAV = true;
+    pImp->m_bDisableUnlockWebDAV = bDisableUnlockWebDAV;
 }
 
 void SfxMedium::UnlockFile( bool bReleaseLockStream )
@@ -2734,41 +2733,36 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
             SAL_WARN_A("sfx2","SfxMedium::UnlockFile - Unlock WebDAV - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
             if ( pImp->m_bLocked )
             {
-                if( pImp->m_bEnableUnlockWebDAV )
-                {
-                    // an interaction handler should be used for authentication
-                    SAL_WARN_A("sfx2","SfxMedium::UnlockFile - Unlock WebDAV - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
-                    try {
-                        uno::Reference< ::com::sun::star::task::XInteractionHandler > xHandler = GetInteractionHandler( true );
-                        uno::Reference< ::com::sun::star::ucb::XCommandEnvironment > xComEnv;
-                        xComEnv = new ::ucbhelper::CommandEnvironment( xHandler,
-                                                                       Reference< ::com::sun::star::ucb::XProgressHandler >() );
-                        ucbhelper::Content aContentToUnlock( GetURLObject().GetMainURL( INetURLObject::NO_DECODE ), xComEnv, comphelper::getProcessComponentContext());
-                        pImp->m_bLocked = false;
+                // an interaction handler should be used for authentication
+                SAL_WARN_A("sfx2","SfxMedium::UnlockFile - Unlock WebDAV - "<< GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
+                try {
+                    uno::Reference< ::com::sun::star::task::XInteractionHandler > xHandler = GetInteractionHandler( true );
+                    uno::Reference< ::com::sun::star::ucb::XCommandEnvironment > xComEnv;
+                    xComEnv = new ::ucbhelper::CommandEnvironment( xHandler,
+                                                                   Reference< ::com::sun::star::ucb::XProgressHandler >() );
+                    ucbhelper::Content aContentToUnlock( GetURLObject().GetMainURL( INetURLObject::NO_DECODE ), xComEnv, comphelper::getProcessComponentContext());
+                    pImp->m_bLocked = false;
+                    if(!pImp->m_bDisableUnlockWebDAV)
                         aContentToUnlock.unlock();
-                    }
-                    catch (ucb::CommandFailedException& e)
+                }
+                catch (ucb::CommandFailedException& e)
+                {
+                    uno::Exception te;
+                    if( e.Reason >>= te)
                     {
-                        uno::Exception te;
-                        if( e.Reason >>= te)
-                        {
-                            SAL_WARN_A("sfx2.doc","Exception returned: "<<typeid(te).name());
-                            //signalled when this resource can not be unlocked, for whatever reason
-                        }
-                        else
-                        {
-                            SAL_WARN_A("sfx2.doc","NO Exception returned");
-                        }
+                        SAL_WARN_A("sfx2.doc","Exception returned: "<<typeid(te).name());
+                        //signalled when this resource can not be unlocked, for whatever reason
                     }
-                    catch( uno::Exception& e)
+                    else
                     {
-                        SAL_WARN_A("sfx2.doc","Exception: "<<typeid(e).name());
+                        SAL_WARN_A("sfx2.doc","NO Exception returned");
                     }
                 }
+                catch( uno::Exception& e)
+                {
+                    SAL_WARN_A("sfx2.doc","Exception: "<<typeid(e).name());
+                }
             }
-            else
-                pImp->m_bLocked;
-
             return;
         }
     }

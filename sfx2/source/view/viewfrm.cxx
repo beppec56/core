@@ -468,7 +468,6 @@ void SfxViewFrame::ExecReload_Impl( SfxRequest& rReq )
                             return;
                     }
 
-                    pMed->RequestUnlockWebDAV();
                     pMed->CloseAndRelease();
                     pMed->GetItemSet()->Put( SfxBoolItem( SID_DOC_READONLY, !( nOpenMode & StreamMode::WRITE ) ) );
                     pMed->SetOpenMode( nOpenMode );
