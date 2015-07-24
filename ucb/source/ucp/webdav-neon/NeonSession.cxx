@@ -1370,6 +1370,10 @@ void NeonSession::LOCK( const OUString & inPath,
     TimeValue startCall;
     osl_getSystemTime( &startCall );
     SAL_WARN_A("ucb.ucp.webdav.neonsession","LOCK");
+    // TODO: before issuing the lock command,
+    // better check first if we already have one and if
+    // we have do a lockdiscovery for confirmation
+    // checking the locktoken, the only item that's unique
     int theRetVal = ne_lock( m_pHttpSession, theLock );
 
     if ( theRetVal == NE_OK )
