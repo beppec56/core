@@ -435,7 +435,8 @@ void SfxObjectShell::SetReadOnly()
      if ( pMedium && !IsReadOnlyMedium() )
     {
         bool bWasROUI = IsReadOnly();
-
+//TODO: check if here a true in place of m_bUnlockWebDAV is needed, to force unlock
+        SAL_WARN_A("sfx2.obj","SfxObjectShell::SetReadOnly - CALLING UnlockFile <------------------------=");
         pMedium->UnlockFile( false );
 
         // the storage-based mediums are already based on the temporary file

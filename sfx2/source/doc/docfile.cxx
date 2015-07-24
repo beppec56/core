@@ -195,6 +195,8 @@ public:
     bool m_bRemote:1;
     bool m_bInputStreamIsReadOnly:1;
     bool m_bInCheckIn:1;
+    bool m_bEnableUnlockWebDAV:1;
+
 
     OUString m_aName;
     OUString m_aLogicName;
@@ -272,6 +274,7 @@ SfxMedium_Impl::SfxMedium_Impl( SfxMedium* pAntiImplP ) :
     m_bRemote(false),
     m_bInputStreamIsReadOnly(false),
     m_bInCheckIn(false),
+    m_bEnableUnlockWebDAV(false),
     m_pSet(NULL),
     m_pURLObj(NULL),
     m_pFilter(NULL),
@@ -949,7 +952,6 @@ namespace
 // if user cancel the loading the ERROR_ABORT is set
 void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
 {
-    SAL_WARN_A("sfx2.doc","SfxMedium::LockOrigFileOnDemand called - bLoading: "<<bLoading<<" bNoUI: "<<bNoUI);
 #if !HAVE_FEATURE_MULTIUSER_ENVIRONMENT
     (void) bLoading;
     (void) bNoUI;
@@ -961,6 +963,7 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
     if( aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTP_SCHEME ) ||
         aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTPS_SCHEME ) )
     {
+        SAL_WARN_A("sfx2.doc","SfxMedium::LockOrigFileOnDemand called, WebDAV mode - bLoading: "<<bLoading<<" bNoUI: "<<bNoUI);
         try
         {
             bool bResult = pImp->m_bLocked;
@@ -1019,7 +1022,7 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
                         }
                         catch( uno::Exception& e)
                         {
-                            SAL_WARN_A("sfx2.doc","Exception: "<<typeid(e).name());
+                            SAL_WARN_A("sfx2.doc","LockOrigFileOnDemand() - Exception: "<<typeid(e).name());
                         }
                     }
                 } while( !bResult && bUIStatus == LOCK_UI_TRY );
@@ -2697,6 +2700,7 @@ void SfxMedium::Close()
 
 void SfxMedium::CloseAndRelease()
 {
+    SAL_WARN_A("sfx2","SfxMedium::CloseAndRelease");
     if ( pImp->xStorage.is() )
     {
         CloseStorage();
@@ -2707,9 +2711,13 @@ void SfxMedium::CloseAndRelease()
     UnlockFile( true );
 }
 
+void SfxMedium::RequestUnlockWebDAV()
+{
+    pImp->m_bEnableUnlockWebDAV = true;
+}
+
 void SfxMedium::UnlockFile( bool bReleaseLockStream )
 {
-    SAL_WARN_A("sfx2.doc","SfxMedium::UnlockFile called - bReleaseLockStream: "<<bReleaseLockStream );
 #if !HAVE_FEATURE_MULTIUSER_ENVIRONMENT
     (void) bReleaseLockStream;
 #else
@@ -2720,9 +2728,11 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
         if( aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTP_SCHEME ) ||
             aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTPS_SCHEME ) )
         {
-            SAL_WARN_A("sfx2.doc","performing unlock un WebDAV -  bReleaseLockStream: "<<bReleaseLockStream<<" URL "<<GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
             if ( pImp->m_bLocked )
             {
+                SAL_WARN_A("sfx2.doc","performing Unlock on WebDAV -  bReleaseLockStream: "<<bReleaseLockStream
+                           <<" pImp->m_bEnableUnlockWebDAV: "<< pImp->m_bEnableUnlockWebDAV
+                           <<" URL "<<GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
                 // an interaction handler should be used for authentication
                 try {
                     uno::Reference< ::com::sun::star::task::XInteractionHandler > xHandler = GetInteractionHandler( true );

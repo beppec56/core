@@ -165,7 +165,6 @@ bool SfxFrame::DoClose_Impl()
 
     if ( pImp->pCurrentViewFrame )
     {
-        SAL_WARN_A("sfx2","Closing....");
         pImp->pCurrentViewFrame->Close();
     }
 
