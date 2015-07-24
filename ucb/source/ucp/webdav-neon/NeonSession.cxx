@@ -1369,7 +1369,7 @@ void NeonSession::LOCK( const OUString & inPath,
                                            RTL_TEXTENCODING_UTF8 ).getStr() );
     TimeValue startCall;
     osl_getSystemTime( &startCall );
-
+    SAL_WARN_A("ucb.ucp.webdav.neonsession","LOCK");
     int theRetVal = ne_lock( m_pHttpSession, theLock );
 
     if ( theRetVal == NE_OK )
@@ -1445,7 +1445,7 @@ void NeonSession::UNLOCK( const OUString & inPath,
         throw DAVException( DAVException::DAV_NOT_LOCKED );
 
     Init( rEnv );
-
+    SAL_WARN_A("ucb.ucp.webdav.neonsession","UNLOCK");
     int theRetVal = ne_unlock( m_pHttpSession, theLock );
 
     if ( theRetVal == NE_OK )
