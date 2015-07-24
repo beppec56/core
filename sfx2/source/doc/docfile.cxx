@@ -2728,11 +2728,8 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
         if( aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTP_SCHEME ) ||
             aScheme.equalsIgnoreAsciiCaseAscii( INET_HTTPS_SCHEME ) )
         {
-            if ( pImp->m_bLocked )
+            if ( pImp->m_bLocked && pImp->m_bEnableUnlockWebDAV)
             {
-                SAL_WARN_A("sfx2.doc","performing Unlock on WebDAV -  bReleaseLockStream: "<<bReleaseLockStream
-                           <<" pImp->m_bEnableUnlockWebDAV: "<< pImp->m_bEnableUnlockWebDAV
-                           <<" URL "<<GetURLObject().GetMainURL( INetURLObject::NO_DECODE ));
                 // an interaction handler should be used for authentication
                 try {
                     uno::Reference< ::com::sun::star::task::XInteractionHandler > xHandler = GetInteractionHandler( true );
