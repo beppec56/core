@@ -21,6 +21,7 @@ $(eval $(call gb_UnpackedTarball_add_patches,neon,\
 	external/neon/neon.patch \
 	external/neon/neon_ne_set_request_flag.patch \
 	external/neon/neon_with_gnutls.patch \
+	external/neon/neon_fix_lock_token_on_if.patch \
 ))
 
 # vim: set noet sw=4 ts=4:
