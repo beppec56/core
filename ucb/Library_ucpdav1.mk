@@ -119,4 +119,14 @@ $(eval $(call gb_Library_add_libs,ucpdav1,\
 ))
 endif
 
+ifeq ($(WITH_WEBDAV),serf)
+
+ifeq ($(OS),LINUX)
+$(eval $(call gb_Library_add_libs,ucpdav1,\
+	-luuid \
+))
+endif
+
+endif
+
 # vim: set noet sw=4 ts=4:
