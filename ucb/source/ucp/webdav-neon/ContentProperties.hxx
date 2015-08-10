@@ -154,6 +154,9 @@ public:
     const std::unique_ptr< PropertyValueMap > & getProperties() const
     { return m_xProps; }
 
+//debug only
+    void debugPrintNames();
+
 private:
     OUString m_aEscapedTitle;
     std::unique_ptr< PropertyValueMap > m_xProps;
