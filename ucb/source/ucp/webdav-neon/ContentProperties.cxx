@@ -520,6 +520,22 @@ void ContentProperties::addProperty( const OUString & rName,
     (*m_xProps)[ rName ] = PropertyValue( rValue, bIsCaseSensitive );
 }
 
+//debug only
+void ContentProperties::debugPrintNames()
+{
+    OUString Names;
+
+    PropertyValueMap::const_iterator it = m_xProps->begin();
+    const PropertyValueMap::const_iterator end = m_xProps->end();
+
+        while ( it != end )
+        {
+            Names += (*it).first;
+            Names += ", ";
+            it++;
+        }
+        SAL_WARN("ucb.ucp.webdav","    names: "<< Names);
+}
 
 
 

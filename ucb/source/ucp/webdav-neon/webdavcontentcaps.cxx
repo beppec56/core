@@ -512,6 +512,7 @@ uno::Sequence< beans::Property > Content::getProperties(
 uno::Sequence< ucb::CommandInfo > Content::getCommands(
     const uno::Reference< ucb::XCommandEnvironment > & xEnv )
 {
+    SAL_WARN("ucb.ucp.webdav","Content::getCommands - called");
     osl::Guard< osl::Mutex > aGuard( m_aMutex );
 
     uno::Sequence< ucb::CommandInfo > aCmdInfo( 10 );
