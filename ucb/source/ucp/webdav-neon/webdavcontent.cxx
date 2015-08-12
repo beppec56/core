@@ -3045,6 +3045,16 @@ void Content::lock(
                 //grab the error code
                 switch( e.getStatus() )
                 {
+                    case SC_PRECONDITION_FAILED:
+                        // This can be a problem in SharePoint,
+                        // lock the resource on first creation due to this:
+                        // https://msdn.microsoft.com/en-us/library/jj575265%28v=office.12%29.aspx#id15
+                        // retrieved on 2015-08-14
+                        // a better solution would be implement OPTIONS and from there gather
+                        // the server type we are dealing with
+                        // unfortunately this leaves a regression in sharepoint, when saving
+                        // a file non yet existent
+                        break;
                     // this returned error is part of base http 1.1 RFCs
                     case SC_NOT_IMPLEMENTED:
                     case SC_METHOD_NOT_ALLOWED:
