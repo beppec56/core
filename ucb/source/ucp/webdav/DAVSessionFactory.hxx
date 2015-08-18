@@ -24,6 +24,7 @@
 #ifdef min
 #undef min // GNU libstdc++ <memory> includes <limit> which defines methods called min...
 #endif
+#include <config_lgpl.h>
 #include <map>
 #include <memory>
 #include <osl/mutex.hxx>
@@ -34,6 +35,10 @@
 #include "DAVException.hxx"
 
 using namespace com::sun::star;
+
+namespace com { namespace sun { namespace star { namespace beans {
+    struct NamedValue;
+} } } }
 
 namespace com { namespace sun { namespace star { namespace lang {
     class XMultiServiceFactory;
@@ -51,17 +56,19 @@ public:
 
     rtl::Reference< DAVSession >
         createDAVSession( const OUString & inUri,
-                          const ::com::sun::star::uno::Reference<
-                            ::com::sun::star::uno::XComponentContext >&
-                                rxContext )
+                          const ::uno::Sequence< ::com::sun::star::beans::NamedValue >& rFlags,
+                          const ::uno::Reference< ::uno::XComponentContext >& rxContext )
             throw( DAVException );
 
+    ::uno::Reference< ::uno::XComponentContext > getComponentContext() {  return m_xContext; }
 private:
     typedef std::map< OUString, DAVSession * > Map;
 
     Map m_aMap;
     osl::Mutex m_aMutex;
     std::unique_ptr< ucbhelper::InternetProxyDecider > m_xProxyDecider;
+
+    ::uno::Reference< ::uno::XComponentContext > m_xContext;
 
     void releaseElement( DAVSession * pElement );
 

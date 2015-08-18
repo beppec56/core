@@ -20,7 +20,8 @@
 #include "DAVSessionFactory.hxx"
 #include "SerfSession.hxx"
 #include "SerfUri.hxx"
-#include <com/sun/star/uno/XComponentContext.hpp>
+#include <osl/diagnose.h>
+#include <com/sun/star/lang/XMultiServiceFactory.hpp>
 
 using namespace http_dav_ucp;
 using namespace com::sun::star;
@@ -31,9 +32,12 @@ DAVSessionFactory::~DAVSessionFactory()
 
 rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
                 const OUString & inUri,
+                const uno::Sequence< beans::NamedValue >& rFlags,
                 const uno::Reference< uno::XComponentContext > & rxContext )
     throw( DAVException )
 {
+    m_xContext = rxContext;
+
     osl::MutexGuard aGuard( m_aMutex );
 
     if ( !m_xProxyDecider.get() )
@@ -44,7 +48,7 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
 
     while ( aIt != aEnd )
     {
-        if ( (*aIt).second->CanUse( inUri ) )
+        if ( (*aIt).second->CanUse( inUri, rFlags ) )
             break;
 
         ++aIt;
@@ -55,22 +59,22 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
         SerfUri aURI( inUri );
 
         std::unique_ptr< DAVSession > xElement(
-            new SerfSession( this, inUri, *m_xProxyDecider.get() ) );
+            new SerfSession( this, inUri, rFlags, *m_xProxyDecider.get() ) );
 
         aIt = m_aMap.insert( Map::value_type( inUri, xElement.get() ) ).first;
         aIt->second->m_aContainerIt = aIt;
         xElement.release();
         return aIt->second;
     }
-    else if ( osl_incrementInterlockedCount( &aIt->second->m_nRefCount ) > 1 )
+    else if ( osl_atomic_increment( &aIt->second->m_nRefCount ) > 1 )
     {
         rtl::Reference< DAVSession > xElement( aIt->second );
-        osl_decrementInterlockedCount( &aIt->second->m_nRefCount );
+        osl_atomic_decrement( &aIt->second->m_nRefCount );
         return xElement;
     }
     else
     {
-        osl_decrementInterlockedCount( &aIt->second->m_nRefCount );
+        osl_atomic_decrement( &aIt->second->m_nRefCount );
         aIt->second->m_aContainerIt = m_aMap.end();
 
         // If URL scheme is different from http or https we definitely
@@ -78,7 +82,7 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
         // call a little:
         SerfUri aURI( inUri );
 
-        aIt->second = new SerfSession( this, inUri, *m_xProxyDecider.get() );
+        aIt->second = new SerfSession( this, inUri, rFlags, *m_xProxyDecider.get() );
         aIt->second->m_aContainerIt = aIt;
         return aIt->second;
     }
