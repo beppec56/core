@@ -52,6 +52,8 @@ namespace http_dav_ucp {
 #define DAVS_URL_SCHEME         "davs"
 #define DAVS_URL_SCHEME_LENGTH  4
 
+#define FTP_URL_SCHEME "ftp"
+
 #define HTTP_CONTENT_TYPE      "application/" HTTP_URL_SCHEME "-content"
 
 #define WEBDAV_CONTENT_TYPE    HTTP_CONTENT_TYPE

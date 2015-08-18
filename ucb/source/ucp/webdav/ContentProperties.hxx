@@ -22,10 +22,10 @@
 #ifndef INCLUDED_UCB_SOURCE_UCP_WEBDAV_CONTENTPROPERTIES_HXX
 #define INCLUDED_UCB_SOURCE_UCP_WEBDAV_CONTENTPROPERTIES_HXX
 
+#include <config_lgpl.h>
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include <boost/scoped_ptr.hpp>
 #include <rtl/ustring.hxx>
 #include <com/sun/star/uno/Any.hxx>
 #include <com/sun/star/uno/Sequence.hxx>
@@ -149,17 +149,17 @@ public:
 
     // Not good to expose implementation details, but this is actually an
     // internal class.
-    const boost::scoped_ptr< PropertyValueMap > & getProperties() const
+    const std::unique_ptr< PropertyValueMap > & getProperties() const
     { return m_xProps; }
 
 private:
     OUString m_aEscapedTitle;
-    boost::scoped_ptr< PropertyValueMap > m_xProps;
+    std::unique_ptr< PropertyValueMap > m_xProps;
     bool m_bTrailingSlash;
 
     static com::sun::star::uno::Any m_aEmptyAny;
 
-    ContentProperties & operator=( const ContentProperties & ); // n.i.
+    ContentProperties & operator=( const ContentProperties & ) SAL_DELETED_FUNCTION;
 
     const PropertyValue * get( const OUString & rName ) const;
 };
@@ -169,8 +169,8 @@ class CachableContentProperties
 private:
     ContentProperties m_aProps;
 
-    CachableContentProperties & operator=( const CachableContentProperties & ); // n.i.
-    CachableContentProperties( const CachableContentProperties & ); // n.i.
+    CachableContentProperties & operator=( const CachableContentProperties & ) SAL_DELETED_FUNCTION;
+    CachableContentProperties( const CachableContentProperties & ) SAL_DELETED_FUNCTION;
 
 public:
     explicit CachableContentProperties( const ContentProperties & rProps );

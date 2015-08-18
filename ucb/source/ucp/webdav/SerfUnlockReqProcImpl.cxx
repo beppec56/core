@@ -48,9 +48,13 @@ serf_bucket_t * SerfUnlockReqProcImpl::createSerfRequestBucket( serf_request_t *
     // general header fields provided by caller
     setRequestHeaders( hdrs_bkt );
 
+    OUString sTokenValue("<");
+    sTokenValue += m_sToken;
+    sTokenValue += ">";
+
     // token header field
     serf_bucket_headers_set( hdrs_bkt, "Lock-Token",
-            OUStringToOString(m_sToken, RTL_TEXTENCODING_UTF8).getStr() );
+            OUStringToOString(sTokenValue, RTL_TEXTENCODING_UTF8).getStr() );
 
     return req_bkt;
 }

@@ -585,7 +585,7 @@ namespace {
 void DAVResourceAccess::PUT(
     const uno::Reference< io::XInputStream > & rStream,
     const uno::Reference< ucb::XCommandEnvironment > & xEnv )
-  throw( DAVException )
+  throw(css::uno::RuntimeException, DAVException)
 {
     initialize();
 
@@ -634,7 +634,7 @@ uno::Reference< io::XInputStream > DAVResourceAccess::POST(
     const OUString & rReferer,
     const uno::Reference< io::XInputStream > & rInputStream,
     const uno::Reference< ucb::XCommandEnvironment >& xEnv )
-  throw ( DAVException )
+  throw (css::uno::RuntimeException, DAVException)
 {
     initialize();
 
@@ -698,7 +698,7 @@ void DAVResourceAccess::POST(
     const uno::Reference< io::XInputStream > & rInputStream,
     uno::Reference< io::XOutputStream > & rOutputStream,
     const uno::Reference< ucb::XCommandEnvironment >& xEnv )
-  throw ( DAVException )
+  throw (css::uno::RuntimeException, DAVException )
 {
     initialize();
 
@@ -1165,7 +1165,7 @@ void DAVResourceAccess::resetUri()
 }
 
 
-bool DAVResourceAccess::handleException( DAVException & e, int errorCount )
+bool DAVResourceAccess::handleException( const DAVException & e, int errorCount )
     throw ( DAVException )
 {
     switch ( e.getError() )

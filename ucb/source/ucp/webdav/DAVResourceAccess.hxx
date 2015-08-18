@@ -22,15 +22,17 @@
 #ifndef INCLUDED_UCB_SOURCE_UCP_WEBDAV_DAVRESOURCEACCESS_HXX
 #define INCLUDED_UCB_SOURCE_UCP_WEBDAV_DAVRESOURCEACCESS_HXX
 
+#include <config_lgpl.h>
 #include <vector>
 #include <rtl/ustring.hxx>
 #include <rtl/ref.hxx>
 #include <osl/mutex.hxx>
 #include <com/sun/star/io/XInputStream.hpp>
 #include <com/sun/star/io/XOutputStream.hpp>
+#include <com/sun/star/beans/NamedValue.hpp>
 #include <com/sun/star/ucb/Lock.hpp>
-#include <com/sun/star/ucb/XCommandEnvironment.hpp>
 #include <com/sun/star/ucb/WebDAVHTTPMethod.hpp>
+#include <com/sun/star/ucb/XCommandEnvironment.hpp>
 #include "DAVAuthListener.hxx"
 #include "DAVException.hxx"
 #include "DAVSession.hxx"
@@ -48,6 +50,7 @@ class DAVResourceAccess
     osl::Mutex    m_aMutex;
     OUString m_aURL;
     OUString m_aPath;
+    ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue > m_aFlags;
     rtl::Reference< DAVSession > m_xSession;
     rtl::Reference< DAVSessionFactory > m_xSessionFactory;
     com::sun::star::uno::Reference<
@@ -57,13 +60,16 @@ class DAVResourceAccess
 public:
     DAVResourceAccess() : m_xSessionFactory( 0 ) {}
     DAVResourceAccess( const com::sun::star::uno::Reference<
-                           com::sun::star::uno::XComponentContext > & rContext,
+                           com::sun::star::uno::XComponentContext > & rxContext,
                        rtl::Reference<
                        DAVSessionFactory > const & rSessionFactory,
                        const OUString & rURL );
     DAVResourceAccess( const DAVResourceAccess & rOther );
 
     DAVResourceAccess & operator=( const DAVResourceAccess & rOther );
+
+    void setFlags( const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& rFlags )
+        throw ( DAVException );
 
     void setURL( const OUString & rNewURL )
         throw ( DAVException );
@@ -77,6 +83,14 @@ public:
 
     // DAV methods
 
+
+#if 0 // currently not used, but please don't remove code
+    void
+    OPTIONS(  DAVCapabilities & rCapabilities,
+              const com::sun::star::uno::Reference<
+                  com::sun::star::ucb::XCommandEnvironment > & xEnv )
+        throw ( DAVException );
+#endif
 
     // allprop & named
     void
@@ -149,7 +163,7 @@ public:
              com::sun::star::io::XInputStream > & rStream,
          const com::sun::star::uno::Reference<
              com::sun::star::ucb::XCommandEnvironment > & xEnv )
-        throw ( DAVException );
+        throw (css::uno::RuntimeException, DAVException);
 
     com::sun::star::uno::Reference< com::sun::star::io::XInputStream >
     POST( const OUString & rContentType,
@@ -158,7 +172,7 @@ public:
               com::sun::star::io::XInputStream > & rInputStream,
           const com::sun::star::uno::Reference<
           com::sun::star::ucb::XCommandEnvironment >& xEnv )
-        throw ( DAVException );
+        throw (css::uno::RuntimeException, DAVException);
 
     void
     POST( const OUString & rContentType,
@@ -169,7 +183,7 @@ public:
               com::sun::star::io::XOutputStream > & rOutputStream,
           const com::sun::star::uno::Reference<
               com::sun::star::ucb::XCommandEnvironment >& xEnv )
-        throw ( DAVException );
+        throw (css::uno::RuntimeException, DAVException);
 
     void
     MKCOL( const com::sun::star::uno::Reference<
@@ -227,7 +241,7 @@ public:
     getUserRequestHeaders(
         const com::sun::star::uno::Reference<
             com::sun::star::ucb::XCommandEnvironment > & xEnv,
-        const rtl::OUString & rURI,
+        const OUString & rURI,
         com::sun::star::ucb::WebDAVHTTPMethod eMethod,
         DAVRequestHeaders & rRequestHeaders );
 
@@ -235,7 +249,7 @@ private:
     const OUString & getRequestURI() const;
     bool detectRedirectCycle( const OUString& rRedirectURL )
         throw ( DAVException );
-    bool handleException( DAVException & e, int errorCount )
+    bool handleException( const DAVException & e, int errorCount )
         throw ( DAVException );
     void initialize()
         throw ( DAVException );

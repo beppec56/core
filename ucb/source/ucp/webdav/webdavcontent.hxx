@@ -22,9 +22,9 @@
 #ifndef INCLUDED_UCB_SOURCE_UCP_WEBDAV_WEBDAVCONTENT_HXX
 #define INCLUDED_UCB_SOURCE_UCP_WEBDAV_WEBDAVCONTENT_HXX
 
+#include <config_lgpl.h>
 #include <memory>
 #include <list>
-#include <boost/scoped_ptr.hpp>
 #include <rtl/ref.hxx>
 #include <com/sun/star/ucb/ContentCreationException.hpp>
 #include <com/sun/star/ucb/XContentCreator.hpp>
@@ -46,9 +46,9 @@ namespace com { namespace sun { namespace star { namespace sdbc {
 } } } }
 
 namespace com { namespace sun { namespace star { namespace ucb {
-    struct OpenCommandArgument2;
-    struct PropertyCommandArgument;
+    struct OpenCommandArgument3;
     struct PostCommandArgument2;
+    struct PropertyCommandArgument;
     struct TransferInfo;
 } } } }
 
@@ -72,17 +72,18 @@ class Content : public ::ucbhelper::ContentImplHelper,
     enum ResourceType
     {
         UNKNOWN,
+        FTP,
         NON_DAV,
         DAV
     };
 
-    boost::scoped_ptr< DAVResourceAccess > m_xResAccess;
-    boost::scoped_ptr< CachableContentProperties > m_xCachedProps; // locally cached props
+    std::unique_ptr< DAVResourceAccess > m_xResAccess;
+    std::unique_ptr< CachableContentProperties >
+                      m_xCachedProps; // locally cached props
     OUString     m_aEscapedTitle;
     ResourceType      m_eResourceType;
     ContentProvider*  m_pProvider; // No need for a ref, base class holds object
     bool              m_bTransient;
-    bool              m_bLocked;
     bool              m_bCollection;
     bool              m_bDidGetOrHead;
     std::vector< OUString > m_aFailedPropNames;
@@ -98,21 +99,21 @@ private:
 
     bool isFolder( const ::com::sun::star::uno::Reference<
                            ::com::sun::star::ucb::XCommandEnvironment >& xEnv )
-        throw ( ::com::sun::star::uno::Exception );
+        throw ( ::com::sun::star::uno::Exception, std::exception );
 
     ::com::sun::star::uno::Reference< ::com::sun::star::sdbc::XRow >
     getPropertyValues( const ::com::sun::star::uno::Sequence<
                            ::com::sun::star::beans::Property >& rProperties,
                        const ::com::sun::star::uno::Reference<
                            ::com::sun::star::ucb::XCommandEnvironment >& xEnv )
-        throw ( ::com::sun::star::uno::Exception );
+        throw ( ::com::sun::star::uno::Exception, std::exception );
 
     ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Any >
     setPropertyValues( const ::com::sun::star::uno::Sequence<
                            ::com::sun::star::beans::PropertyValue >& rValues,
                        const ::com::sun::star::uno::Reference<
                            ::com::sun::star::ucb::XCommandEnvironment >& xEnv )
-        throw ( ::com::sun::star::uno::Exception );
+        throw ( ::com::sun::star::uno::Exception, std::exception );
 
     typedef rtl::Reference< Content > ContentRef;
     typedef std::list< ContentRef > ContentRefList;
@@ -123,32 +124,32 @@ private:
                           ::com::sun::star::ucb::XContentIdentifier >& xNewId );
 
     const OUString
-    getBaseURI( const boost::scoped_ptr< DAVResourceAccess > & rResAccess );
+    getBaseURI( const std::unique_ptr< DAVResourceAccess > & rResAccess );
 
     ResourceType
     getResourceType( const ::com::sun::star::uno::Reference<
                          ::com::sun::star::ucb::XCommandEnvironment >& xEnv )
-        throw ( ::com::sun::star::uno::Exception );
+        throw ( ::com::sun::star::uno::Exception, std::exception );
 
     ResourceType
     getResourceType( const ::com::sun::star::uno::Reference<
                           ::com::sun::star::ucb::XCommandEnvironment >& xEnv,
-                     const boost::scoped_ptr< DAVResourceAccess > & rResAccess,
-                     bool * networkAccessAllowed = 0 )
-        throw ( ::com::sun::star::uno::Exception );
+                     const std::unique_ptr< DAVResourceAccess > & rResAccess,
+                     bool * networkAccessAllowed = 0)
+        throw ( ::com::sun::star::uno::Exception, std::exception );
 
     // Command "open"
     com::sun::star::uno::Any open(
-                const com::sun::star::ucb::OpenCommandArgument2 & rArg,
+                const com::sun::star::ucb::OpenCommandArgument3 & rArg,
                 const com::sun::star::uno::Reference<
                     com::sun::star::ucb::XCommandEnvironment > & xEnv )
-        throw( ::com::sun::star::uno::Exception );
+        throw (css::uno::Exception, std::exception);
 
     // Command "post"
     void post( const com::sun::star::ucb::PostCommandArgument2 & rArg,
                const com::sun::star::uno::Reference<
                     com::sun::star::ucb::XCommandEnvironment > & xEnv )
-        throw( ::com::sun::star::uno::Exception );
+        throw( ::com::sun::star::uno::Exception, std::exception );
 
     // Command "insert"
     void insert( const ::com::sun::star::uno::Reference<
@@ -156,27 +157,27 @@ private:
                  bool bReplaceExisting,
                  const com::sun::star::uno::Reference<
                      com::sun::star::ucb::XCommandEnvironment >& Environment )
-        throw( ::com::sun::star::uno::Exception );
+        throw( ::com::sun::star::uno::Exception, std::exception );
 
     // Command "transfer"
     void transfer( const ::com::sun::star::ucb::TransferInfo & rArgs,
                    const com::sun::star::uno::Reference<
                        com::sun::star::ucb::XCommandEnvironment >& Environment )
-        throw( ::com::sun::star::uno::Exception );
+        throw( ::com::sun::star::uno::Exception, std::exception );
 
     // Command "delete"
     void destroy( bool bDeletePhysical )
-        throw( ::com::sun::star::uno::Exception );
+        throw( ::com::sun::star::uno::Exception, std::exception );
 
     // Command "lock"
     void lock( const com::sun::star::uno::Reference<
                   com::sun::star::ucb::XCommandEnvironment >& Environment )
-        throw( ::com::sun::star::uno::Exception );
+        throw( ::com::sun::star::uno::Exception, std::exception );
 
     // Command "unlock"
     void unlock( const com::sun::star::uno::Reference<
                   com::sun::star::ucb::XCommandEnvironment >& Environment )
-        throw( ::com::sun::star::uno::Exception );
+        throw( ::com::sun::star::uno::Exception, std::exception );
 
     ::com::sun::star::uno::Any MapDAVException( const DAVException & e,
                                                 bool bWrite );
@@ -185,7 +186,7 @@ private:
                     const ::com::sun::star::uno::Reference<
                         com::sun::star::ucb::XCommandEnvironment > & xEnv,
                     bool bWrite = false )
-        throw( ::com::sun::star::uno::Exception );
+        throw( ::com::sun::star::uno::Exception, std::exception );
 
     static bool shouldAccessNetworkAfterException( const DAVException & e );
 
@@ -200,14 +201,17 @@ private:
     throw( com::sun::star::beans::PropertyExistException,
            com::sun::star::beans::IllegalTypeException,
            com::sun::star::lang::IllegalArgumentException,
-           com::sun::star::uno::RuntimeException );
+           com::sun::star::uno::RuntimeException,
+           std::exception );
 
-    void removeProperty( const rtl::OUString& Name,
+    void removeProperty( const OUString& Name,
                          const com::sun::star::uno::Reference<
                          com::sun::star::ucb::XCommandEnvironment >& Environment )
     throw( com::sun::star::beans::UnknownPropertyException,
            com::sun::star::beans::NotRemoveableException,
-           com::sun::star::uno::RuntimeException );
+           com::sun::star::uno::RuntimeException,
+           std::exception );
+
 public:
     Content( const ::com::sun::star::uno::Reference<
                  ::com::sun::star::uno::XComponentContext >& rxContext,
@@ -243,16 +247,16 @@ public:
     // XServiceInfo
     virtual OUString SAL_CALL
     getImplementationName()
-        throw( ::com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+        throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
     virtual ::com::sun::star::uno::Sequence< OUString > SAL_CALL
     getSupportedServiceNames()
-        throw( ::com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+        throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
     // XContent
     virtual OUString SAL_CALL
     getContentType()
-        throw( com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+        throw( com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
     // XCommandProcessor
     virtual com::sun::star::uno::Any SAL_CALL
@@ -262,10 +266,10 @@ public:
                  com::sun::star::ucb::XCommandEnvironment >& Environment )
         throw( com::sun::star::uno::Exception,
                com::sun::star::ucb::CommandAbortedException,
-               com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+               com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
     virtual void SAL_CALL
     abort( sal_Int32 CommandId )
-        throw( com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+        throw( com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
     // XPropertyContainer
     virtual void SAL_CALL
@@ -275,13 +279,13 @@ public:
         throw( com::sun::star::beans::PropertyExistException,
                com::sun::star::beans::IllegalTypeException,
                com::sun::star::lang::IllegalArgumentException,
-               com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+               com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
     virtual void SAL_CALL
     removeProperty( const OUString& Name )
         throw( com::sun::star::beans::UnknownPropertyException,
                com::sun::star::beans::NotRemoveableException,
-               com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+               com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
 
     // Additional interfaces
@@ -291,11 +295,11 @@ public:
     virtual com::sun::star::uno::Sequence<
         com::sun::star::ucb::ContentInfo > SAL_CALL
    queryCreatableContentsInfo()
-        throw( com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+        throw( com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
     virtual com::sun::star::uno::Reference<
         com::sun::star::ucb::XContent > SAL_CALL
     createNewContent( const com::sun::star::ucb::ContentInfo& Info )
-        throw( com::sun::star::uno::RuntimeException ) SAL_OVERRIDE;
+        throw( com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
 
     // Non-interface methods.
@@ -306,7 +310,7 @@ public:
     // Called from resultset data supplier.
     static ::com::sun::star::uno::Reference< ::com::sun::star::sdbc::XRow >
     getPropertyValues( const ::com::sun::star::uno::Reference<
-                           ::com::sun::star::uno::XComponentContext >& rContext,
+                           ::com::sun::star::uno::XComponentContext >& rxContext,
                        const ::com::sun::star::uno::Sequence<
                            ::com::sun::star::beans::Property >& rProperties,
                        const ContentProperties& rData,
