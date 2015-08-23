@@ -423,7 +423,7 @@ uno::Any SAL_CALL Content::execute(
            ucb::CommandAbortedException,
            uno::RuntimeException, std::exception )
 {
-    SAL_INFO( "ucb.ucp.webdav", "Content::execute: start: command: " <<
+    SAL_INFO_A( "ucb.ucp.webdav", "Content::execute: start: command: " <<
               aCommand.Name << ", env: " <<
               (Environment.is() ? "present" : "missing") );
 
@@ -641,6 +641,26 @@ uno::Any SAL_CALL Content::execute(
         // see: http://tools.ietf.org/html/rfc4918#section-7.3
         // If the resource doesn't exists and the lock is not enabled (DAV with
         // no lock or a simple web) the error will be dealt with inside lock() method
+
+        {//debug
+            OUString sType;
+            switch(eType)
+                {
+                case UNKNOWN: sType ="UNKNOWN (the type of the Web resource is unknown)";
+                    break;
+                case NOT_FOUND: sType = "NOT_FOUND (the Web resource does not exists)";
+                    break;
+                case FTP: sType = "FTP (the Web resource exists but it's ftp)";
+                    break;
+                case NON_DAV: sType = "NON_DAV (the Web resource exists but it's not DAV)";
+                    break;
+                case DAV: sType = "DAV (the type of the Web resource is DAV with lock/unlock available)";
+                    break;
+                case DAV_NOLOCK: sType = "DAV_NOLOCK (the type of the Web resource is DAV with no lock/unlock available)";
+                }
+            SAL_INFO_A( "ucb.ucp.webdav","eResourceType: " << sType);
+        }
+
         if ( eType == NOT_FOUND ||
             eType == DAV )
         {
@@ -754,7 +774,7 @@ uno::Any SAL_CALL Content::execute(
         // Unreachable
     }
 
-    SAL_INFO( "ucb.ucp.webdav", "Content::execute: end: command: " << aCommand.Name );
+    SAL_INFO_A( "ucb.ucp.webdav", "Content::execute: end: command: " << aCommand.Name );
 
     return aRet;
 }
@@ -909,20 +929,20 @@ void Content::addProperty( const ucb::PropertyCommandArgument& aCmdArg,
                         break;
 
                     default:
-                        SAL_WARN( "ucb.ucp.webdav", "Content::addProperty - "
+                        SAL_WARN_A( "ucb.ucp.webdav", "Content::addProperty - "
                                     "Unsupported resource type!" );
                         break;
                     }
                 }
                 catch ( uno::Exception const & )
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "Content::addProperty - "
+                    SAL_WARN_A( "ucb.ucp.webdav", "Content::addProperty - "
                                 "Unable to determine resource type!" );
                 }
             }
             else
             {
-                SAL_WARN( "ucb.ucp.webdav", "Content::addProperty - "
+                SAL_WARN_A( "ucb.ucp.webdav", "Content::addProperty - "
                             "Unable to determine resource type!" );
             }
         }
@@ -995,20 +1015,20 @@ void Content::removeProperty( const OUString& Name,
                             break;
 
                         default:
-                            SAL_WARN( "ucb.ucp.webdav", "Content::removeProperty - "
+                            SAL_WARN_A( "ucb.ucp.webdav", "Content::removeProperty - "
                                         "Unsupported resource type!" );
                             break;
                     }
                 }
                 catch ( uno::Exception const & )
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "Content::removeProperty - "
+                    SAL_WARN_A( "ucb.ucp.webdav", "Content::removeProperty - "
                                 "Unable to determine resource type!" );
                 }
             }
             else
             {
-                SAL_WARN( "ucb.ucp.webdav", "Content::removeProperty - "
+                SAL_WARN_A( "ucb.ucp.webdav", "Content::removeProperty - "
                             "Unable to determine resource type!" );
 //                throw beans::UnknownPropertyException();
             }
@@ -1384,12 +1404,13 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     std::vector< DAVResource > resources;
                     try
                     {
+                        SAL_INFO_A("ucb.ucp.webdav","PROPFIND 1 (getPropertyValues)");
                         xResAccess->PROPFIND(
                             DAVZERO, aPropNames, resources, xEnv );
 
                         if ( 1 == resources.size() )
                         {
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
                             {//debug
                                 // print received resources
                                 std::vector< DAVPropertyValue >::const_iterator it = resources[0].properties.begin();
@@ -1400,16 +1421,16 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                                     bool    bValue;
                                     uno::Sequence< ucb::LockEntry > aSupportedLocks;
                                     if( (*it).Value >>= aPropValue )
-                                        SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" << aPropValue );
+                                        SAL_INFO_A( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" << aPropValue );
                                     else if( (*it).Value >>= bValue )
-                                        SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" <<
+                                        SAL_INFO_A( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" <<
                                                   ( bValue ? "true" : "false" ) );
                                     else if( (*it).Value >>= aSupportedLocks )
                                     {
-                                        SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" );
+                                        SAL_INFO_A( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" );
                                         for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
                                         {
-                                            SAL_INFO( "ucb.ucp.webdav","      scope: "
+                                            SAL_INFO_A( "ucb.ucp.webdav","      scope: "
                                                       << ( aSupportedLocks[ n ].Scope ? "shared":"exclusive" )
                                                       << ", type: "
                                                       << ( aSupportedLocks[ n ].Type ? "" : "write" ) );
@@ -1418,7 +1439,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                                     ++it;
                                 }
                             }
-#endif
+//#endif
                             if ( xProps.get())
                                 xProps->addProperties(
                                     aPropNames,
@@ -1511,6 +1532,9 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
         if ( eType == UNKNOWN )
         {
+            // TODO: check why the unknown type is used, seems more likely this
+            // is a new resource instead
+            SAL_INFO_A("ucb.ucp.webdav","use eType == UNKNOWN to create new ContentProperties");
             xProps.reset( new ContentProperties( aUnescapedTitle ) );
         }
 
@@ -1904,7 +1928,7 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         }
         catch ( DAVException const & e )
         {
-            SAL_WARN( "ucb.ucp.webdav", "Content::setPropertyValues - PROPPATCH failed!" );
+            SAL_WARN_A( "ucb.ucp.webdav", "Content::setPropertyValues - PROPPATCH failed!" );
             cancelCommandExecution( e, xEnv );
             // unreachable
         }
@@ -2349,7 +2373,7 @@ void Content::insert(
 
     if ( aEscapedTitle.isEmpty() )
     {
-        SAL_WARN( "ucb.ucp.webdav", "Content::insert - Title missing!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "Content::insert - Title missing!" );
 
         uno::Sequence<OUString> aProps { "Title" };
         ucbhelper::cancelCommandExecution(
@@ -2425,7 +2449,7 @@ void Content::insert(
 //                            break;
 
                     default:
-                        SAL_WARN( "ucb.ucp.webdav", "Content::insert - "
+                        SAL_WARN_A( "ucb.ucp.webdav", "Content::insert - "
                                     "Unknown interaction selection!" );
                         throw ucb::CommandFailedException(
                                     OUString( "Unknown interaction selection!" ),
@@ -2444,6 +2468,7 @@ void Content::insert(
 
     if ( bTransient )
     {
+        SAL_INFO_A("ucb.ucp.webdav","bTransient is TRUE");
         // Assemble new content identifier...
         OUString aURL = getParentURL();
         if ( aURL.lastIndexOf( '/' ) != ( aURL.getLength() - 1 ) )
@@ -2555,6 +2580,7 @@ void Content::insert(
     }
     else
     {
+        SAL_INFO_A("ucb.ucp.webdav","bTransient is FALSE");
         if ( !xInputStream.is() )
         {
             ucbhelper::cancelCommandExecution(
@@ -2875,6 +2901,7 @@ Content::ResourceType Content::resourceTypeForLocks(
     const uno::Reference< ucb::XCommandEnvironment >& Environment,
     const std::unique_ptr< DAVResourceAccess > & rResAccess)
 {
+
     ResourceType eResourceTypeForLocks = UNKNOWN;
     {
         osl::MutexGuard g(m_aMutex);
@@ -2970,7 +2997,7 @@ Content::ResourceType Content::resourceTypeForLocks(
                                             {
                                                 // requested locking mode is supported
                                                 eResourceTypeForLocks = DAV;
-                                                SAL_INFO( "ucb.ucp.webdav", "resourceTypeForLocks - URL: <"
+                                                SAL_INFO_A( "ucb.ucp.webdav", "resourceTypeForLocks - URL: <"
                                                           << m_xIdentifier->getContentIdentifier() << ">, DAV lock/unlock supported");
                                                 break;
                                             }
@@ -2983,7 +3010,7 @@ Content::ResourceType Content::resourceTypeForLocks(
                         //check if this is still only a DAV_NOLOCK
                         if ( !wasSupportedlockFound && eResourceTypeForLocks == DAV_NOLOCK )
                         {
-                            SAL_INFO( "ucb.ucp.webdav", "This WebDAV server has no supportedlock property, check for allowed LOCK method in OPTIONS" );
+                            SAL_INFO_A( "ucb.ucp.webdav", "This WebDAV server has no supportedlock property, check for allowed LOCK method in OPTIONS" );
                             // TODO: if the lock type is changed from 'exclusive write' to 'shared write'
                             // e.g. to implement 'Calc shared file feature', and we arrive to this fallback
                             // and the LOCK is allowed, we should assume that only exclusive write lock is available
@@ -2998,7 +3025,7 @@ Content::ResourceType Content::resourceTypeForLocks(
                         switch( e.getStatus() )
                         {
                             case SC_NOT_FOUND:
-                                SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() - URL: <"
+                                SAL_WARN_A( "ucb.ucp.webdav", "resourceTypeForLocks() - URL: <"
                                           << m_xIdentifier->getContentIdentifier() << "> was not found. ");
                                 eResourceTypeForLocks = NOT_FOUND;
                                 break;
@@ -3013,13 +3040,13 @@ Content::ResourceType Content::resourceTypeForLocks(
                             case SC_NOT_IMPLEMENTED:        // <http://tools.ietf.org/html/rfc7231#section-6.6.2>
                             case SC_METHOD_NOT_ALLOWED:     // <http://tools.ietf.org/html/rfc7231#section-6.5.5>
                                 // they all mean the resource is NON_DAV
-                                SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException (SC_FORBIDDEN, SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
+                                SAL_WARN_A( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException (SC_FORBIDDEN, SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
                                           << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
                                 eResourceTypeForLocks = NON_DAV;
                                 break;
                             default:
                                 //fallthrough
-                                SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException - URL: <"
+                                SAL_WARN_A( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException - URL: <"
                                           << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
                                 eResourceTypeForLocks = UNKNOWN;
                         }
@@ -3038,12 +3065,12 @@ Content::ResourceType Content::resourceTypeForLocks(
     }
     else
     {
-        SAL_WARN_IF(
+        SAL_WARN_IF_A(
             eResourceTypeForLocks != m_eResourceTypeForLocks, "ucb.ucp.webdav",
             "different resource types for <" << rURL << ">: "
             << +eResourceTypeForLocks << " vs. " << +m_eResourceTypeForLocks);
     }
-    SAL_INFO( "ucb.ucp.webdav", "resourceTypeForLocks() - URL: <"
+    SAL_INFO_A( "ucb.ucp.webdav", "resourceTypeForLocks() - URL: <"
               << m_xIdentifier->getContentIdentifier() << ">, m_eResourceTypeForLocks: " << m_eResourceTypeForLocks );
     return m_eResourceTypeForLocks;
 }
@@ -3068,6 +3095,7 @@ void Content::lock(
         const uno::Reference< ucb::XCommandEnvironment >& Environment )
     throw( uno::Exception, std::exception )
 {
+    SAL_INFO_A("ucb.ucp.webdav","Content::lock - CALLED");
 // prepare aURL to be used in exception, see below
     OUString aURL;
     if ( m_bTransient )
@@ -3129,7 +3157,7 @@ void Content::lock(
         {
             case DAVException::DAV_LOCKED:
             {
-                SAL_WARN( "ucb.ucp.webdav", "lock() resource already locked - URL: <"
+                SAL_WARN_A( "ucb.ucp.webdav", "lock() resource already locked - URL: <"
                           << m_xIdentifier->getContentIdentifier() << ">");
                 throw
                     ucb::InteractiveLockingLockedException(
@@ -3142,7 +3170,7 @@ void Content::lock(
             break;
             case DAVException::DAV_HTTP_AUTH:
             {
-                SAL_WARN( "ucb.ucp.webdav", "lock() DAVException Authentication error - URL: <"
+                SAL_WARN_A( "ucb.ucp.webdav", "lock() DAVException Authentication error - URL: <"
                           << m_xIdentifier->getContentIdentifier() << ">" );
                 // DAVException::DAV_HTTP_AUTH exception can mean:
                 // - interaction handler for credential management not present (happens, depending
@@ -3179,7 +3207,7 @@ void Content::lock(
                         // part of base http 1.1 RFCs
                     case SC_NOT_IMPLEMENTED:        // <http://tools.ietf.org/html/rfc7231#section-6.6.2>
                     case SC_METHOD_NOT_ALLOWED:     // <http://tools.ietf.org/html/rfc7231#section-6.5.5>
-                        SAL_WARN( "ucb.ucp.webdav", "lock() DAVException (SC_PRECONDITION_FAILED, SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
+                        SAL_WARN_A( "ucb.ucp.webdav", "lock() DAVException (SC_PRECONDITION_FAILED, SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
                                   << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
                         // act as nothing happened
                         // that's because when a resource is first created
@@ -3209,7 +3237,7 @@ void Content::lock(
                 ;
         }
 
-        SAL_WARN( "ucb.ucp.webdav","lock() DAVException - URL: <"
+        SAL_WARN_A( "ucb.ucp.webdav","lock() DAVException - URL: <"
                   << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
         cancelCommandExecution( e, Environment );
         // Unreachable
@@ -3221,10 +3249,11 @@ void Content::unlock(
         const uno::Reference< ucb::XCommandEnvironment >& Environment )
     throw( uno::Exception, std::exception )
 {
+    SAL_INFO_A("ucb.ucp.webdav","Content::unlock - CALLED");
     // save the URL to clean cache
     OUString    aTargetUrl = m_xIdentifier->getContentIdentifier();
 
-    try
+   try
     {
         std::unique_ptr< DAVResourceAccess > xResAccess;
         {
@@ -3249,7 +3278,7 @@ void Content::unlock(
         switch( e.getError() )
         {
             case DAVException::DAV_NOT_LOCKED:
-                SAL_WARN( "ucb.ucp.webdav", "unlock() DAVException::DAV_NOT_LOCKED - URL: <"
+                SAL_WARN_A( "ucb.ucp.webdav", "unlock() DAVException::DAV_NOT_LOCKED - URL: <"
                           << m_xIdentifier->getContentIdentifier() << ">");
                 // means that we don't own any lock on this resource
                 // intercepted here to remove a confusing indication to the user
@@ -3266,7 +3295,7 @@ void Content::unlock(
                     // part of base http 1.1 RFCs
                     case SC_NOT_IMPLEMENTED:        // <http://tools.ietf.org/html/rfc7231#section-6.6.2>
                     case SC_METHOD_NOT_ALLOWED:     // <http://tools.ietf.org/html/rfc7231#section-6.5.5>
-                        SAL_WARN( "ucb.ucp.webdav", "unlock() DAVException (SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
+                        SAL_WARN_A( "ucb.ucp.webdav", "unlock() DAVException (SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
                                   << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
                         return;
                         break;
@@ -3282,7 +3311,7 @@ void Content::unlock(
                 //fallthrough
                 ;
         }
-        SAL_WARN( "ucb.ucp.webdav","unlock() DAVException - URL: <"
+        SAL_WARN_A( "ucb.ucp.webdav","unlock() DAVException - URL: <"
                   << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
         cancelCommandExecution( e, Environment );
         // Unreachable
@@ -3303,7 +3332,7 @@ bool Content::exchangeIdentity(
     // Already persistent?
     if ( m_bTransient )
     {
-        SAL_WARN( "ucb.ucp.webdav", "Content::exchangeIdentity - Not persistent!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "Content::exchangeIdentity - Not persistent!" );
         return false;
     }
 
@@ -3351,7 +3380,7 @@ bool Content::exchangeIdentity(
         }
     }
 
-    SAL_WARN( "ucb.ucp.webdav", "Content::exchangeIdentity - "
+    SAL_WARN_A( "ucb.ucp.webdav", "Content::exchangeIdentity - "
                 "Panic! Cannot exchange identity!" );
     return false;
 }
@@ -3648,11 +3677,12 @@ Content::ResourceType Content::getResourceType(
 
                 ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
 
+                SAL_INFO_A("ucb.ucp.webdav","PROPFIND 3 (getResourceType)");
                 rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xEnv );
 
                 if ( resources.size() == 1 )
                 {
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
                     {//debug
                         // print received resources
                         std::vector< DAVPropertyValue >::const_iterator it = resources[0].properties.begin();
@@ -3663,16 +3693,16 @@ Content::ResourceType Content::getResourceType(
                             bool    bValue;
                             uno::Sequence< ucb::LockEntry > aSupportedLocks;
                             if((*it).Value >>= aPropValue )
-                                SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" << aPropValue );
+                                SAL_INFO_A( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" << aPropValue );
                             else if( (*it).Value >>= bValue )
-                                SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" <<
+                                SAL_INFO_A( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" <<
                                           ( bValue ? "true" : "false" ) );
                             else if( (*it).Value >>= aSupportedLocks )
                             {
-                                SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" );
+                                SAL_INFO_A( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" );
                                 for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
                                 {
-                                    SAL_INFO( "ucb.ucp.webdav","PROPFIND (getResourceType) -       supportedlock[" << n <<"]: scope: "
+                                    SAL_INFO_A( "ucb.ucp.webdav","PROPFIND (getResourceType) -       supportedlock[" << n <<"]: scope: "
                                               << ( aSupportedLocks[ n ].Scope ? "shared":"exclusive" )
                                               << ", type: "
                                               << ( aSupportedLocks[ n ].Type ? "" : "write" ) );
@@ -3681,7 +3711,7 @@ Content::ResourceType Content::getResourceType(
                             ++it;
                         }
                     }
-#endif
+//#endif
                     osl::MutexGuard g(m_aMutex);
                     m_xCachedProps.reset(
                         new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );
@@ -3694,7 +3724,7 @@ Content::ResourceType Content::getResourceType(
             {
                 rResAccess->resetUri();
 
-                SAL_WARN( "ucb.ucp.webdav", "Content::getResourceType returned errors, DAV: " << e.getError() << ", http error: "  << e.getStatus() );
+                SAL_WARN_A( "ucb.ucp.webdav", "Content::getResourceType returned errors, DAV: " << e.getError() << ", http error: "  << e.getStatus() );
 
                 if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
                 {
@@ -3738,12 +3768,12 @@ Content::ResourceType Content::getResourceType(
     if (m_eResourceType == UNKNOWN) {
         m_eResourceType = eResourceType;
     } else {
-        SAL_WARN_IF(
+        SAL_WARN_IF_A(
             eResourceType != m_eResourceType, "ucb.ucp.webdav",
             "different resource types for <" << rURL << ">: "
             << +eResourceType << " vs. " << +m_eResourceType);
     }
-    SAL_INFO( "ucb.ucp.webdav", "m_eResourceType for <"<<rURL<<">: " << m_eResourceType );
+    SAL_INFO_A( "ucb.ucp.webdav", "m_eResourceType for <"<<rURL<<">: " << m_eResourceType );
     return m_eResourceType;
 }
 
@@ -3801,16 +3831,16 @@ void Content::getResourceOptions(
                 aTargetURL, aRedirURL, rDAVOptions,
                 nLifeTime );
 
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
             { //debug
                 // print the m_aDAVOptions values
-                SAL_INFO( "ucb.ucp.webdav", "DAVOptions for URL <" << rDAVOptions.getURL()
+                SAL_INFO_A( "ucb.ucp.webdav", "DAVOptions for URL <" << rDAVOptions.getURL()
                           << "> : Class1: " << rDAVOptions.isClass1()
                           << ", Class2: " << rDAVOptions.isClass2()
                           << ", Class3: " << rDAVOptions.isClass3()
                           << ", m_aAllowedMethods: " << rDAVOptions.getAllowedMethods() );
             } //debug
-#endif
+//#endif
         }
         catch ( DAVException const & e )
         {
@@ -3833,7 +3863,7 @@ void Content::getResourceOptions(
                 break;
                 case DAVException::DAV_HTTP_AUTH:
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "OPTIONS - DAVException Authentication error for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "OPTIONS - DAVException Authentication error for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                     // - the remote site is a WebDAV with special configuration: read/only for read operations
                     //   and read/write for write operations, the user is not allowed to lock/write and
                     //   she cancelled the credentials request.
@@ -3846,7 +3876,7 @@ void Content::getResourceOptions(
                     switch( e.getStatus() )
                     {
                         case SC_FORBIDDEN:
-                            SAL_WARN( "ucb.ucp.webdav","OPTIONS - Forbidden for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            SAL_WARN_A( "ucb.ucp.webdav","OPTIONS - Forbidden for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                             rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
                             // cache it, so OPTIONS won't be called again, this URL does not support it
                             aStaticDAVOptionsCache.addDAVOptions(
@@ -3855,7 +3885,7 @@ void Content::getResourceOptions(
                                 m_nOptsCacheLifeNotImpl );
                             break;
                         case SC_BAD_REQUEST:
-                            SAL_WARN( "ucb.ucp.webdav","OPTIONS - Bad request for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            SAL_WARN_A( "ucb.ucp.webdav","OPTIONS - Bad request for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                             rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
                             // cache it, so OPTIONS won't be called again, this URL does not support it
                             aStaticDAVOptionsCache.addDAVOptions(
@@ -3866,7 +3896,7 @@ void Content::getResourceOptions(
                         case SC_METHOD_NOT_ALLOWED:
                             // OPTIONS method must be implemented in DAV
                             // resource is NON_DAV, or not advertising it
-                            SAL_WARN( "ucb.ucp.webdav","OPTIONS - Method not allowed for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            SAL_WARN_A( "ucb.ucp.webdav","OPTIONS - Method not allowed for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                             rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
                             // cache it, so OPTIONS won't be called again, this URL does not support it
                             aStaticDAVOptionsCache.addDAVOptions(
@@ -3880,7 +3910,7 @@ void Content::getResourceOptions(
                                 aTargetURL, aRedirURL,
                                 rDAVOptions,
                                 m_nOptsCacheLifeNotFound );
-                            SAL_WARN( "ucb.ucp.webdav", "OPTIONS - Resource not found for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            SAL_WARN_A( "ucb.ucp.webdav", "OPTIONS - Resource not found for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                         }
                         break;
                         default:
@@ -3890,7 +3920,7 @@ void Content::getResourceOptions(
                 break;
                 default: // leave the resource type as UNKNOWN, for now
                     // it means this will be managed as a standard http site
-                    SAL_WARN( "ucb.ucp.webdav","OPTIONS - DAVException for URL <" << m_xIdentifier->getContentIdentifier() << ">, DAV error: "
+                    SAL_WARN_A( "ucb.ucp.webdav","OPTIONS - DAVException for URL <" << m_xIdentifier->getContentIdentifier() << ">, DAV error: "
                               << e.getError() << ", HTTP error: "<<e.getStatus() );
                     break;
             }

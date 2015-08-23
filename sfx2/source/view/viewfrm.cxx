@@ -256,6 +256,8 @@ void SfxViewNotificatedFrameList_Impl::Notify( SfxBroadcaster& rBC, const SfxHin
 
 void SfxViewFrame::ExecReload_Impl( SfxRequest& rReq )
 {
+    SAL_INFO_A("sfx.view","SfxViewFrame::ExecReload_Impl - CALLED");
+
     SfxFrame *pParent = GetFrame().GetParentFrame();
     if ( rReq.GetSlot() == SID_RELOAD )
     {
@@ -446,6 +448,9 @@ void SfxViewFrame::ExecReload_Impl( SfxRequest& rReq )
             bool bPhysObjIsYounger = ::utl::UCBContentHelper::IsYounger( aMedObj.GetMainURL( INetURLObject::NO_DECODE ),
                                                                          aPhysObj.GetMainURL( INetURLObject::NO_DECODE ) );
             bool bIsWebDAV = aMedObj.isAnyKnownWebDAVScheme();
+
+            SAL_INFO_A( "sfx.view","bNeedsReload: " << bNeedsReload<<", bPhysObjIsYounger: " << bPhysObjIsYounger << ", bIsWebDAV: " << bIsWebDAV << ", pMed->IsRemote(): "<< pMed->IsRemote()
+                       << ", aMedObj url: " << aMedObj.GetMainURL( INetURLObject::NO_DECODE ) << " aPhysObj url: " << aPhysObj.GetMainURL( INetURLObject::NO_DECODE ));
 
             if ( ( !bNeedsReload && ( ( aMedObj.GetProtocol() == INetProtocol::File &&
                                         aMedObj.getFSysPath( INetURLObject::FSYS_DETECT ) != aPhysObj.getFSysPath( INetURLObject::FSYS_DETECT ) &&
