@@ -123,14 +123,14 @@ static sal_uInt16 makeStatusCode( const OUString & rStatusText )
 
     if ( rStatusText.getLength() < 3 )
     {
-        SAL_WARN( "ucb.ucp.webdav", "makeStatusCode - status text string to short!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "makeStatusCode - status text string to short!" );
         return 0;
     }
 
     sal_Int32 nPos = rStatusText.indexOf( ' ' );
     if ( nPos == -1 )
     {
-        SAL_WARN( "ucb.ucp.webdav", "makeStatusCode - wrong status text format!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "makeStatusCode - wrong status text format!" );
         return 0;
     }
 
@@ -246,6 +246,7 @@ extern "C" int NeonSession_NeonAuth( void *       inUserData,
  * cancel the request. (if non-zero, username and password are
  * ignored.)  */
 
+    SAL_WARN_A("ucb.ucp.webdav","NeonSession_NeonAuth - called");
     NeonSession * theSession = static_cast< NeonSession * >( inUserData );
     DAVAuthListener * pListener
         = theSession->getRequestEnvironment().m_xAuthListener.get();
@@ -315,7 +316,7 @@ extern "C" int NeonSession_NeonAuth( void *       inUserData,
         OUStringToOString( theUserName, RTL_TEXTENCODING_UTF8 ) );
     if ( aUser.getLength() > ( NE_ABUFSIZ - 1 ) )
     {
-        SAL_WARN( "ucb.ucp.webdav", "NeonSession_NeonAuth - username to long!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "NeonSession_NeonAuth - username to long!" );
         return -1;
     }
 
@@ -323,7 +324,7 @@ extern "C" int NeonSession_NeonAuth( void *       inUserData,
         OUStringToOString( thePassWord, RTL_TEXTENCODING_UTF8 ) );
     if ( aPass.getLength() > ( NE_ABUFSIZ - 1 ) )
     {
-        SAL_WARN( "ucb.ucp.webdav", "NeonSession_NeonAuth - password to long!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "NeonSession_NeonAuth - password to long!" );
         return -1;
     }
 
@@ -358,6 +359,7 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
                                                 int,
                                                 const ne_ssl_certificate *cert )
 {
+    SAL_WARN_A("ucb.ucp.webdav","NeonSession_CertificationNotify called");
     OSL_ASSERT( cert );
 
     NeonSession * pSession = static_cast< NeonSession * >( userdata );
@@ -554,6 +556,7 @@ extern "C" void NeonSession_PreSendRequest( ne_request * req,
         DAVRequestHeaders::const_iterator it1( rHeaders.begin() );
         const DAVRequestHeaders::const_iterator end1( rHeaders.end() );
 
+        OUString SentHeader;
         while ( it1 != end1 )
         {
             OString aHeader
@@ -564,7 +567,10 @@ extern "C" void NeonSession_PreSendRequest( ne_request * req,
                                           RTL_TEXTENCODING_UTF8 );
             ne_buffer_concat( headers, aHeader.getStr(), ": ",
                               aValue.getStr(), EOL, NULL );
-
+            SentHeader += (*it1).first;
+            SentHeader += ": ";
+            SentHeader += (*it1).second;
+            SentHeader += ", ";
             ++it1;
         }
     }
@@ -824,7 +830,7 @@ void NeonSession::OPTIONS( const OUString & inPath,
 {
 
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "OPTIONS - relative URL <" << inPath << ">" );
+    SAL_WARN_A( "ucb.ucp.webdav", "OPTIONS - relative URL <" << inPath << ">" );
 
     rCapabilities.reset();
     int theRetVal = NE_OK;
@@ -853,7 +859,7 @@ void NeonSession::OPTIONS( const OUString & inPath,
             OUString aHeaderValue( OUString::createFromAscii( value ) );
 
             // display the single header
-            SAL_INFO( "ucb.ucp.webdav", " " << aHeaderName << ":" << aHeaderValue );
+            SAL_WARN_A( "ucb.ucp.webdav", " " << aHeaderName << ":" << aHeaderValue );
 
             if ( aHeaderName == "ms-author-via" )
             {
@@ -935,17 +941,17 @@ void NeonSession::PROPFIND( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     { //debug
-        SAL_INFO( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
-        SAL_INFO( "ucb.ucp.webdav", " property requested:" );
+        SAL_INFO_A( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
+        SAL_INFO_A( "ucb.ucp.webdav", " property requested:" );
         for(std::vector< OUString >::const_iterator it = inPropNames.begin();
             it < inPropNames.end(); ++it)
         {
-            SAL_INFO( "ucb.ucp.webdav", "  " << *it );
+            SAL_INFO_A( "ucb.ucp.webdav", "  " << *it );
         }
     } //debug
-#endif
+//#endif
 
     Init( rEnv );
 
@@ -968,7 +974,7 @@ void NeonSession::PROPFIND( const OUString & inPath,
     throw( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
+    SAL_WARN_A( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
 
     Init( rEnv );
 
@@ -980,20 +986,20 @@ void NeonSession::PROPFIND( const OUString & inPath,
                                     ioResInfo,
                                     theRetVal );
 
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     { //debug
         for ( std::vector< DAVResourceInfo >::const_iterator itres = ioResInfo.begin();
               itres < ioResInfo.end(); ++itres)
         {
-            SAL_INFO( "ucb.ucp.webdav", " returned property (names only):" );
+            SAL_INFO_A( "ucb.ucp.webdav", " returned property (names only):" );
             for ( std::vector< OUString >::const_iterator it = (*itres).properties.begin();
                   it < (*itres).properties.end(); ++it)
             {
-                SAL_INFO( "ucb.ucp.webdav", "  " << *it );
+                SAL_INFO_A( "ucb.ucp.webdav", "  " << *it );
             }
         }
     } //debug
-#endif
+//#endif
 
     HandleError( theRetVal, inPath, rEnv );
 }
@@ -1003,7 +1009,7 @@ void NeonSession::PROPPATCH( const OUString & inPath,
                              const DAVRequestEnvironment & rEnv )
     throw( std::exception )
 {
-    SAL_INFO( "ucb.ucp.webdav", "PROPPATCH - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "PROPPATCH - relative URL <" << inPath << ">" );
     /* @@@ Which standard live properties can be set by the client?
            This is a known WebDAV RFC issue ( verified: 04/10/2001 )
            --> http://www.ics.uci.edu/pub/ietf/webdav/protocol/issues.html
@@ -1082,7 +1088,7 @@ void NeonSession::PROPPATCH( const OUString & inPath,
                 }
                 else
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "Unsupported type!" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "Unsupported type!" );
                     // Error!
                     pItems[ n ].value = nullptr;
                     theRetVal = NE_ERROR;
@@ -1134,7 +1140,7 @@ void NeonSession::HEAD( const OUString &  inPath,
     throw( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "HEAD - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "HEAD - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1154,7 +1160,7 @@ NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1178,7 +1184,7 @@ void NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1201,7 +1207,7 @@ NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1230,7 +1236,7 @@ void NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1254,7 +1260,7 @@ void NeonSession::PUT( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "PUT - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "PUT - relative URL <" << inPath << ">" );
 
     uno::Sequence< sal_Int8 > aDataToSend;
     if ( !getDataFromInputStream( inInputStream, aDataToSend, false ) )
@@ -1281,7 +1287,7 @@ NeonSession::POST( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
 
     uno::Sequence< sal_Int8 > aDataToSend;
     if ( !getDataFromInputStream( inInputStream, aDataToSend, true ) )
@@ -1315,7 +1321,7 @@ void NeonSession::POST( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
 
     uno::Sequence< sal_Int8 > aDataToSend;
     if ( !getDataFromInputStream( inInputStream, aDataToSend, true ) )
@@ -1342,7 +1348,7 @@ void NeonSession::MKCOL( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "MKCOL - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "MKCOL - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1360,7 +1366,7 @@ void NeonSession::COPY( const OUString & inSourceURL,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "COPY - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
+    SAL_INFO_A( "ucb.ucp.webdav", "COPY - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
 
     Init( rEnv );
 
@@ -1387,7 +1393,7 @@ void NeonSession::MOVE( const OUString & inSourceURL,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "MOVE - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
+    SAL_INFO_A( "ucb.ucp.webdav", "MOVE - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
 
     Init( rEnv );
 
@@ -1409,8 +1415,9 @@ void NeonSession::DESTROY( const OUString & inPath,
                            const DAVRequestEnvironment & rEnv )
     throw ( std::exception )
 {
+    SAL_WARN_A("ucb.ucp.webdav","DESTROY - relative URL <" << inPath << ">" );
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "DESTROY - relative URL <" << inPath << ">" );
+    SAL_INFO_A( "ucb.ucp.webdav", "DESTROY - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1442,7 +1449,7 @@ namespace
             }
             else
             {
-                SAL_WARN( "ucb.ucp.webdav", "No chance to refresh lock before timeout!" );
+                SAL_WARN_A( "ucb.ucp.webdav", "No chance to refresh lock before timeout!" );
             }
         }
         return lastChanceToSendRefreshRequest;
@@ -1457,7 +1464,7 @@ void NeonSession::LOCK( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "LOCK (create) - relative URL: <" << inPath << ">" );
+    SAL_WARN_A( "ucb.ucp.webdav", "LOCK (create) - relative URL <" << inPath << ">" );
 
     // before issuing the lock command,
     // better check first if we already have one on this href
@@ -1539,14 +1546,14 @@ void NeonSession::LOCK( const OUString & inPath,
         aTokens[ 0 ] = OUString::createFromAscii( theLock->token );
         rLock.LockTokens = aTokens;
 
-        SAL_INFO( "ucb.ucp.webdav", "Created lock for <" << makeAbsoluteURL( inPath )
+        SAL_INFO_A( "ucb.ucp.webdav", "Created lock for <" << makeAbsoluteURL( inPath )
                   << "> token: " << theLock->token );
     }
     else
     {
         ne_lock_destroy( theLock );
 
-        SAL_WARN( "ucb.ucp.webdav", "Obtaining lock for <"
+        SAL_WARN_A( "ucb.ucp.webdav", "Obtaining lock for <"
                   << makeAbsoluteURL( inPath ) << " failed!" );
     }
 
@@ -1558,13 +1565,13 @@ bool NeonSession::LOCK( NeonLock * pLock,
                         sal_Int32 & rlastChanceToSendRefreshRequest )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     {
         char * p = ne_uri_unparse( &(pLock->uri) );
-        SAL_INFO( "ucb.ucp.webdav", "LOCK (refresh) - relative URL: <" << p << ">" );
+        SAL_WARN_A( "ucb.ucp.webdav", "LOCK (refresh) - relative URL: <" << p << ">" );
         ne_free( p );
     }
-#endif
+//#endif
 
     // refresh existing lock.
 
@@ -1576,12 +1583,12 @@ bool NeonSession::LOCK( NeonLock * pLock,
         rlastChanceToSendRefreshRequest
             = lastChanceToSendRefreshRequest( startCall, pLock->timeout );
 
-        SAL_INFO( "ucb.ucp.webdav", "Lock successfully refreshed." );
+        SAL_INFO_A( "ucb.ucp.webdav", "Lock successfully refreshed." );
         return true;
     }
     else
     {
-        SAL_WARN( "ucb.ucp.webdav", "Lock not refreshed!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "Lock not refreshed!" );
         return false;
     }
 }
@@ -1591,13 +1598,16 @@ void NeonSession::UNLOCK( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "UNLOCK - relative URL: <" << inPath << ">" );
+    SAL_WARN_A( "ucb.ucp.webdav", "UNLOCK - relative URL <" << inPath << ">" );
 
     // get the neon lock from lock store
     NeonLock * theLock
         = m_aNeonLockStore.findByUri( makeAbsoluteURL( inPath ) );
     if ( !theLock )
+    {
+        SAL_WARN_A("ucb.ucp.webdav","DAVException::DAV_NOT_LOCKED issued");
         throw DAVException( DAVException::DAV_NOT_LOCKED );
+    }
 
     Init( rEnv );
 
@@ -1610,7 +1620,7 @@ void NeonSession::UNLOCK( const OUString & inPath,
     }
     else
     {
-        SAL_WARN( "ucb.ucp.webdav", "Unlocking of "
+        SAL_WARN_A( "ucb.ucp.webdav", "Unlocking of "
                   << makeAbsoluteURL( inPath ) << "> failed." );
     }
 
@@ -1620,22 +1630,22 @@ void NeonSession::UNLOCK( const OUString & inPath,
 bool NeonSession::UNLOCK( NeonLock * pLock )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     {
         char * p = ne_uri_unparse( &(pLock->uri) );
-        SAL_INFO( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << ">" );
+        SAL_WARN_A( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << ">" );
         ne_free( p );
     }
-#endif
+//#endif
 
     if ( ne_unlock( m_pHttpSession, pLock ) == NE_OK )
     {
-        SAL_INFO( "ucb.ucp.webdav", "UNLOCK succeeded." );
+        SAL_INFO_A( "ucb.ucp.webdav", "UNLOCK succeeded." );
         return true;
     }
     else
     {
-        SAL_WARN( "ucb.ucp.webdav", "UNLOCK failed!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "UNLOCK failed!" );
         return false;
     }
 }
@@ -1729,7 +1739,7 @@ bool NeonSession::removeExpiredLocktoken( const OUString & inURL,
 
         // No lockdiscovery prop in propfind result / locktoken not found
         // in propfind result -> not locked
-        SAL_WARN( "ucb.ucp.webdav", "Removing expired lock token for <" << inURL
+        SAL_WARN_A( "ucb.ucp.webdav", "Removing expired lock token for <" << inURL
                   << "> token: " << theLock->token );
 
         m_aNeonLockStore.removeLock( theLock );
@@ -1754,6 +1764,7 @@ void NeonSession::HandleError( int nError,
     switch ( nError )
     {
         case NE_OK:
+            SAL_WARN_A("ucb.ucp.webdav","No error on NEON");
             return;
 
         case NE_ERROR:        // Generic error
@@ -1763,7 +1774,7 @@ void NeonSession::HandleError( int nError,
 
             sal_uInt16 code = makeStatusCode( aText );
 
-            SAL_WARN( "ucb.ucp.webdav", "Neon received http error: '" << aText << "'");
+            SAL_WARN_A( "ucb.ucp.webdav", "Neon received http error: '" << aText << "'");
             if ( code == SC_LOCKED )
             {
                 if ( m_aNeonLockStore.findByUri(
@@ -1792,38 +1803,43 @@ void NeonSession::HandleError( int nError,
             throw DAVException( DAVException::DAV_HTTP_ERROR, aText, code );
         }
         case NE_LOOKUP:       // Name lookup failed.
-            SAL_WARN( "ucb.ucp.webdav", "Name lookup failed" );
+            SAL_WARN_A( "ucb.ucp.webdav", "Name lookup failed" );
             throw DAVException( DAVException::DAV_HTTP_LOOKUP,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );
 
         case NE_AUTH:         // User authentication failed on server
+            SAL_WARN_A("ucb.ucp.webdav","DAVException::DAV_HTTP_AUTH");
             throw DAVException( DAVException::DAV_HTTP_AUTH,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );
 
         case NE_PROXYAUTH:    // User authentication failed on proxy
+            SAL_WARN_A("ucb.ucp.webdav","DAVException::DAV_HTTP_AUTHPROXY");
             throw DAVException( DAVException::DAV_HTTP_AUTHPROXY,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aProxyName, m_nProxyPort ) );
 
         case NE_CONNECT:      // Could not connect to server
+            SAL_WARN_A("ucb.ucp.webdav","DAVException::DAV_HTTP_CONNECT");
             throw DAVException( DAVException::DAV_HTTP_CONNECT,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );
 
         case NE_TIMEOUT:      // Connection timed out
+            SAL_WARN_A("ucb.ucp.webdav","DAVException::DAV_HTTP_TIMEOUT");
             throw DAVException( DAVException::DAV_HTTP_TIMEOUT,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );
 
         case NE_FAILED:       // The precondition failed
-            SAL_WARN( "ucb.ucp.webdav", "The precondition failed" );
+            SAL_WARN_A( "ucb.ucp.webdav", "The precondition failed" );
             throw DAVException( DAVException::DAV_HTTP_FAILED,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );
 
         case NE_RETRY:        // Retry request (ne_end_request ONLY)
+            SAL_WARN_A("ucb.ucp.webdav","DAVException::DAV_HTTP_RETRY");
             throw DAVException( DAVException::DAV_HTTP_RETRY,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );
@@ -1831,12 +1847,13 @@ void NeonSession::HandleError( int nError,
         case NE_REDIRECT:
         {
             NeonUri aUri( ne_redirect_location( m_pHttpSession ) );
+            SAL_WARN_A("ucb.ucp.webdav","DAVException::DAV_HTTP_REDIRECT: URI: "<<aUri.GetURI());
             throw DAVException(
                 DAVException::DAV_HTTP_REDIRECT, aUri.GetURI() );
         }
         default:
         {
-            SAL_WARN( "ucb.ucp.webdav", "Unknown Neon error code!" );
+            SAL_WARN_A( "ucb.ucp.webdav", "Unknown Neon error code!" );
             throw DAVException( DAVException::DAV_HTTP_ERROR,
                                 OUString::createFromAscii(
                                     ne_get_error( m_pHttpSession ) ) );
@@ -1923,6 +1940,7 @@ int NeonSession::GET( ne_session * sess,
 
     if ( getheaders )
     {
+        SAL_WARN_A( "ucb.ucp.webdav"," GET - Headers:" );
         void *cursor = nullptr;
         const char *name, *value;
         while ( ( cursor = ne_response_header_iterate(
@@ -1930,6 +1948,7 @@ int NeonSession::GET( ne_session * sess,
         {
             char buffer[8192];
 
+            SAL_WARN_A( "ucb.ucp.webdav","  " << name << ":" << value );
             ne_snprintf(buffer, sizeof buffer, "%s: %s", name, value);
             runResponseHeaderHandler(userdata, buffer);
         }
