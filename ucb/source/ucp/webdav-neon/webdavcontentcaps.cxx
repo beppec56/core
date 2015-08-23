@@ -342,6 +342,7 @@ uno::Sequence< beans::Property > Content::getProperties(
             try
             {
                 std::vector< DAVResourceInfo > props;
+                SAL_INFO_A("ucb.ucp.webdav","PROPFIND 4 (getProperties)");
                 xResAccess->PROPFIND( DAVZERO, props, xAuthEnv );
 
                 // Note: vector always contains exactly one resource info, because
@@ -533,6 +534,7 @@ uno::Sequence< beans::Property > Content::getProperties(
 uno::Sequence< ucb::CommandInfo > Content::getCommands(
     const uno::Reference< ucb::XCommandEnvironment > & xEnv )
 {
+    SAL_INFO_A("ucb.ucp.webdav","Content::getCommands - called");
     osl::Guard< osl::Mutex > aGuard( m_aMutex );
 
     uno::Sequence< ucb::CommandInfo > aCmdInfo( 10 );

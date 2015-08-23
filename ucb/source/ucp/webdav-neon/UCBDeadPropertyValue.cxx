@@ -213,7 +213,7 @@ static OUString decodeValue( const OUString & rValue )
 
             if ( nPos == nEnd )
             {
-                SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                 return OUString();
             }
 
@@ -225,7 +225,7 @@ static OUString decodeValue( const OUString & rValue )
 
                 if ( nPos > nEnd - 4 )
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                     return OUString();
                 }
 
@@ -240,7 +240,7 @@ static OUString decodeValue( const OUString & rValue )
                 }
                 else
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                     return OUString();
                 }
             }
@@ -250,7 +250,7 @@ static OUString decodeValue( const OUString & rValue )
 
                 if ( nPos > nEnd - 3 )
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                     return OUString();
                 }
 
@@ -263,7 +263,7 @@ static OUString decodeValue( const OUString & rValue )
                 }
                 else
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                     return OUString();
                 }
             }
@@ -273,7 +273,7 @@ static OUString decodeValue( const OUString & rValue )
 
                 if ( nPos > nEnd - 3 )
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                     return OUString();
                 }
 
@@ -286,13 +286,13 @@ static OUString decodeValue( const OUString & rValue )
                 }
                 else
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                    SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                     return OUString();
                 }
             }
             else
             {
-                SAL_WARN( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
+                SAL_WARN_A( "ucb.ucp.webdav", "decodeValue() - syntax error!" );
                 return OUString();
             }
         }
@@ -403,7 +403,7 @@ bool UCBDeadPropertyValue::createFromXML( const OString & rInData,
                 }
                 else
                 {
-                    SAL_WARN( "ucb.ucp.webdav", "createFromXML() - "
+                    SAL_WARN_A( "ucb.ucp.webdav", "createFromXML() - "
                                 "Unsupported property type!" );
                     success = false;
                 }
@@ -501,7 +501,7 @@ bool UCBDeadPropertyValue::toXML( const uno::Any & rInData,
     }
     else
     {
-        SAL_WARN( "ucb.ucp.webdav", "toXML() - unsupported property type!" );
+        SAL_WARN_A( "ucb.ucp.webdav", "toXML() - unsupported property type!" );
         return false;
     }
 
