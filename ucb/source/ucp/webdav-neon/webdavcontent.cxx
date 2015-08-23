@@ -1444,6 +1444,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
         if ( eType == UNKNOWN )
         {
+            SAL_WARN("ucb.ucp.webdav","use eType == UNKNOWN to create new ContentProperties");
             xProps.reset( new ContentProperties( aUnescapedTitle ) );
         }
 
@@ -3452,6 +3453,7 @@ Content::ResourceType Content::getResourceType(
         }
         catch ( DAVException const & e )
         {
+            SAL_WARN("ucb.ucp.webdav","DAVException for<"<<rURL<<">:  e.getError(): " <<e.getError()<< " e.getStatus(): "<< e.getStatus());
             rResAccess->resetUri();
 
             if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
@@ -3477,6 +3479,7 @@ Content::ResourceType Content::getResourceType(
             "different resource types for <" << rURL << ">: "
             << +eResourceType << " vs. " << +m_eResourceType);
     }
+    SAL_WARN("ucb.ucp.webdav","m_eResourceType for <"<<rURL<<">: "<<m_eResourceType);
     return m_eResourceType;
 }
 
