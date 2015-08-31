@@ -633,7 +633,7 @@ namespace ucb { namespace ucp { namespace ext
         }
         catch( const Exception& )
         {
-            DBG_UNHANDLED_EXCEPTION();
+            SAL_WARN( "ucb.ucp.ext", "Unhandled exception" );
         }
         m_aIsFolder.reset( bIsFolder );
         return *m_aIsFolder;
@@ -657,7 +657,7 @@ namespace ucb { namespace ucp { namespace ext
             }
             catch( const Exception& )
             {
-                DBG_UNHANDLED_EXCEPTION();
+                SAL_WARN( "ucb.ucp.ext", "Unhandled exception" );
             }
         }
     }

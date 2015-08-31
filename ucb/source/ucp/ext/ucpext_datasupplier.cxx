@@ -191,7 +191,7 @@ namespace ucb { namespace ucp { namespace ext
         }
         catch( const Exception& )
         {
-            DBG_UNHANDLED_EXCEPTION();
+            SAL_WARN( "ucb.ucp.ext", "Unhandled exception" );
         }
     }
 
@@ -264,7 +264,7 @@ namespace ucb { namespace ucp { namespace ext
             }
             catch ( const IllegalIdentifierException& )
             {
-                DBG_UNHANDLED_EXCEPTION();
+                SAL_WARN( "ucb.ucp.ext", "Unhandled exception" );
             }
         }
 
