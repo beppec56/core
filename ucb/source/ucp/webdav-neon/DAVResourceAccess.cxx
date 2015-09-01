@@ -130,8 +130,6 @@ int DAVAuthListener_Impl::authenticate(
 }
 
 
-
-
 // DAVResourceAccess Implementation.
 
 
@@ -175,26 +173,26 @@ DAVResourceAccess & DAVResourceAccess::operator=(
     return *this;
 }
 
-#if 0 // currently not used, but please don't remove code
-
 void DAVResourceAccess::OPTIONS(
     DAVCapabilities & rCapabilities,
-    const uno::Reference< ucb::XCommandEnvironment > & xEnv )
-  throw( DAVException )
+    const css::uno::Reference<
+    css::ucb::XCommandEnvironment > & xEnv )
+    throw ( DAVException )
 {
     initialize();
 
-    bool bRetry;
     int errorCount = 0;
+    bool bRetry;
     do
     {
         bRetry = false;
         try
         {
             DAVRequestHeaders aHeaders;
+
             getUserRequestHeaders( xEnv,
                                    getRequestURI(),
-                                   OUString( "OPTIONS" ),
+                                   css::ucb::WebDAVHTTPMethod_OPTIONS,
                                    aHeaders );
 
             m_xSession->OPTIONS( getRequestURI(),
@@ -202,7 +200,7 @@ void DAVResourceAccess::OPTIONS(
                                  DAVRequestEnvironment(
                                      getRequestURI(),
                                      new DAVAuthListener_Impl( xEnv, m_aURL ),
-                                     aHeaders, xEnv) );
+                                     aHeaders, xEnv ) );
         }
         catch ( const DAVException & e )
         {
@@ -214,8 +212,6 @@ void DAVResourceAccess::OPTIONS(
     }
     while ( bRetry );
 }
-#endif
-
 
 void DAVResourceAccess::PROPFIND(
     const Depth nDepth,
