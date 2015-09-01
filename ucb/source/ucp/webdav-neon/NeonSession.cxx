@@ -844,6 +844,116 @@ bool NeonSession::UsesProxy()
     return  !m_aProxyName.isEmpty() ;
 }
 
+void NeonSession::OPTIONS( const OUString & inPath,
+                           DAVCapabilities & rCapabilities, // contains the name+values of every header
+                           const DAVRequestEnvironment & rEnv )
+    throw( std::exception )
+{
+
+    osl::Guard< osl::Mutex > theGuard( m_aMutex );
+    SAL_INFO( "ucb.ucp.webdav", "OPTIONS - relative URL <" << inPath << ">" );
+
+    rCapabilities.reset();
+    int theRetVal = NE_OK;
+
+    Init( rEnv );
+
+    ne_request *req = ne_request_create(m_pHttpSession, "OPTIONS", OUStringToOString(
+                                            inPath, RTL_TEXTENCODING_UTF8 ).getStr());
+
+    theRetVal = ne_request_dispatch(req);
+
+    //check if http error is in the 200 class (no error)
+    if (theRetVal == NE_OK && ne_get_status(req)->klass != 2) {
+        theRetVal = NE_ERROR;
+    }
+
+    if ( theRetVal == NE_OK )
+    {
+        void *cursor = NULL;
+        const char *name, *value;
+        OUString    aMSAuthorVia;
+        while ( ( cursor = ne_response_header_iterate(
+                      req, cursor, &name, &value ) ) != NULL )
+        {
+            OUString aHeaderName( OUString::createFromAscii( name ).toAsciiLowerCase() );
+            OUString aHeaderValue( OUString::createFromAscii( value ) );
+
+            // display the single header
+            SAL_INFO( "ucb.ucp.webdav", "OPTIONS - received header: " << aHeaderName << ":" << aHeaderValue );
+
+            if ( aHeaderName == "ms-author-via" )
+            {
+                // check if MS-FP/4.0 is present in the header value
+                if ( aHeaderValue.indexOf( "MS-FP/4.0" ) != -1 )
+                    rCapabilities.setFPServerExtensions();
+            }
+            else if ( aHeaderName == "dav" )
+            {
+                // check type of dav capability
+                // need to parse the value, token separator: ","
+                // see <http://tools.ietf.org/html/rfc4918#section-10.1>,
+                // <http://tools.ietf.org/html/rfc4918#section-18>,
+                // and <http://tools.ietf.org/html/rfc7230#section-3.2>
+                // we detect the class (1, 2 and 3), other elements (token, URL)
+                // are not used for now
+                // silly parser written using OUString, not very efficient
+                // but quick and esy to write...
+                sal_Int32 nFromIndex = 0;
+                sal_Int32 nNextIndex = 0;
+                while( ( nNextIndex = aHeaderValue.indexOf( ",", nFromIndex ) ) != -1 )
+                { // found a comma
+                    // try to convert from nFromIndex to nNextIndex -1 in a number
+                    // if this is 1 or 2 or 3, use for class setting
+                    sal_Int32 nClass =
+                        aHeaderValue.copy( nFromIndex, nNextIndex - nFromIndex ).toInt32();
+                    switch( nClass )
+                    {
+                        case 1:
+                            rCapabilities.setClass1();
+                            break;
+                        case 2:
+                            rCapabilities.setClass2();
+                            break;
+                        case 3:
+                            rCapabilities.setClass3();
+                            break;
+                        default:
+                            ;
+                    }
+                    // next starting point
+                    nFromIndex = nNextIndex + 1;
+                }
+                // check for last fragment
+                if ( nFromIndex < aHeaderValue.getLength() )
+                {
+                    sal_Int32 nClass = aHeaderValue.copy( nFromIndex ).toInt32();
+                    switch( nClass )
+                    {
+                        case 1:
+                            rCapabilities.setClass1();
+                            break;
+                        case 2:
+                            rCapabilities.setClass2();
+                            break;
+                        case 3:
+                            rCapabilities.setClass3();
+                            break;
+                        default:
+                            ;
+                    }
+                }
+            }
+        }
+        rCapabilities.setDAVCapabilitiesValid();
+        rCapabilities.setResourceFound();
+    }
+
+    ne_request_destroy(req);
+
+    HandleError( theRetVal, inPath, rEnv );
+}
+
 void NeonSession::PROPFIND( const OUString & inPath,
                             const Depth inDepth,
                             const std::vector< OUString > & inPropNames,
