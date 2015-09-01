@@ -38,6 +38,7 @@
 #include <com/sun/star/beans/PropertyValue.hpp>
 #include <com/sun/star/ucb/CommandInfo.hpp>
 #include <com/sun/star/ucb/ContentInfo.hpp>
+#include <com/sun/star/ucb/CommandEnvironment.hpp>
 #include <com/sun/star/ucb/OpenCommandArgument2.hpp>
 #include <com/sun/star/ucb/InsertCommandArgument.hpp>
 #include <com/sun/star/ucb/PostCommandArgument2.hpp>
@@ -48,6 +49,7 @@
 #include <com/sun/star/ucb/Link.hpp>
 #include <com/sun/star/ucb/Lock.hpp>
 #include <com/sun/star/ucb/LockEntry.hpp>
+#include <com/sun/star/task/InteractionHandler.hpp>
 #include "webdavcontent.hxx"
 #include "webdavprovider.hxx"
 #include "DAVSession.hxx"
@@ -319,18 +321,23 @@ uno::Sequence< beans::Property > Content::getProperties(
     if ( !bTransient )
     {
         // Obtain all properties supported for this resource from server.
-        try
-        {
-            std::vector< DAVResourceInfo > props;
-            xResAccess->PROPFIND( DAVZERO, props, xEnv );
 
-            // Note: vector always contains exactly one resource info, because
-            //       we used a depth of DAVZERO for PROPFIND.
-            aPropSet.insert( (*props.begin()).properties.begin(),
-                             (*props.begin()).properties.end() );
-        }
-        catch ( DAVException const & )
+        getResourceOptions( xEnv );
+        if ( m_aDAVCapabilities.isClass1() )
         {
+            try
+            {
+                std::vector< DAVResourceInfo > props;
+                xResAccess->PROPFIND( DAVZERO, props, xEnv );
+
+                // Note: vector always contains exactly one resource info, because
+                //       we used a depth of DAVZERO for PROPFIND.
+                aPropSet.insert( (*props.begin()).properties.begin(),
+                                 (*props.begin()).properties.end() );
+            }
+            catch ( DAVException const & )
+            {
+            }
         }
     }
 
