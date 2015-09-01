@@ -75,9 +75,8 @@ public:
 
     // DAV methods
 
-
     virtual void OPTIONS( const OUString & inPath,
-                          DAVCapabilities & outCapabilities,
+                          DAVCapabilities& rCapabilities,
                           const DAVRequestEnvironment & rEnv )
         throw( std::exception ) = 0;
 

@@ -87,10 +87,10 @@ public:
     { return m_aEnv; }
 
     virtual void
-    OPTIONS( const OUString &  inPath,
-             DAVCapabilities & outCapabilities,
+    OPTIONS( const OUString & inPath,
+             DAVCapabilities& rCapabilities, // contains the name+values
              const DAVRequestEnvironment & rEnv )
-        throw ( std::exception ) SAL_OVERRIDE;
+        throw( std::exception ) SAL_OVERRIDE;
 
     // allprop & named
     virtual void
