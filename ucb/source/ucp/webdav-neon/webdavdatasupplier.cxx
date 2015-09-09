@@ -45,6 +45,7 @@
 #include "ContentProperties.hxx"
 #include "DAVSession.hxx"
 #include "NeonUri.hxx"
+#include "../inc/urihelper.hxx"
 
 using namespace com::sun::star;
 using namespace webdav_ucp;
