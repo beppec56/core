@@ -15,7 +15,18 @@
 --with-ant-home=/cygdrive/c/sources/apache-ant-1.9.5 \
 --with-package-format=msi \
 --enable-pch --disable-ccache \
+--with-visual-studio=2013 \
+\
+--enable-extension-integration \
+--enable-scripting-beanshell \
+--enable-scripting-javascript \
+--enable-ext-wiki-publisher \
+--enable-ext-nlpsolver \
+\
 --with-help \
+--with-myspell-dicts \
+--disable-dependency-tracking \
+--enable-mergelibs \
 \
 --with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h)) based on git_$(git log -n1 --format=%h lohs-5-0-start)" \
 
