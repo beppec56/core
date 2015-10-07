@@ -7,7 +7,7 @@
 --with-gdrive-client-id="$GDRIVE_CLIENT_ID" \
 --with-gdrive-client-secret="$GDRIVE_CLIENT_SECRET" \
 --with-external-tar=/srv5/git/LO/externals \
---with-system-dicts \
+--without-system-dicts \
 --with-myspell-dicts \
 --with-system-zlib \
 --without-system-poppler \
@@ -23,9 +23,6 @@
 --without-helppack-integration \
 --with-linker-hash-style=both \
 --with-fonts \
---with-external-thes-dir=/usr/share/mythes \
---with-external-hyph-dir=/usr/share/hyphen \
---with-external-dict-dir=/usr/share/hunspell \
 --enable-dbus \
 --enable-extension-integration \
 --enable-odk \
@@ -33,6 +30,8 @@
 --enable-gstreamer-0-10 \
 --disable-gstreamer-1-0 \
 --enable-gnome-vfs \
+\
+--enable-extension-integration \
 --enable-scripting-beanshell \
 --enable-scripting-javascript \
 --enable-ext-wiki-publisher \
