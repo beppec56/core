@@ -110,7 +110,7 @@ oslFileError oslTranslateFileError (/*DWORD*/ unsigned long dwError)
     {
         if (dwError == errtable[i].oscode)
         {
-            SAL_WARN_A( "sal.osl","Win API error: 0x" << std::hex << std::uppercase << std::setw(8) << std::setfill('0') << dwError << " (" << dwError << ")" );
+            OSL_TRACE_A( "Win API error: dwError %08x (%u)", dwError, dwError );
             return (oslFileError)(errtable[i].errnocode);
         }
     }
@@ -119,7 +119,7 @@ oslFileError oslTranslateFileError (/*DWORD*/ unsigned long dwError)
        osl_File_E_ACCES errors or exec failure errors (ENOEXEC).
        Otherwise osl_File_E_INVAL is returned.
     */
-    SAL_WARN_A( "sal.osl","Win API error NOT in table: 0x" << std::hex << std::uppercase << std::setw(8) << std::setfill('0') << dwError << " (" << dwError << ")" );
+    OSL_TRACE_A( "=------>>>> Win API error NOT in table: dwError %08x (%u)", dwError, dwError );
     if ( (dwError >= MIN_EACCES_RANGE) && (dwError <= MAX_EACCES_RANGE) )
         return osl_File_E_ACCES;
     else if ( (dwError >= MIN_EXEC_ERROR) && (dwError <= MAX_EXEC_ERROR) )
