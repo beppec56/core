@@ -609,6 +609,7 @@ NeonSession::NeonSession( const rtl::Reference< DAVSessionFactory > & rSessionFa
     m_aScheme    = theUri.GetScheme();
     m_aHostName  = theUri.GetHost();
     m_nPort      = theUri.GetPort();
+    SAL_WARN_A("debuglogger.webdav","NeonSession: - Host: "<<m_aScheme<<"://"<<m_aHostName<<":"<<m_nPort);
 }
 
 NeonSession::~NeonSession( )
