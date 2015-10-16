@@ -316,7 +316,15 @@ uno::Sequence< beans::Property > Content::getProperties(
         {
             std::vector< DAVResourceInfo > props;
             xResAccess->PROPFIND( DAVZERO, props, xEnv );
+//#if debug
+            std::vector< OUString >::iterator it;
 
+            for ( it = props[0].properties.begin();
+                  it != props[0].properties.end(); ++it)
+            {
+                SAL_WARN("fpicker.office"," prop name: "<<(*it));
+            }
+//#endif
             // Note: vector always contains exactly one resource info, because
             //       we used a depth of DAVZERO for PROPFIND.
             aPropSet.insert( (*props.begin()).properties.begin(),

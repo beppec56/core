@@ -176,7 +176,6 @@ namespace svt
                 Reference< XDynamicResultSet > xDynResultSet;
                 ResultSetInclude eInclude = INCLUDE_FOLDERS_AND_DOCUMENTS;
                 xDynResultSet = aFolder.aContent.createDynamicCursor( aProps, eInclude );
-
                 if ( xDynResultSet.is() )
                     xResultSet = xDynResultSet->getStaticResultSet();
             }
@@ -220,6 +219,11 @@ namespace svt
                             bool bHasTargetURL = !xRow->wasNull() && !aTargetURL.isEmpty();
 
                             OUString sRealURL = bHasTargetURL ? aTargetURL : aContentURL;
+
+                            SAL_WARN("fpicker.office","FileViewContentEnumerator::enumerateFolderContent - aContentURL: "<<aContentURL
+                                     <<" - aTargetURL: "<<aTargetURL
+                                     <<" - bHasTargetURL: "<<bHasTargetURL
+                                     <<" - sRealURL: "<<sRealURL);
 
                             // check for restrictions
                             {

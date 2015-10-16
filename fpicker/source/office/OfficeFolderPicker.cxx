@@ -85,6 +85,7 @@ sal_Int16 SvtFolderPicker::implExecutePicker( )
 
 void SvtFolderPicker::prepareExecute()
 {
+    SAL_WARN("fpicker.office","SvtFolderPicker::PrepareExecute");
     // set the default directory
     if ( !m_aDisplayDirectory.isEmpty() )
         getDialog()->SetPath( m_aDisplayDirectory );
@@ -110,6 +111,7 @@ IMPL_LINK_TYPED( SvtFolderPicker, DialogClosedHdl, Dialog&, rDlg, void )
 void SAL_CALL SvtFolderPicker::setDisplayDirectory( const OUString& aDirectory )
     throw( IllegalArgumentException, RuntimeException, std::exception )
 {
+    SAL_WARN("fpicker.office","SvtFolderPicker::setDisplayDirectory - "<<aDirectory);
     m_aDisplayDirectory = aDirectory;
 }
 

@@ -82,6 +82,11 @@
 #include <com/sun/star/ucb/XPersistentPropertySet.hpp>
 #include <com/sun/star/uno/XComponentContext.hpp>
 
+#include <com/sun/star/ucb/XContentAccess.hpp>
+#include <com/sun/star/util/DateTime.hpp>
+#include <com/sun/star/sdbc/XResultSet.hpp>
+#include <com/sun/star/ucb/XDynamicResultSet.hpp>
+
 #include "webdavcontent.hxx"
 #include "webdavprovider.hxx"
 #include "webdavresultset.hxx"
@@ -1338,6 +1343,15 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
                         if ( 1 == resources.size() )
                         {
+//#if debug
+                            std::vector< DAVPropertyValue >::iterator it;
+
+                            for ( it = resources[0].properties.begin();
+                                  it != resources[0].properties.end(); ++it)
+                            {
+                                SAL_WARN("fpicker.office"," prop name: "<<(*it).Name);
+                            }
+//#endif
                             if ( xProps.get())
                                 xProps->addProperties(
                                     aPropNames,
@@ -1928,6 +1942,7 @@ uno::Any Content::open(
         if ( isFolder( xEnv ) )
         {
             // Open collection.
+            SAL_WARN("fpicker.office","Content::open - bOpenFolder");
 
             uno::Reference< ucb::XDynamicResultSet > xSet
                 = new DynamicResultSet( m_xContext, this, rArg, xEnv );
@@ -3455,6 +3470,15 @@ Content::ResourceType Content::getResourceType(
 
             if ( resources.size() == 1 )
             {
+//#if debug
+                std::vector< DAVPropertyValue >::iterator it;
+
+                for ( it = resources[0].properties.begin();
+                      it != resources[0].properties.end(); ++it)
+                {
+                    SAL_WARN("fpicker.office"," prop name: "<<(*it).Name);
+                }
+//#endif
                 osl::MutexGuard g(m_aMutex);
                 m_xCachedProps.reset(
                     new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );

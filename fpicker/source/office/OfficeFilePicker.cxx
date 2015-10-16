@@ -136,6 +136,7 @@ ElementEntry_Impl::ElementEntry_Impl( sal_Int16 nId )
 
 void SvtFilePicker::prepareExecute()
 {
+    SAL_WARN("fpicker.office","SvtFilePicker::PrepareExecute");
     // set the default directory
     // --**-- doesn't match the spec yet
     if ( !m_aDisplayDirectory.isEmpty() || !m_aDefaultName.isEmpty() )
@@ -150,9 +151,11 @@ void SvtFilePicker::prepareExecute()
                 getDialog()->SetHasFilename( true );
             }
             getDialog()->SetPath( aPath.GetMainURL( INetURLObject::NO_DECODE ) );
+            SAL_WARN("fpicker.office","SvtFilePicker::PrepareExecute - " << aPath.GetMainURL( INetURLObject::NO_DECODE ) );
         }
         else if ( !m_aDefaultName.isEmpty() )
         {
+            SAL_WARN("fpicker.office","SvtFilePicker::PrepareExecute - m_aDefaultName: " << m_aDefaultName);
             getDialog()->SetPath( m_aDefaultName );
             getDialog()->SetHasFilename( true );
         }

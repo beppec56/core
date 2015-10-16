@@ -892,6 +892,7 @@ void SvtFileDialog::OpenHdl_Impl(void* pVoid)
     if ( _pImp->_bDoubleClick || _pFileView->HasChildPathFocus() )
         // Selection done by doubleclicking in the view, get filename from the view
         aFileName = _pFileView->GetCurrentURL();
+    SAL_WARN("fpicker.office","SvtFileDialog::OpenHdl_Impl - "<<aFileName);
 
     if ( aFileName.isEmpty() )
     {
@@ -899,6 +900,7 @@ void SvtFileDialog::OpenHdl_Impl(void* pVoid)
         if ( _pFileView->GetSelectionCount() )
         {   // -> use this one. This will allow us to step down this folder
             aFileName = _pFileView->GetCurrentURL();
+            SAL_WARN("fpicker.office","SvtFileDialog::OpenHdl_Impl - "<<aFileName);
         }
     }
 
@@ -942,6 +944,7 @@ void SvtFileDialog::OpenHdl_Impl(void* pVoid)
             aFileName = _pFileView->GetCurrentURL();
     }
 
+    SAL_WARN("fpicker.office","SvtFileDialog::OpenHdl_Impl - "<<aFileName);
     // MBA->PB: ?!
     if ( aFileName.isEmpty() && pVoid == _pImp->_pEdFileName && _pImp->_pUserFilter )
     {
@@ -1847,6 +1850,7 @@ void SvtFileDialog::EnableControl( Control* _pControl, bool _bEnable )
 
 short SvtFileDialog::PrepareExecute()
 {
+    SAL_WARN("fpicker.office","SvtFileDialog::PrepareExecute");
     OUString aEnvValue;
     if ( getEnvironmentValue( "WorkDirMustContainRemovableMedia", aEnvValue ) && aEnvValue == "1" )
     {

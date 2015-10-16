@@ -1040,6 +1040,7 @@ OUString SvtFileView::GetCurrentURL() const
     SvTreeListEntry* pEntry = mpImp->mpCurView->FirstSelected();
     if ( pEntry && pEntry->GetUserData() )
         aURL = static_cast<SvtContentEntry*>(pEntry->GetUserData())->maURL;
+    SAL_WARN("fpicker.office","SvtFileView::GetCurrentURL - "<<aURL);
     return aURL;
 }
 
