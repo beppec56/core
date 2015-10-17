@@ -1946,6 +1946,29 @@ uno::Any Content::open(
 
             uno::Reference< ucb::XDynamicResultSet > xSet
                 = new DynamicResultSet( m_xContext, this, rArg, xEnv );
+//if debug
+            {
+                uno::Reference< sdbc::XResultSet > xResultSet;
+                if ( xSet.is() )
+                    xResultSet = xSet->getStaticResultSet();
+                if ( xResultSet.is() )
+                {
+                    uno::Reference< sdbc::XRow > xRow( xResultSet, uno::UNO_QUERY );
+                    while ( xResultSet->next() )
+                    {
+                        OUString aTitle = xRow->getString( 1 ); // title
+                        OUString aTargetURL = xRow->getString( 5 );//
+                        SAL_WARN("fpicker.office","Content::open - aTitle: "<<aTitle<<" - aTargetURL: "<<aTargetURL);
+                    }
+                    try
+                    {
+                        xResultSet->beforeFirst();
+                    }
+                    catch ( uno::Exception &)
+                    {}
+                }
+            }
+//endif debug
             aRet <<= xSet;
         }
         else
