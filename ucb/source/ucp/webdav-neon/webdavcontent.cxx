@@ -1946,29 +1946,7 @@ uno::Any Content::open(
 
             uno::Reference< ucb::XDynamicResultSet > xSet
                 = new DynamicResultSet( m_xContext, this, rArg, xEnv );
-//if debug
-            // {
-            //     uno::Reference< sdbc::XResultSet > xResultSet;
-            //     if ( xSet.is() )
-            //         xResultSet = xSet->getStaticResultSet();
-            //     if ( xResultSet.is() )
-            //     {
-            //         uno::Reference< sdbc::XRow > xRow( xResultSet, uno::UNO_QUERY );
-            //         while ( xResultSet->next() )
-            //         {
-            //             OUString aTitle = xRow->getString( 1 ); // title
-            //             OUString aTargetURL = xRow->getString( 3 );//
-            //             SAL_WARN("fpicker.office","Content::open - aTitle: "<<aTitle<<" - aTargetURL (3): "<<aTargetURL);
-            //         }
-            //         try
-            //         {
-            //             xResultSet->beforeFirst();
-            //         }
-            //         catch ( uno::Exception &)
-            //         {}
-            //     }
-            // }
-//endif debug
+
             // the XDynamicResultSet will be activated by the client.
             // the data are requested directly to the server the first time
             // they will be held in memory when needed
