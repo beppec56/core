@@ -224,7 +224,7 @@ DataSupplier::queryContent( sal_uInt32 nIndex )
 bool DataSupplier::getResult( sal_uInt32 nIndex )
 {
     osl::ClearableGuard< osl::Mutex > aGuard( m_pImpl->m_aMutex );
-
+    SAL_WARN("fpicker.office"," nIndex: "<<nIndex);
     if (nIndex < m_pImpl->m_Results.size())
     {
         // Result already present.
@@ -357,6 +357,17 @@ bool DataSupplier::getData()
 
         if ( it == end )
             propertyNames.push_back( DAVProperties::RESOURCETYPE );
+
+        std::vector< OUString >::const_iterator it2
+            = propertyNames.begin();
+        std::vector< OUString >::const_iterator end2
+            = propertyNames.end();
+
+        while ( it2 != end2 )
+        {
+            SAL_WARN( "fpicker.office","requested propertyName: "<< (*it2));
+            ++it2;
+        }
 
         std::vector< DAVResource > resources;
         try

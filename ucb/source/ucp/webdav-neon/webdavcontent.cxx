@@ -1957,7 +1957,7 @@ uno::Any Content::open(
                     while ( xResultSet->next() )
                     {
                         OUString aTitle = xRow->getString( 1 ); // title
-                        OUString aTargetURL = xRow->getString( 5 );//
+                        OUString aTargetURL = xRow->getString( 2 );//
                         SAL_WARN("fpicker.office","Content::open - aTitle: "<<aTitle<<" - aTargetURL: "<<aTargetURL);
                     }
                     try
@@ -3493,15 +3493,6 @@ Content::ResourceType Content::getResourceType(
 
             if ( resources.size() == 1 )
             {
-//#if debug
-                std::vector< DAVPropertyValue >::iterator it;
-
-                for ( it = resources[0].properties.begin();
-                      it != resources[0].properties.end(); ++it)
-                {
-                    SAL_WARN("fpicker.office"," prop name: "<<(*it).Name);
-                }
-//#endif
                 osl::MutexGuard g(m_aMutex);
                 m_xCachedProps.reset(
                     new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );
