@@ -45,6 +45,7 @@
 #include "ContentProperties.hxx"
 #include "DAVSession.hxx"
 #include "NeonUri.hxx"
+#include "../inc/urihelper.hxx"
 
 using namespace com::sun::star;
 using namespace webdav_ucp;
@@ -392,18 +393,33 @@ bool DataSupplier::getData()
                 std::vector< DAVResource >::const_iterator end3 = resources.end();
                 while ( it3 != end3 )
                 {
+                    SAL_WARN( "fpicker.office","uri: " << (*it3).uri << " properties size:" << (*it3).properties.size() );
+////////////////////// FIX FOR Alfresco over-escaped file name
                     NeonUri aCurrURI( (*it3).uri );
                     OUString aCurrPath = aCurrURI.GetPath();
+                    SAL_WARN( "fpicker.office"," path: " << aCurrPath );
                     aCurrPath = NeonUri::unescape( aCurrPath );
-                    SAL_INFO( "ucb.ucp.webdav", "getData() - resource URL: <" << (*it3).uri << ">, unescaped to: <" << aCurrPath << "> )" );
+                    SAL_WARN( "fpicker.office"," unexcaped path: " << aCurrPath );
+                    (*it3).uri = ucb_impl::urihelper::encodeURI( aCurrPath );
+                    SAL_WARN( "fpicker.office"," excaped again path: " << (*it3).uri );
+/////////////////////
                     std::vector< DAVPropertyValue >::const_iterator it4 = (*it3).properties.begin();
                     std::vector< DAVPropertyValue >::const_iterator end4 = (*it3).properties.end();
                     while ( it4 != end4 )
                     {
-                        SAL_INFO( "ucb.ucp.webdav", "PROPFIND - property name: " << (*it4).Name );
-                        ++it4;
+                        NeonUri aCurrURI( (*it3).uri );
+                        OUString aCurrPath = aCurrURI.GetPath();
+                        aCurrPath = NeonUri::unescape( aCurrPath );
+                        SAL_INFO( "ucb.ucp.webdav", "getData() - resource URL: <" << (*it3).uri << ">, unescaped to: <" << aCurrPath << "> )" );
+                        std::vector< DAVPropertyValue >::const_iterator it4 = (*it3).properties.begin();
+                        std::vector< DAVPropertyValue >::const_iterator end4 = (*it3).properties.end();
+                        while ( it4 != end4 )
+                        {
+                            SAL_INFO( "ucb.ucp.webdav", "PROPFIND - property name: " << (*it4).Name );
+                            ++it4;
+                        }
+                        ++it3;
                     }
-                    ++it3;
                 }
             }
 #endif
@@ -440,14 +456,12 @@ bool DataSupplier::getData()
                         {
                             NeonUri aCurrURI( rRes.uri );
                             OUString aCurrPath = aCurrURI.GetPath();
-                            SAL_WARN( "fpicker.office"," aCurrURI.GetPath(): " << aCurrPath );
                             if ( aCurrPath.endsWith("/") )
                                 aCurrPath
                                     = aCurrPath.copy(
                                         0,
                                         aCurrPath.getLength() - 1 );
 
-                            SAL_WARN( "fpicker.office"," aCurrURI.GetPath(): " << aCurrPath );
                             aCurrPath = NeonUri::unescape( aCurrPath );
                             if ( aPath == aCurrPath )
                             {
