@@ -220,11 +220,6 @@ namespace svt
 
                             OUString sRealURL = bHasTargetURL ? aTargetURL : aContentURL;
 
-                            SAL_WARN("fpicker.office","FileViewContentEnumerator::enumerateFolderContent - aContentURL: "<<aContentURL
-                                     <<" - aTargetURL: "<<aTargetURL
-                                     <<" - bHasTargetURL: "<<bHasTargetURL
-                                     <<" - sRealURL: "<<sRealURL);
-
                             // check for restrictions
                             {
                                 ::osl::MutexGuard aGuard( m_aMutex );

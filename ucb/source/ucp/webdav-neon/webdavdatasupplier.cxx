@@ -224,7 +224,7 @@ DataSupplier::queryContent( sal_uInt32 nIndex )
 bool DataSupplier::getResult( sal_uInt32 nIndex )
 {
     osl::ClearableGuard< osl::Mutex > aGuard( m_pImpl->m_aMutex );
-    SAL_WARN("fpicker.office"," nIndex: "<<nIndex);
+    SAL_WARN("fpicker.office","DataSupplier::getResult - nIndex: "<<nIndex);
     if (nIndex < m_pImpl->m_Results.size())
     {
         // Result already present.
@@ -338,6 +338,12 @@ bool DataSupplier::getData()
         ContentProperties::UCBNamesToDAVNames(
                         getResultSet()->getProperties(), propertyNames );
 
+        sal_Int32 nCount = getResultSet()->getProperties().getLength();
+        for ( sal_Int32 n = 0; n < nCount; ++n )
+        {
+            SAL_WARN("fpicker.office"," UCB requested propertyName: " << getResultSet()->getProperties()[ n ].Name);
+        }
+
         // Append "resourcetype", if not already present. It's value is
         // needed to get a valid ContentProperties::pIsFolder value, which
         // is needed for OpenMode handling.
@@ -365,7 +371,7 @@ bool DataSupplier::getData()
 
         while ( it2 != end2 )
         {
-            SAL_WARN( "fpicker.office","requested propertyName: "<< (*it2));
+            SAL_WARN( "fpicker.office"," DAV requested propertyName: "<< (*it2));
             ++it2;
         }
 
@@ -434,12 +440,14 @@ bool DataSupplier::getData()
                         {
                             NeonUri aCurrURI( rRes.uri );
                             OUString aCurrPath = aCurrURI.GetPath();
+                            SAL_WARN( "fpicker.office"," aCurrURI.GetPath(): " << aCurrPath );
                             if ( aCurrPath.endsWith("/") )
                                 aCurrPath
                                     = aCurrPath.copy(
                                         0,
                                         aCurrPath.getLength() - 1 );
 
+                            SAL_WARN( "fpicker.office"," aCurrURI.GetPath(): " << aCurrPath );
                             aCurrPath = NeonUri::unescape( aCurrPath );
                             if ( aPath == aCurrPath )
                             {
