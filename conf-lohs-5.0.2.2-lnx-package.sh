@@ -41,7 +41,6 @@
 --disable-online-update  \
 --disable-gio \
 --disable-randr-link \
---enable-mergelibs \
 --with-package-format="deb" \
 --with-lang='en-US it fr de pt-BR' \
 --with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h)) based on git_$(git log -n1 --format=%h libreoffice-5-0-2)" \

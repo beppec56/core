@@ -26,7 +26,6 @@
 --with-help \
 --with-myspell-dicts \
 --disable-dependency-tracking \
---enable-mergelibs \
 \
 --with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h)) based on git_$(git log -n1 --format=%h libreoffice-5-0-2)" \
 
