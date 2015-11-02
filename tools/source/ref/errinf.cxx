@@ -279,7 +279,7 @@ void ErrorHandler::RegisterDisplay(BasicDisplayErrorFunc *aDsp)
 sal_uInt16 ErrorHandler::HandleError_Impl(
     sal_uIntPtr lId, sal_uInt16 nFlags, bool bJustCreateString, OUString & rError)
 {
-    SAL_WARN_A("tools","ErrorHandler::HandleError_Impl - lId: "<<lId<<", nFlags: "<<nFlags<<", bJustCreateString: "<<bJustCreateString<<", rError: " <<rError);
+    SAL_WARN_A("tools","ErrorHandler::HandleError_Impl - lId (ERRCODE_): "<<lId<<", nFlags: "<<nFlags<<", bJustCreateString: "<<bJustCreateString<<", rError: " <<rError);
     OUString aErr;
     OUString aAction;
     if(!lId || lId == ERRCODE_ABORT)

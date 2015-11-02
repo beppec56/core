@@ -1657,7 +1657,7 @@ void SfxLibraryContainer::implStoreLibraryIndexFile( SfxLibrary* pLib,
             }
             xOut = xSFI->openFileWrite( aLibInfoPath );
         }
-        catch(const Exception& )
+        catch(const Exception& e)
         {
             SAL_WARN_A("basic","Error saving library: "<<e.Message);
             if( bExport )
