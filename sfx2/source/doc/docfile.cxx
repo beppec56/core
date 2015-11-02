@@ -939,6 +939,7 @@ namespace
 // if user cancel the loading the ERROR_ABORT is set
 void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
 {
+    SAL_WARN_A("sfx.doc","LockOrigFileOnDemand - bLoading: " << bLoading << ", bNoUI: " << bNoUI);
 #if !HAVE_FEATURE_MULTIUSER_ENVIRONMENT
     (void) bLoading;
     (void) bNoUI;
