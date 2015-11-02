@@ -1473,8 +1473,9 @@ void SfxLibraryContainer::implStoreLibrary( SfxLibrary* pLib,
                     writeLibraryElement( xLib, aElementName, xOutput );
                 }
             }
-            catch(const uno::Exception& )
+            catch(const uno::Exception& e)
             {
+                SAL_WARN_A("basic", "Problem during storing of library: "<<e.Message);
                 SAL_WARN("basic", "Problem during storing of library!");
                 // TODO: error handling?
             }
@@ -1542,8 +1543,9 @@ void SfxLibraryContainer::implStoreLibrary( SfxLibrary* pLib,
                     writeLibraryElement( xLib, aElementName, xOutput );
                     xOutput->closeOutput();
                 }
-                catch(const Exception& )
+                catch(const Exception& e )
                 {
+                    SAL_WARN_A("basic","Error saving library: "<<e.Message);
                     if( bExport )
                     {
                         throw;
@@ -1611,8 +1613,9 @@ void SfxLibraryContainer::implStoreLibraryIndexFile( SfxLibrary* pLib,
                 xOut = xInfoStream->getOutputStream();
             }
         }
-        catch(const uno::Exception& )
+        catch(const uno::Exception& e)
         {
+            SAL_WARN_A("basic","Problem during storing of library index file!: "<<e.Message);
             SAL_WARN("basic", "Problem during storing of library index file!");
             // TODO: error handling?
         }
@@ -1656,6 +1659,7 @@ void SfxLibraryContainer::implStoreLibraryIndexFile( SfxLibrary* pLib,
         }
         catch(const Exception& )
         {
+            SAL_WARN_A("basic","Error saving library: "<<e.Message);
             if( bExport )
             {
                 throw;
@@ -1666,6 +1670,7 @@ void SfxLibraryContainer::implStoreLibraryIndexFile( SfxLibrary* pLib,
     }
     if( !xOut.is() )
     {
+        SAL_WARN_A("basic", "couldn't open output stream");
         SAL_WARN("basic", "couldn't open output stream");
         return;
     }

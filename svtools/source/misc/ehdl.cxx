@@ -373,6 +373,7 @@ SfxErrorContext::SfxErrorContext(
     sal_uInt16 nCtxIdP, vcl::Window *pWindow, sal_uInt16 nResIdP, ResMgr *pMgrP)
 :   ErrorContext(pWindow), nCtxId(nCtxIdP), nResId(nResIdP), pMgr(pMgrP)
 {
+    SAL_WARN_A("svtools","SfxErrorContext::SfxErrorContext - nCtxIdP: "<<nCtxIdP<<", nResIdP: "<<nResIdP);
     if( nResId==USHRT_MAX )
         nResId=RID_ERRCTX;
 }
@@ -385,6 +386,7 @@ SfxErrorContext::SfxErrorContext(
 :   ErrorContext(pWindow), nCtxId(nCtxIdP), nResId(nResIdP), pMgr(pMgrP),
     aArg1(aArg1P)
 {
+    SAL_WARN_A("svtools","SfxErrorContext::SfxErrorContext - nCtxIdP: "<<nCtxIdP<<", aArg1P: "<<aArg1P<<", nResIdP: "<<nResIdP);
     if( nResId==USHRT_MAX )
         nResId=RID_ERRCTX;
 }
