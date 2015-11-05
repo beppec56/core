@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#get the branch point
+BRANCH_POINT=`diff -u <(git rev-list -200 --first-parent HEAD)   <(git rev-list -200 --first-parent libreoffice-5-0-2) | sed -ne 's/^ //p' | head -1`
+BRANCH_POINT2=`git log -n1 --format=%h $BRANCH_POINT`
+
 . ../gdrive-lohs-credential.shinc
 
 ./autogen.sh \
@@ -43,5 +47,7 @@
 --disable-randr-link \
 --with-package-format="deb" \
 --with-lang='en-US it fr de pt-BR' \
---with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g') $(echo git_$(git log -n1 --format=%h)) based on git_$(git log -n1 --format=%h libreoffice-5-0-2)" \
+--with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g')$(echo :$(git log -n1 --format=%h)) based on libreoffice-5.0.2.2:$BRANCH_POINT2" \
 \
+
+make scp2.clean
