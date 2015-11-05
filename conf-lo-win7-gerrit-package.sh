@@ -2,6 +2,10 @@
 
 # configuration for windows, to generate packaging as the daily build, simplyfied for gerrit
 
+#get the branch point
+BRANCH_POINT=`diff -u <(git rev-list -200 --first-parent HEAD)   <(git rev-list -200 --first-parent libreoffice-5-0) | sed -ne 's/^ //p' | head -1`
+BRANCH_POINT2=`git log -n1 --format=%h $BRANCH_POINT`
+
 ./autogen.sh \
 --with-lang='en-US it' \
 \
@@ -24,7 +28,10 @@
 --with-myspell-dicts \
 --disable-dependency-tracking \
 --enable-mergelibs \
---enable-option-checking=fatal \
+--with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g')$(echo :$(git log -n1 --format=%h)) based on libreoffice-5-0:$BRANCH_POINT2" \
+
+c:/cygwin/opt/lo/bin/make scp2.clean
+
 
 
 
