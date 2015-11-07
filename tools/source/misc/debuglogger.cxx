@@ -80,6 +80,10 @@ namespace tools
         OUString pustrAbsoluteURL;
         OUString ustrRelativeURL  = aFileURL;
         osl_getAbsoluteFileURL(ustrBaseDirURL.pData, ustrRelativeURL.pData, &pustrAbsoluteURL.pData);
+        SAL_INFO_A( "ucb.ucp.webdav","\n==-----> ustrBaseDirURL: "<<ustrBaseDirURL<<
+                   "\n==-----> ustrRelativeURL: "<<ustrRelativeURL
+                   <<"\n==-----> pustrAbsoluteURL: "<<pustrAbsoluteURL );
+
         //convert to platform path
         OUString aSystemPath;
         oslFileError nFileError = osl_getSystemPathFromFileURL( pustrAbsoluteURL.pData, &aSystemPath.pData );
