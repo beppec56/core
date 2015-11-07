@@ -32,7 +32,9 @@
 #include <string.h>
 #include "osl/diagnose.h"
 #include "osl/time.h"
+#include "osl/thread.h"
 #include <rtl/string.h>
+#include "tools/debuglogger.hxx"
 #include <ne_socket.h>
 #include <ne_auth.h>
 #include <ne_redirect.h>
@@ -648,20 +650,39 @@ void NeonSession::Init()
             // #122205# - libxml2 needs to be initialized once if used by
             // multithreaded programs like OOo.
             xmlInitParser();
-#if OSL_DEBUG_LEVEL > 0
+//#if OSL_DEBUG_LEVEL > 0
             // for more debug flags see ne_utils.h; NE_DEBUGGING must be defined
             // while compiling neon in order to actually activate neon debug
             // output.
-            ne_debug_init( stderr, NE_DBG_FLUSH
-                           | NE_DBG_HTTP
-                           // | NE_DBG_HTTPBODY
-                           // | NE_DBG_HTTPAUTH
-                           // | NE_DBG_XML
-                           // | NE_DBG_XMLPARSE
-                           | NE_DBG_LOCKS
-                           | NE_DBG_SSL
-                         );
-#endif
+            {
+                OUString aFileNameRadix = "libreoffice-neon-debug.log";
+                tools::deleteOlderLogFiles(24*5, aFileNameRadix );
+                OUString aSystemPath;
+                tools::createAbsoluteLogFileSystemName( aFileNameRadix, aSystemPath, true );
+
+                SAL_INFO_A("ucb.ucp.webdav","\n=---------> aSystemPath: "<<aSystemPath
+                           <<"\n fopen path: "<<(char*)OUStringToOString(aSystemPath,RTL_TEXTENCODING_ASCII_US).getStr());
+
+                FILE *neonLogFile;
+                neonLogFile = fopen( OUStringToOString(aSystemPath,RTL_TEXTENCODING_ASCII_US).getStr(), "w" );
+
+                if( neonLogFile == NULL )
+                {
+                    SAL_WARN_A("ucb.ucp.webdav","neonLogFile set to stderr, errno: "<< errno );
+                    neonLogFile = stderr;
+                }
+
+                ne_debug_init( neonLogFile, NE_DBG_FLUSH
+                               // | NE_DBG_HTTP
+                               | NE_DBG_HTTPBODY
+                               // | NE_DBG_HTTPAUTH
+                               // | NE_DBG_XML
+                               // | NE_DBG_XMLPARSE
+                               | NE_DBG_LOCKS
+                               //| NE_DBG_SSL
+                    );
+            }
+//#endif
             m_bGlobalsInited = true;
         }
 
