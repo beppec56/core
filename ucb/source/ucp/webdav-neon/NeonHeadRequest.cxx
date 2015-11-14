@@ -44,11 +44,11 @@ void process_headers( ne_request * req,
     void * cursor = nullptr;
     const char * name, *value;
 
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     {
         if( !rHeaderNames.empty() )
         {
-            SAL_INFO( "ucb.ucp.webdav", " requested headers:" );
+            SAL_INFO_A( "ucb.ucp.webdav", " requested headers:" );
             std::vector< OUString >::const_iterator it(
                 rHeaderNames.begin() );
             const std::vector< OUString >::const_iterator end(
@@ -56,19 +56,19 @@ void process_headers( ne_request * req,
 
             while ( it != end )
             {
-                SAL_INFO( "ucb.ucp.webdav", "  " << (*it) );
+                SAL_INFO_A( "ucb.ucp.webdav", "  " << (*it) );
                 ++it;
             }
         }
     }
-#endif
-    SAL_INFO( "ucb.ucp.webdav", " received headers:" );
+//#endif
+    SAL_INFO_A( "ucb.ucp.webdav", " received headers:" );
     while ( ( cursor = ne_response_header_iterate( req, cursor,
                                                    &name, &value ) ) != nullptr ) {
         OUString aHeaderName( OUString::createFromAscii( name ) );
         OUString aHeaderValue( OUString::createFromAscii( value ) );
 
-        SAL_INFO( "ucb.ucp.webdav", "  " << aHeaderName << ":" << aHeaderValue);
+        SAL_INFO_A( "ucb.ucp.webdav", "  " << aHeaderName << ":" << aHeaderValue);
 
         // Note: Empty vector means that all headers are requested.
         bool bIncludeIt = ( rHeaderNames.empty() );

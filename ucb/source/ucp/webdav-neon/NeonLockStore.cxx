@@ -64,7 +64,7 @@ private:
 
 void TickerThread::execute()
 {
-    SAL_INFO( "ucb.ucp.webdav", "TickerThread: start." );
+    SAL_INFO_A( "ucb.ucp.webdav", "TickerThread: start." );
 
     // we have to go through the loop more often to be able to finish ~quickly
     const int nNth = 25;
@@ -84,13 +84,14 @@ void TickerThread::execute()
         salhelper::Thread::wait( aTV );
     }
 
-    SAL_INFO( "ucb.ucp.webdav", "TickerThread: stop." );
+    SAL_INFO_A( "ucb.ucp.webdav", "TickerThread: stop." );
 }
 
 NeonLockStore::NeonLockStore()
     : m_pNeonLockStore( ne_lockstore_create() )
 {
     assert( m_pNeonLockStore && "Unable to create neon lock store!" );
+    SAL_WARN_IF_A( m_pNeonLockStore == nullptr, "ucb.ucp.webdav", "Unable to create neon lock store!" );
 }
 
 NeonLockStore::~NeonLockStore()
@@ -101,6 +102,8 @@ NeonLockStore::~NeonLockStore()
 
     // release active locks, if any.
     assert( m_aLockInfoMap.empty() &&
+                "NeonLockStore::~NeonLockStore - Releasing active locks!" );
+    SAL_WARN_IF_A( !m_aLockInfoMap.empty(), "ucb.ucp.webdav",
                 "NeonLockStore::~NeonLockStore - Releasing active locks!" );
 
     LockInfoMap::const_iterator it( m_aLockInfoMap.begin() );

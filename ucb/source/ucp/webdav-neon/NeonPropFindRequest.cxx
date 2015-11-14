@@ -110,6 +110,7 @@ extern "C" int NPFR_propfind_iter( void* userdata,
     thePropertyValue.IsCaseSensitive = true;
 
     assert( pname->nspace && "NPFR_propfind_iter - No namespace!" );
+    SAL_WARN_IF_A( !pname->nspace, "ucb.ucp.webdav", "NPFR_propfind_iter - No namespace!" );
 
     DAVProperties::createUCBPropName( pname->nspace,
                                       pname->name,
@@ -122,6 +123,8 @@ extern "C" int NPFR_propfind_iter( void* userdata,
                  value, thePropertyValue.Value ) )
         {
             assert( thePropertyValue.Value.hasValue() &&
+                        "NPFR_propfind_iter - No value!" );
+            SAL_WARN_IF_A( !thePropertyValue.Value.hasValue(), "ucb.ucp.webdav",
                         "NPFR_propfind_iter - No value!" );
             bHasValue = true;
         }
