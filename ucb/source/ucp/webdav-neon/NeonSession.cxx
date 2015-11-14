@@ -657,8 +657,7 @@ void NeonSession::Init()
                 tools::deleteOlderLogFiles(24*5, aFileNameRadix );
                 OUString aSystemPath;
                 tools::createAbsoluteLogFileSystemName( aFileNameRadix, aSystemPath );
-                SAL_WARN_A("ucb.ucp.webdav","\n "
-                          <<"\n aSystemPath: "<<aSystemPath);
+                SAL_WARN_A("ucb.ucp.webdav","\n=---------> aSystemPath: "<<aSystemPath);
 
                 FILE *neonLogFile;
                 neonLogFile = fopen( OUStringToOString(aSystemPath,RTL_TEXTENCODING_ASCII_US).getStr(), "w" );
