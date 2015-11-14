@@ -59,6 +59,7 @@ int DAVAuthListener_Impl::authenticate(
     OUString & outPassWord,
     bool bCanUseSystemCredentials )
 {
+    SAL_INFO_A("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate - called");
     if ( m_xEnv.is() )
     {
         uno::Reference< task::XInteractionHandler > xIH
@@ -108,6 +109,7 @@ int DAVAuthListener_Impl::authenticate(
                         // system credentials.
                         inoutUserName.clear();
                         outPassWord.clear();
+                        SAL_INFO_A("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: System credentials where selected");
                     }
                     else
                     {
@@ -122,9 +124,17 @@ int DAVAuthListener_Impl::authenticate(
                     // go on.
                     return 0;
                 }
+                else
+                    SAL_WARN_A("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: Abort was selected");
             }
+            else
+                SAL_WARN_A("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: there is NO ucbhelper::InteractionContinuation (xSelection)");
         }
+        else
+            SAL_WARN_A("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: there is NO task::XInteractionHandler");
     }
+    else
+        SAL_WARN_A("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: there is NO XCommandEnv");
     // Abort.
     return -1;
 }
@@ -1101,6 +1111,8 @@ void DAVResourceAccess::initialize()
 const OUString & DAVResourceAccess::getRequestURI() const
 {
     assert( m_xSession.is() && "DAVResourceAccess::getRequestURI - Not initialized!" );
+    SAL_WARN_IF_A( !m_xSession.is(), "ucb.ucp.webdav",
+                "DAVResourceAccess::getRequestURI - Not initialized!" );
 
     // In case a proxy is used we have to use the absolute URI for a request.
     if ( m_xSession->UsesProxy() )
