@@ -2978,7 +2978,12 @@ Content::ResourceType Content::resourceTypeForLocks(
 
             }
             else
-                eResourceTypeForLocks = NON_DAV;
+            {
+                if( m_aDAVCapabilities.isResourceFound() )
+                    eResourceTypeForLocks = NON_DAV;
+                else
+                    eResourceTypeForLocks = NOT_FOUND;
+            }
 
         }
     }
@@ -3586,7 +3591,10 @@ Content::ResourceType Content::getResourceType(
         }
         else
         {
-            eResourceType = NON_DAV;
+            if( m_aDAVCapabilities.isResourceFound() )
+                eResourceType = NON_DAV;
+            else
+                eResourceType = UNKNOWN;
         }
     }
 
