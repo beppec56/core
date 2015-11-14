@@ -663,7 +663,10 @@ void NeonSession::Init()
                 neonLogFile = fopen( OUStringToOString(aSystemPath,RTL_TEXTENCODING_ASCII_US).getStr(), "w" );
 
                 if( neonLogFile == NULL )
+                {
+                    SAL_WARN_A("ucb.ucp.webdav","neonLogFile set to stderr, errno: "<< errno );
                     neonLogFile = stderr;
+                }
 
                 ne_debug_init( neonLogFile, NE_DBG_FLUSH
                                // | NE_DBG_HTTP
