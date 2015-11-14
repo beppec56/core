@@ -95,6 +95,8 @@ ContentProperties::ContentProperties( const DAVResource& rResource )
   m_bTrailingSlash( false )
 {
     assert( !rResource.uri.isEmpty() && "ContentProperties ctor - Empty resource URI!" );
+    SAL_WARN_IF_A( rResource.uri.isEmpty(), "ucb.ucp.webdav",
+                "ContentProperties ctor - Empty resource URI!" );
 
     // Title
     try
@@ -519,6 +521,19 @@ void ContentProperties::addProperty( const OUString & rName,
     (*m_xProps)[ rName ] = PropertyValue( rValue, bIsCaseSensitive );
 }
 
+//debug only
+void ContentProperties::debugPrintNames()
+{
+    PropertyValueMap::const_iterator it = m_xProps->begin();
+    const PropertyValueMap::const_iterator end = m_xProps->end();
+
+        SAL_INFO_A( "ucb.ucp.webdav","  names: " );
+        while ( it != end )
+        {
+            SAL_INFO_A( "ucb.ucp.webdav","   "<< (*it).first);
+            it++;
+        }
+}
 
 
 
