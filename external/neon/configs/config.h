@@ -381,7 +381,7 @@
 #define NEON_VERSION "0.29.5"
 
 /* Define to enable debugging */
-#define NE_DEBUGGING 1
+/* #undef NE_DEBUGGING */
 
 /* Define to be printf format string for ne_off_t */
 /* #undef NE_FMT_NE_OFF_T */
