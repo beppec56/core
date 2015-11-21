@@ -343,7 +343,7 @@ uno::Sequence< beans::Property > Content::getProperties(
             {
                 std::vector< DAVResourceInfo > props;
                 xResAccess->PROPFIND( DAVZERO, props, xCmdEnv );
-                SAL_INFO_A("ucb.ucp.webdav","PROPFIND 4 (getProperties)");
+                SAL_INFO_A("ucb.ucp.webdav","PROPFIND 4 [::getProperties() available on the WebDAV server]");
 
                 // Note: vector always contains exactly one resource info, because
                 //       we used a depth of DAVZERO for PROPFIND.
