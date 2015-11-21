@@ -1184,6 +1184,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
     sal_Int32 nCount = rProperties.getLength();
     if ( nCount )
     {
+        SAL_INFO_A("ucb.ucp.webdav","getPropertyValues: nCount: "<<nCount<<" PropertyValues");
         uno::Reference< beans::XPropertySet > xAdditionalPropSet;
         bool bTriedToGetAdditionalPropSet = false;
 
@@ -1196,6 +1197,13 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
             const uno::Any & rValue = rData.getValue( rProp.Name );
             if ( rValue.hasValue() )
             {
+                {//debug
+                    OUString astr;
+                    if(rValue >>= astr)
+                        SAL_INFO_A("ucb.ucp.webdav"," Name: "<<rProp.Name<<" value: "<<astr);
+                    else
+                        SAL_INFO_A("ucb.ucp.webdav"," Name: "<<rProp.Name);
+                }
                 xRow->appendObject( rProp, rValue );
             }
             else
@@ -1222,6 +1230,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
     }
     else
     {
+        SAL_INFO_A("ucb.ucp.webdav","getPropertyValues: Append all standard UCB, DAV and HTTP properties");
         // Append all standard UCB, DAV and HTTP properties.
         const std::unique_ptr< PropertyValueMap > & xProps = rData.getProperties();
 
