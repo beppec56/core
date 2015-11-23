@@ -2311,6 +2311,7 @@ WW8PostProcessAttrsInfo::WW8PostProcessAttrsInfo(WW8_CP nCpStart, WW8_CP nCpEnd,
 bool CanUseRemoteLink(const OUString &rGrfName)
 {
     bool bUseRemote = false;
+    SAL_WARN( "sw.ww8", "CanUseRemoteLink - Entering... " );
     try
     {
         ::ucbhelper::Content aCnt(rGrfName,
@@ -2326,6 +2327,7 @@ bool CanUseRemoteLink(const OUString &rGrfName)
         // this file did not exist, so we will not set this as graphiclink
         bUseRemote = false;
     }
+    SAL_WARN( "sw.ww8", "CanUseRemoteLink - bUseRemote: "<<bUseRemote );
     return bUseRemote;
 }
 

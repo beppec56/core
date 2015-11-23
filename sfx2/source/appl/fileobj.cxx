@@ -267,7 +267,9 @@ bool SvFileObject::LoadFile_Impl()
 
         tools::SvRef<SfxMedium> xTmpMed = xMed;
         bInCallDownload = true;
+        SAL_WARN("sf2.appl","before download");
         xMed->Download( LINK( this, SvFileObject, LoadGrfReady_Impl ) );
+        SAL_WARN("sf2.appl","after download");
         bInCallDownload = false;
 
         bClearMedium = !xMed.Is();

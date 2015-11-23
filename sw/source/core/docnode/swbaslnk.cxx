@@ -421,7 +421,10 @@ bool SwBaseLink::SwapIn( bool bWaitForData, bool bNativFormat )
         SetSynchron( false );
     }
     else
+    {
+        SAL_WARN("sw.core","SwapIn, Update");
         bRes = Update();
+    }
 
     bSwapIn = false;
     return bRes;

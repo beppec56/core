@@ -327,6 +327,7 @@ bool SvBaseLink::Update()
                             pImplData->ClientType.nCntntType ));
             Any aData;
 
+            SAL_WARN("sfx2.appl", "GetData" );
             if( xObj->GetData( aData, sMimeType ) )
             {
                 UpdateResult eRes = DataChanged(sMimeType, aData);
