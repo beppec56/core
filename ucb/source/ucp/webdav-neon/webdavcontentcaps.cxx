@@ -321,6 +321,20 @@ uno::Sequence< beans::Property > Content::getProperties(
     if ( !bTransient )
     {
         // Obtain all properties supported for this resource from server.
+        // xEnv is empty, use a default one, to use cached credential
+        css::uno::Reference< css::ucb::XCommandEnvironment > xAuthEnv;
+        if( !xEnv.is() )
+        {
+            css:: uno::Reference< task::XInteractionHandler > xIH(
+                css::task::InteractionHandler::createWithParent( m_xContext, 0 ), css::uno::UNO_QUERY_THROW );
+
+            xAuthEnv = css::ucb::CommandEnvironment::create(
+                m_xContext,
+                xIH,
+                css::uno::Reference< ucb::XProgressHandler >() ) ;
+        }
+        else
+            xAuthEnv = xEnv;
 
         getResourceOptions( xEnv );
         if ( m_aDAVCapabilities.isClass1() )
@@ -328,7 +342,7 @@ uno::Sequence< beans::Property > Content::getProperties(
             try
             {
                 std::vector< DAVResourceInfo > props;
-                xResAccess->PROPFIND( DAVZERO, props, xEnv );
+                xResAccess->PROPFIND( DAVZERO, props, xAuthEnv );
 
                 // Note: vector always contains exactly one resource info, because
                 //       we used a depth of DAVZERO for PROPFIND.
