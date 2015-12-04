@@ -1269,6 +1269,22 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
         }
     }
 
+    // if environment is not provided, provide a default one, needed for
+    // authentication from credential cache
+    css::uno::Reference< css::ucb::XCommandEnvironment > xCmdEnv;
+    if( !xEnv.is() )
+    {
+        css:: uno::Reference< task::XInteractionHandler > xIH(
+            css::task::InteractionHandler::createWithParent( m_xContext, 0 ), css::uno::UNO_QUERY_THROW );
+
+        xCmdEnv = css::ucb::CommandEnvironment::create(
+            m_xContext,
+            xIH,
+            css::uno::Reference< ucb::XProgressHandler >() ) ;
+    }
+    else
+        xCmdEnv = xEnv;
+
     if ( !m_bTransient && !bHasAll )
     {
 
@@ -1278,7 +1294,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
         // First, identify whether resource is DAV or not
         bool bNetworkAccessAllowed = true;
         ResourceType eType = getResourceType(
-            xEnv, xResAccess, &bNetworkAccessAllowed );
+            xCmdEnv, xResAccess, &bNetworkAccessAllowed );
 
         if ( eType == DAV )
         {
@@ -1361,7 +1377,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     try
                     {
                         xResAccess->PROPFIND(
-                            DAVZERO, aPropNames, resources, xEnv );
+                            DAVZERO, aPropNames, resources, xCmdEnv );
 
                         if ( 1 == resources.size() )
                         {
@@ -1411,7 +1427,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     try
                     {
                         DAVResource resource;
-                        xResAccess->HEAD( aHeaderNames, resource, xEnv );
+                        xResAccess->HEAD( aHeaderNames, resource, xCmdEnv );
                         m_bDidGetOrHead = true;
 
                         if ( xProps.get() )
