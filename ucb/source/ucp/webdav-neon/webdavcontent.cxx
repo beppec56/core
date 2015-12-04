@@ -3523,6 +3523,20 @@ Content::ResourceType Content::getResourceType(
     else
     {
         getResourceOptions( xEnv );
+        // obtain a default environment, if one is not provided
+        css::uno::Reference< css::ucb::XCommandEnvironment > xAuthEnv;
+        if( !xEnv.is() )
+        {
+            css:: uno::Reference< task::XInteractionHandler > xIH(
+                css::task::InteractionHandler::createWithParent( m_xContext, 0 ), css::uno::UNO_QUERY_THROW );
+
+            xAuthEnv = css::ucb::CommandEnvironment::create(
+                m_xContext,
+                xIH,
+                css::uno::Reference< ucb::XProgressHandler >() ) ;
+        }
+        else
+            xAuthEnv = xEnv;
 
         if( m_aDAVCapabilities.isClass1() ||
             m_aDAVCapabilities.isClass2() ||
@@ -3544,7 +3558,7 @@ Content::ResourceType Content::getResourceType(
 
                 ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
 
-                rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xEnv );
+                rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xAuthEnv );
 
                 if ( resources.size() == 1 )
                 {
