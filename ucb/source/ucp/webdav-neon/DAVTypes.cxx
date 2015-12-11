@@ -94,7 +94,10 @@ bool DAVOptionsCache::restoreDAVOptions( const OUString & rURL, DAVOptions & rDA
     DAVOptionsMap::iterator it;
     it = m_aTheCache.find( aEncodedUrl );
     if ( it == m_aTheCache.end() )
+    {
+        SAL_WARN_A( "ucb.ucp.webdav", "DAVOptionsCache::restoreDAVOptions - NOT in cache - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         return false;
+    }
     else
     {
         // check if the capabilities are stale, before restoring
@@ -103,10 +106,12 @@ bool DAVOptionsCache::restoreDAVOptions( const OUString & rURL, DAVOptions & rDA
         if ( (*it).second.getStaleTime() < t1.Seconds )
         {
             // if stale, remove from cache, do not restore
+            SAL_WARN_A( "ucb.ucp.webdav", "DAVOptionsCache::restoreDAVOptions - REMOVED stale - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl << ", t1.Seconds: " << t1.Seconds << ", t1.Nanosec: " << t1.Nanosec );
             removeDAVOptions( rURL );
             return false;
             // return false instead
         }
+        SAL_WARN_A( "ucb.ucp.webdav", "DAVOptionsCache::restoreDAVOptions - RESTORED - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         rDAVOptions = (*it).second;
         return true;
     }
@@ -123,6 +128,7 @@ void DAVOptionsCache::removeDAVOptions( const OUString & rURL )
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
     {
+        SAL_WARN_A( "ucb.ucp.webdav", "DAVOptionsCache::removeDAVOptions - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         m_aTheCache.erase( it );
     }
 }
@@ -144,6 +150,7 @@ void DAVOptionsCache::addDAVOptions( const OUString & rURL, const OUString & rRe
     osl_getSystemTime( &t1 );
     rDAVOptions.setStaleTime( t1.Seconds + nLifeTime );
 
+    SAL_WARN_A( "ucb.ucp.webdav", "DAVOptionsCache::addDAVOptions - rURL: "  << rURL << ", aEncodedUrl: " << aEncodedUrl << ", nLifeTime: " << nLifeTime );
     m_aTheCache[ aEncodedUrl ] = rDAVOptions;
 }
 
