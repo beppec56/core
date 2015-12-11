@@ -78,7 +78,10 @@ bool DAVCapabilitiesCache::restoreDAVCapabilities( const OUString & rURL, DAVCap
     DAVCapabilitiesMap::iterator it;
     it = m_aTheCache.find( aEncodedUrl );
     if ( it == m_aTheCache.end() )
+    {
+        SAL_INFO_A( "ucb.ucp.webdav", "DAVCapabilitiesCache::restoreDAVCapabilities - NOT in cache - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         return false;
+    }
     else
     {
         // check if the capabilities are stale, before restoring
@@ -87,10 +90,12 @@ bool DAVCapabilitiesCache::restoreDAVCapabilities( const OUString & rURL, DAVCap
         if ( (*it).second.m_nStaleTime < t1.Seconds )
         {
             // if stale, remove from cache, do not restore
+            SAL_INFO_A( "ucb.ucp.webdav", "DAVCapabilitiesCache::restoreDAVCapabilities - REMOVED stale - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl << ", t1.Seconds: " << t1.Seconds << ", t1.Nanosec: " << t1.Nanosec );
             removeDAVCapabilities( rURL );
             return false;
             // return false instead
         }
+        SAL_INFO_A( "ucb.ucp.webdav", "DAVCapabilitiesCache::restoreDAVCapabilities - RESTORED - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         rDAVCapabilities = (*it).second;
         return true;
     }
@@ -107,6 +112,7 @@ void DAVCapabilitiesCache::removeDAVCapabilities( const OUString & rURL )
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
     {
+        SAL_INFO_A( "ucb.ucp.webdav", "DAVCapabilitiesCache::removeDAVCapabilities - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         m_aTheCache.erase( it );
     }
 }
@@ -124,6 +130,7 @@ void DAVCapabilitiesCache::addDAVCapabilities( const OUString & rURL, DAVCapabil
     osl_getSystemTime( &t1 );
     rDAVCapabilities.m_nStaleTime = t1.Seconds + nLifeTime;
 
+    SAL_INFO_A( "ucb.ucp.webdav", "DAVCapabilitiesCache::addDAVCapabilities - rURL: "  << rURL << ", aEncodedUrl: " << aEncodedUrl << ", nLifeTime: " << nLifeTime );
     m_aTheCache[ aEncodedUrl ] = rDAVCapabilities;
 }
 
