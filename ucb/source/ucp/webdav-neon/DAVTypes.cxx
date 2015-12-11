@@ -89,7 +89,10 @@ bool DAVOptionsCache::restoreDAVOptions( const OUString & rURL, DAVOptions & rDA
     DAVOptionsMap::iterator it;
     it = m_aTheCache.find( aEncodedUrl );
     if ( it == m_aTheCache.end() )
+    {
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::restoreDAVOptions - NOT in cache - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         return false;
+    }
     else
     {
         // check if the capabilities are stale, before restoring
@@ -98,10 +101,12 @@ bool DAVOptionsCache::restoreDAVOptions( const OUString & rURL, DAVOptions & rDA
         if ( (*it).second.getStaleTime() < t1.Seconds )
         {
             // if stale, remove from cache, do not restore
+            SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::restoreDAVOptions - REMOVED stale - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl << ", t1.Seconds: " << t1.Seconds << ", t1.Nanosec: " << t1.Nanosec );
             removeDAVOptions( rURL );
             return false;
             // return false instead
         }
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::restoreDAVOptions - RESTORED - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         rDAVOptions = (*it).second;
         return true;
     }
@@ -118,6 +123,7 @@ void DAVOptionsCache::removeDAVOptions( const OUString & rURL )
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
     {
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::removeDAVOptions - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         m_aTheCache.erase( it );
     }
 }
@@ -133,6 +139,7 @@ bool DAVOptionsCache::isResourceWeb( const OUString & rURL )
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
     {
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::isResourceWeb - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         // first check for stale
         TimeValue t1;
         osl_getSystemTime( &t1 );
@@ -144,6 +151,9 @@ bool DAVOptionsCache::isResourceWeb( const OUString & rURL )
 
         DAVOptions aDAVOption = (*it).second;
         // check if the resource was present on server
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::isResourceWeb - rURL: " << rURL << ", "<< (!aDAVOption.isClass1() &&
+                                                                                                 !aDAVOption.isClass2() &&
+                                                                                                 !aDAVOption.isClass3() ? "TRUE":"FALSE" ) <<" aEncodedUrl: " << aEncodedUrl);
         return ( !aDAVOption.isClass1() &&
                  !aDAVOption.isClass2() &&
                  !aDAVOption.isClass3() );
@@ -171,6 +181,7 @@ bool DAVOptionsCache::isResourceFound( const OUString & rURL )
             return true; // to force again OPTIONS method
         }
 
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::isResourceFound - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl << ",  " <<(((*it).second.isResourceFound())? "FOUND" : "NOT FOUND") );
         // check if the resource was present on server
         return (*it).second.isResourceFound();
     }
@@ -187,6 +198,7 @@ void DAVOptionsCache::setResourceNotFound( const OUString & rURL )
     OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
     normalizeURLLastChar( aEncodedUrl );
 
+    SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::setResourceNotFound - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
     DAVOptionsMap::iterator it;
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
@@ -214,6 +226,7 @@ void DAVOptionsCache::removeResourceFound( const OUString & rURL )
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
     {
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::removeResourceFound - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         // first check if the resource was present on server
         // remove only if the resource was found present
         // remove as well if cache time elapsed
@@ -242,6 +255,7 @@ void DAVOptionsCache::addDAVOptions( const OUString & rURL, const OUString & rRe
     osl_getSystemTime( &t1 );
     rDAVOptions.setStaleTime( t1.Seconds + nLifeTime );
 
+    SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::addDAVOptions - rURL: "  << rURL << ", aEncodedUrl: " << aEncodedUrl << ", nLifeTime: " << nLifeTime );
     m_aTheCache[ aEncodedUrl ] = rDAVOptions;
 }
 
