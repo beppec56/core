@@ -60,7 +60,7 @@ extern "C" {
 #include "LinkSequence.hxx"
 #include "UCBDeadPropertyValue.hxx"
 
-#include <com/sun/star/configuration/theDefaultProvider.hpp>
+#include <officecfg/Inet.hxx>
 #include <com/sun/star/container/XNameAccess.hpp>
 #include <com/sun/star/xml/crypto/XSecurityEnvironment.hpp>
 #include <com/sun/star/security/XCertificate.hpp>
@@ -796,49 +796,29 @@ void NeonSession::Init()
         // if connect_timeout is not set, neon returns NE_CONNECT when the TCP socket default
         // timeout elapses
         // whith connect_timeout set neon returns NE_TIMEOUT if elapsed when the connection
-        // doesn't succeeded
+        // didn't succeed
         // grab it from configuration
         uno::Reference< uno::XComponentContext > rContext = m_xFactory->getComponentContext();
-        uno::Reference< lang::XMultiServiceFactory > xConfigProvider(
-            configuration::theDefaultProvider::get( rContext ) );
 
-        beans::PropertyValue aProperty;
-        aProperty.Name  = "nodepath";
-        aProperty.Value = uno::makeAny( OUString("org.openoffice.Inet/Settings") );
+        int nConnectTimeout = officecfg::Inet::Settings::ConnectTimeout::get( rContext );
+        if ( nConnectTimeout > 180 )
+            nConnectTimeout = 180;
+        else if (nConnectTimeout < 5 )
+            nConnectTimeout = 5;
 
-        uno::Sequence< uno::Any > aArgumentList( 1 );
-        aArgumentList[0] = uno::makeAny( aProperty );
+        ne_set_connect_timeout( m_pHttpSession, nConnectTimeout ) ;
 
-        uno::Reference< container::XNameAccess > xNameAccess(
-            xConfigProvider->createInstanceWithArguments(
-                "com.sun.star.configuration.ConfigurationAccess", aArgumentList ),
-            uno::UNO_QUERY_THROW );
+        // provides a read time out facility as well
+        int nReadTimeout =  officecfg::Inet::Settings::ReadTimeout::get( rContext );
+        if ( nReadTimeout > 180 )
+            nReadTimeout = 180;
+        else if ( nReadTimeout < 20 )
+            nReadTimeout = 20;
 
-        ne_set_connect_timeout( m_pHttpSession,
-                                getInt32CheckAndCast( xNameAccess, "loInetConnectTimeout", 180, 5, 20 ) );
-// provides a read time out facility as well
-        ne_set_read_timeout( m_pHttpSession,
-                             getInt32CheckAndCast( xNameAccess, "loInetReadTimeout", 180, 30, 120 ) );
+        ne_set_read_timeout( m_pHttpSession, nReadTimeout );
     }
 }
 
-int NeonSession::getInt32CheckAndCast( const uno::Reference< container::XNameAccess >& xNameAccess,
-                                       const OUString& aName, sal_Int32 nMax,  sal_Int32 nMin, sal_Int32 nDefault )
-{
-    sal_Int32 nto = nDefault;
-    try
-    {
-        css::uno::Any aValue = xNameAccess->getByName( aName );
-        aValue >>= nto;
-        nto = ( nto > nMax ) ? nMax : nto;
-        nto = ( nto < nMin ) ? nMin : nto;
-    }
-    catch ( container::NoSuchElementException& )
-    {
-        SAL_WARN( "ucb.ucp.webdav", aName << " missing in configuration, using default value of " << nDefault << " seconds." );
-    }
-    return (int) nto;
-}
 
 bool NeonSession::CanUse( const OUString & inUri,
                           const uno::Sequence< beans::NamedValue >& rFlags )
