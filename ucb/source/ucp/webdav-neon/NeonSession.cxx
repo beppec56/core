@@ -797,7 +797,7 @@ void NeonSession::Init()
         // timeout elapses
         // whith connect_timeout set neon returns NE_TIMEOUT if elapsed when the connection
         // didn't succeed
-        // grab it from configuration
+        // grab value from configuration
         uno::Reference< uno::XComponentContext > rContext = m_xFactory->getComponentContext();
 
         int nConnectTimeout = officecfg::Inet::Settings::ConnectTimeout::get( rContext );
@@ -806,16 +806,7 @@ void NeonSession::Init()
         else if (nConnectTimeout < 5 )
             nConnectTimeout = 5;
 
-        ne_set_connect_timeout( m_pHttpSession, nConnectTimeout ) ;
-
-        // provides a read time out facility as well
-        int nReadTimeout =  officecfg::Inet::Settings::ReadTimeout::get( rContext );
-        if ( nReadTimeout > 180 )
-            nReadTimeout = 180;
-        else if ( nReadTimeout < 20 )
-            nReadTimeout = 20;
-
-        ne_set_read_timeout( m_pHttpSession, nReadTimeout );
+        ne_set_connect_timeout( m_pHttpSession, nConnectTimeout );
     }
 }
 
