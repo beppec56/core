@@ -3,8 +3,7 @@
 # configuration for windows
 
 #get the branch point
-BRANCH_POINT=`diff -u <(git rev-list -200 --first-parent HEAD)   <(git rev-list -200 --first-parent libreoffice-5-0) | sed -ne 's/^ //p' | head -1`
-BRANCH_POINT2=`git log -n1 --format=%h $BRANCH_POINT`
+. ./conf-lohs-get-branch-point-lo51.sh
 
 . ../gdrive-lohs-credential.shinc
 
@@ -20,6 +19,8 @@ BRANCH_POINT2=`git log -n1 --format=%h $BRANCH_POINT`
 --enable-pch --disable-ccache \
 --disable-activex --disable-atl \
 \
---with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g')$(echo :$(git log -n1 --format=%h)) based on libreoffice-5-0:$BRANCH_POINT2" \
+--with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g')$(echo :$(git log -n1 --format=%h)) based on $ROOT_BRANCH:$BRANCH_POINT2" \
 
-c:/cygwin/opt/lo/bin/make scp2.clean
+c:/cygwin/opt/lo/bin/make scp2.clean > /dev/null 2>&1
+
+cat autogen.lastrun
