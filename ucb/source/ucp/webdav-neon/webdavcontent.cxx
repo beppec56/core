@@ -1294,7 +1294,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
         // First, identify whether resource is DAV or not
         bool bNetworkAccessAllowed = true;
         ResourceType eType = getResourceType(
-            xCmdEnv, xResAccess, &bNetworkAccessAllowed );
+            xEnv, xResAccess, &bNetworkAccessAllowed );
 
         if ( eType == DAV )
         {
@@ -3641,7 +3641,21 @@ void Content::getResourceOptions(
         {
             DAVResource  options;
 
-            xResAccess->OPTIONS( m_aDAVCapabilities, xEnv );
+            css::uno::Reference< css::ucb::XCommandEnvironment > xAuthEnv;
+            if( !xEnv.is() )
+            {
+                css:: uno::Reference< task::XInteractionHandler > xIH(
+                    css::task::InteractionHandler::createWithParent( m_xContext, 0 ), css::uno::UNO_QUERY_THROW );
+
+                xAuthEnv = css::ucb::CommandEnvironment::create(
+                    m_xContext,
+                    xIH,
+                    css::uno::Reference< ucb::XProgressHandler >() ) ;
+            }
+            else
+                xAuthEnv = xEnv;
+
+            xResAccess->OPTIONS( m_aDAVCapabilities, xAuthEnv );
             // method didn't give errors, but NON_DAV for now
             // will turn this to DAV after the check on LOCK below
             // IMPORTANT: some server will answer without errors, even if the resource is not present
@@ -3676,6 +3690,22 @@ void Content::getResourceOptions(
 
             switch( e.getError() )
             {
+                case DAVException::DAV_HTTP_TIMEOUT:
+                case DAVException::DAV_HTTP_CONNECT:
+                {
+                    // something bad happened to the connection
+                    // not same as not found, this instead happens when the server does'n exist or does'n aswer at all
+                    // probably a new bitt stating 'timed out' should be added
+                    //  m_aDAVCapabilities.setResourceFound( false );
+                    // aStaticDAVCapabilitiesCache.addDAVCapabilities(
+                    //     m_xIdentifier->getContentIdentifier(),
+                    //     m_aDAVCapabilities,
+                    //     DAVCapabilitiesCache::nOptNotFoundLifeTime );
+                    // abort the command
+                    cancelCommandExecution( e, xEnv );
+                    // unreachable
+                }
+                break;
                 case DAVException::DAV_HTTP_AUTH:
                 {
                     SAL_WARN( "ucb.ucp.webdav", "OPTIONS - DAVException Authentication error for URL <" << m_xIdentifier->getContentIdentifier() << ">" );

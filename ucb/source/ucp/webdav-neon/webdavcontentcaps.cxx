@@ -336,7 +336,7 @@ uno::Sequence< beans::Property > Content::getProperties(
         else
             xCmdEnv = xEnv;
 
-        getResourceOptions( xCmdEnv );
+        getResourceOptions( xEnv );
         if ( m_aDAVCapabilities.isClass1() )
         {
             try
