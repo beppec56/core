@@ -35,7 +35,8 @@ DAVCapabilities::DAVCapabilities() :
         m_isClass1( false ),
         m_isClass2( false ),
         m_isClass3( false ),
-        m_hasFPServerExtensions( false )
+        m_hasFPServerExtensions( false ),
+        m_aAllowedMethods()
 {
 }
 
@@ -46,7 +47,8 @@ DAVCapabilities::DAVCapabilities( const DAVCapabilities & rOther ) :
         m_isClass1( rOther.m_isClass2 ),
         m_isClass2( rOther.m_isClass2 ),
         m_isClass3( rOther.m_isClass3 ),
-        m_hasFPServerExtensions( rOther.m_hasFPServerExtensions )
+        m_hasFPServerExtensions( rOther.m_hasFPServerExtensions ),
+        m_aAllowedMethods( rOther.m_aAllowedMethods )
 {
 }
 
