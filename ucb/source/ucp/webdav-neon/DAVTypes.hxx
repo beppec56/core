@@ -73,6 +73,7 @@ namespace webdav_ucp
 // contains the value of header ms-author-via
 // needed to detect if the server is Sharepoint-like
         bool    m_hasFPServerExtensions;
+        OUString    m_aAllowedMethods;
 
     public:
         /// target time when this capability becomes stale
@@ -103,6 +104,11 @@ namespace webdav_ucp
         bool hasFPServerExtensions() { return  m_hasFPServerExtensions; };
         void setFPServerExtensions( bool FPServerExtensions = true ) { m_hasFPServerExtensions = FPServerExtensions; };
 
+        void  setAllowedMethods( OUString & aAllowedMethods ) { m_aAllowedMethods =  aAllowedMethods; } ;
+        OUString & getAllowedMethods() { return m_aAllowedMethods; } ;
+        bool isLockAllowed() { return ( m_aAllowedMethods.indexOf( "LOCK" ) != -1 ); };
+        bool isUnlockAllowed() { return ( m_aAllowedMethods.indexOf( "UNLOCK" ) != -1 ); };
+
         void reset() {
             m_isResourceFound = false;
             m_isDAVCapabilitiesValid = false;
@@ -110,6 +116,7 @@ namespace webdav_ucp
             m_isClass2 = false;
             m_isClass3 = false;
             m_hasFPServerExtensions = false;
+            m_aAllowedMethods = "";
         };
     };
 

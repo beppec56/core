@@ -888,6 +888,10 @@ void NeonSession::OPTIONS( const OUString & inPath,
                 if ( aHeaderValue.indexOf( "MS-FP/4.0" ) != -1 )
                     rCapabilities.setFPServerExtensions();
             }
+            else if ( aHeaderName == "allow" )
+            {
+                rCapabilities.setAllowedMethods( aHeaderValue );
+            }
             else if ( aHeaderName == "dav" )
             {
                 // check type of dav capability

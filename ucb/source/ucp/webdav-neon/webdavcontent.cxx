@@ -2840,6 +2840,8 @@ Content::ResourceType Content::resourceTypeForLocks(
                 if( m_aDAVCapabilities.isClass2() ||
                     m_aDAVCapabilities.isClass3() )
                 {
+                    // this is at least a DAV, no lock confirmed yet
+                    eResourceTypeForLocks = DAV_NOLOCK;
                     try
                     {
                         // we need only DAV:supportedlock
@@ -2850,6 +2852,8 @@ Content::ResourceType Content::resourceTypeForLocks(
 
                         ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
                         xResAccess->PROPFIND( DAVZERO, aPropNames, resources, Environment );
+
+                        bool wasSupportedlockFound = false;
 
                         // only one resource should be returned
                         if ( resources.size() == 1 )
@@ -2867,13 +2871,15 @@ Content::ResourceType Content::resourceTypeForLocks(
                             {
                                 if ( (*it).Name ==  DAVProperties::SUPPORTEDLOCK )
                                 {
+                                    wasSupportedlockFound = true;
                                     uno::Sequence< ucb::LockEntry > aSupportedLocks;
                                     if ( (*it).Value >>= aSupportedLocks )
                                     {
-                                        // this is at least a DAV, no lock confirmed yet
-                                        eResourceTypeForLocks = DAV_NOLOCK;
                                         for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
                                         {
+                                            // TODO: if the lock type is changed from 'exclusive write' to 'shared write'
+                                            // e.g. to implement 'Calc shared file feature', the ucb::LockScope_EXCLUSIVE
+                                            // value should be cheacked as well, possibly changing
                                             if ( aSupportedLocks[ n ].Scope == ucb::LockScope_EXCLUSIVE &&
                                                  aSupportedLocks[ n ].Type == ucb::LockType_WRITE )
                                             {
@@ -2888,6 +2894,16 @@ Content::ResourceType Content::resourceTypeForLocks(
                                     }
                                 }
                             }
+                        }
+                        //check if this is still only a DAV_NOLOCK
+                        if ( !wasSupportedlockFound && eResourceTypeForLocks == DAV_NOLOCK )
+                        {
+                            SAL_WARN( "ucb.ucp.webdav", "There is no supportedlock property, check for allowed LOCK method in OPTIONS" );
+                            // TODO: if the lock type is changed from 'exclusive write' to 'shared write'
+                            // e.g. to implement 'Calc shared file feature', and we arrive to this fallback
+                            // and the LOCK is allowed, we should assume that only exclusive write lock is available
+                            if ( m_aDAVCapabilities.isLockAllowed() )
+                                eResourceTypeForLocks = DAV;
                         }
                     }
                     catch ( DAVException const & e )
@@ -3049,6 +3065,10 @@ void Content::lock(
                 //grab the error code
                 switch( e.getStatus() )
                 {
+                    // The 'case SC_NOT_FOUND' just below tries to solve a problem in eXo Platform
+                    // WebDAV connector which apparently fail on resource first creation
+                    // rfc4918 section-7.3 (see link below)
+                    case SC_NOT_FOUND:              // <http://tools.ietf.org/html/rfc7231#section-6.5.4>
                     // The 'case SC_PRECONDITION_FAILED' just below tries to solve a problem
                     // in SharePoint when locking the resource on first creation fails due to this:
                     // <https://msdn.microsoft.com/en-us/library/jj575265%28v=office.12%29.aspx#id15>
@@ -3518,6 +3538,17 @@ Content::ResourceType Content::getResourceType(
 
                 if ( resources.size() == 1 )
                 {
+                    {
+                        // print received resources
+                        std::vector< DAVPropertyValue >::const_iterator it4 = resources[0].properties.begin();
+                        std::vector< DAVPropertyValue >::const_iterator end4 = resources[0].properties.end();
+                        while ( it4 != end4 )
+                        {
+                            SAL_INFO( "ucb.ucp.webdav", "PROPFIND 3 (getResourceType) - returned property: " << (*it4).Name );
+                            ++it4;
+                        }
+                    }
+
                     osl::MutexGuard g(m_aMutex);
                     m_xCachedProps.reset(
                         new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );
@@ -3662,7 +3693,8 @@ void Content::getResourceOptions(
                           << "> : Class1: " << m_aDAVCapabilities.isClass1()
                           << ", Class2: " << m_aDAVCapabilities.isClass2()
                           << ", Class3: " << m_aDAVCapabilities.isClass3()
-                          << ", FPServerExtensions: " << m_aDAVCapabilities.hasFPServerExtensions() );
+                          << ", FPServerExtensions: " << m_aDAVCapabilities.hasFPServerExtensions()
+                          << ", m_aAllowedMethods: " << m_aDAVCapabilities.getAllowedMethods() );
             } //debug
 #endif
         }
