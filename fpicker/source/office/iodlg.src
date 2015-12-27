@@ -102,6 +102,11 @@ String STR_SVT_ALREADYEXISTOVERWRITE
     Text [ en-US ] = "A file named \"$filename$\" already exists.\n\nDo you want to replace it?" ;
 };
 
+String STR_SVT_FOLDERALREADYEXIST
+{
+    Text [ en-US ] = "A folder named \"$filename$\" already exists.\n\nYou cannot overwrite it with a file." ;
+};
+
 String STR_SVT_DELETESERVICE
 {
     Text [ en-US ] = "Are you sure you want to delete the service?\n\"$servicename$\"" ;
