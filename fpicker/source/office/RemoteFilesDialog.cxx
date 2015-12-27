@@ -1133,14 +1133,23 @@ IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, OkHdl, Button*, void )
         m_sPath = aURL.GetMainURL( INetURLObject::NO_DECODE );
     }
 
-    bool bExists = false;
+    // Need to carry out checks if the file has same name as a folder
+    // to avoid trying to overwrite an already existing folder.
+    // The error number you will get from the server in that case is server
+    // dependent, not very useful to end user
+    bool ExistsAsFile = ContentIsDocument( m_sPath );
+    bool ExistsAsFolder = ContentIsFolder( m_sPath );
 
-    if( bFileDlg )
-        bExists = ContentIsDocument( m_sPath );
-    else
-        bExists = ContentIsFolder( m_sPath );
+    if( bFileDlg && ExistsAsFolder )
+    {
+        OUString sMsg = fpicker::SvtResId( STR_SVT_FOLDERALREADYEXIST );
+        sMsg = sMsg.replaceFirst( "$filename$", sName );
+        ScopedVclPtrInstance< MessageDialog > aBox( this, sMsg, VCL_MESSAGE_ERROR, VCL_BUTTONS_OK );
+        aBox->Execute();
+        return;
+    }
 
-    if( bExists )
+    if( bFileDlg && ExistsAsFile )
     {
         if( m_eMode == REMOTEDLG_MODE_SAVE )
         {
