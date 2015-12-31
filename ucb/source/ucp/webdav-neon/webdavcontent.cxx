@@ -1936,16 +1936,17 @@ uno::Any Content::open(
     throw (uno::Exception, std::exception)
 {
     uno::Any aRet;
-
     bool bOpenFolder = ( ( rArg.Mode == ucb::OpenMode::ALL ) ||
                              ( rArg.Mode == ucb::OpenMode::FOLDERS ) ||
                              ( rArg.Mode == ucb::OpenMode::DOCUMENTS ) );
     if ( bOpenFolder )
     {
+        SAL_INFO( "ucb.ucp.webdav", "Open folder" );
         if ( isFolder( xEnv ) )
         {
             // Open collection.
 
+        SAL_INFO( "ucb.ucp.webdav", "Open collection" );
             uno::Reference< ucb::XDynamicResultSet > xSet
                 = new DynamicResultSet( m_xContext, this, rArg, xEnv );
             aRet <<= xSet;
@@ -3207,6 +3208,7 @@ bool Content::isFolder(
         }
         catch ( sdbc::SQLException const & )
         {
+            SAL_WARN("ucb.ucp.webdav","sdbc::SQLException");
         }
     }
 
@@ -3469,7 +3471,7 @@ Content::ResourceType Content::getResourceType(
             ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
 
             rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xEnv );
-
+            SAL_INFO( "ucb.ucp.webdav", "resources.size(): " << resources.size() );
             if ( resources.size() == 1 )
             {
                 osl::MutexGuard g(m_aMutex);
@@ -3484,6 +3486,7 @@ Content::ResourceType Content::getResourceType(
         {
             rResAccess->resetUri();
 
+            SAL_WARN( "ucb.ucp.webdav", "DAVException: " << e.getStatus() << ", " << e.getError() );
             if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
             {
                 // Status SC_METHOD_NOT_ALLOWED is a safe indicator that the

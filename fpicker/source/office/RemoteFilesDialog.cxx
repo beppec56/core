@@ -547,6 +547,7 @@ FileViewResult RemoteFilesDialog::OpenURL( OUString const & sURL )
 {
     FileViewResult eResult = eFailure;
 
+    SAL_WARN( "fpicker.office",  "RemoteFilesDialog::OpenURL - sURL: " << sURL );
     if( m_pFileView )
     {
         m_pTreeView->EndSelection();
@@ -1042,7 +1043,9 @@ IMPL_LINK_TYPED( RemoteFilesDialog, TreeSelectHdl, SvTreeListBox *, pBox, void )
 
 IMPL_LINK_TYPED ( RemoteFilesDialog, SelectBreadcrumbHdl, Breadcrumb*, pPtr, void )
 {
-    OpenURL( pPtr->GetHdlURL() );
+    OUString sUrl = pPtr->GetHdlURL();
+    sUrl += "/";
+    OpenURL( sUrl );
 }
 
 IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, NewFolderHdl, Button*, void )
@@ -1301,6 +1304,7 @@ void RemoteFilesDialog::UpdateControls( const OUString& rURL )
     {
         OUString sURL = m_aServices[nPos]->GetUrl();
 
+        SAL_WARN( "fpicker.office", "rURL: " << rURL << ", m_aServices[nPos]->GetUrl(): " << m_aServices[nPos]->GetUrl() << ", m_sRootLabel: " << m_sRootLabel);
         m_pPath->SetRootName( m_sRootLabel );
         m_pTreeView->Clear();
 
@@ -1315,6 +1319,7 @@ void RemoteFilesDialog::UpdateControls( const OUString& rURL )
         m_bServiceChanged = false;
     }
 
+    SAL_WARN( "fpicker.office", "m_pPath->SetURL( rURL ): " << rURL );
     m_pPath->SetURL( rURL );
 
     m_pTreeView->SetSelectHdl( Link<SvTreeListBox*,void>() );
@@ -1337,6 +1342,7 @@ void RemoteFilesDialog::UpdateControls( const OUString& rURL )
             if( rFolders[i].mbIsFolder )
             {
                 aFolders.push_back( std::pair< OUString, OUString > ( sTitle, rFolders[i].maURL ) );
+                SAL_WARN( "fpicker.office", "rFolders[i].maURL: " << rFolders[i].maURL );
             }
 
             // add entries to the autocompletion mechanism
