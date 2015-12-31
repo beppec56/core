@@ -156,6 +156,7 @@ namespace svt
             aProps[11] = "IsCompactDisc";
 
             Reference< XCommandEnvironment > xEnvironment;
+            SAL_WARN( "svtools.contnr", "enumerateFolderContent - m_aFolder.sURL: " << m_aFolder.sURL );
             try
             {
                 FolderDescriptor aFolder;
@@ -218,6 +219,8 @@ namespace svt
                             OUString aContentURL = xContentAccess->queryContentIdentifierString();
                             OUString aTargetURL = xRow->getString( ROW_TARGET_URL );
                             bool bHasTargetURL = !xRow->wasNull() && !aTargetURL.isEmpty();
+                            SAL_WARN( "svtools.contnr", "aContentURL: "  << aContentURL << ", aTargetURL: " << aTargetURL << ", bHasTargetURL: " << bHasTargetURL );
+
 
                             OUString sRealURL = bHasTargetURL ? aTargetURL : aContentURL;
 
@@ -240,6 +243,7 @@ namespace svt
                             pData->SetNewTitle( xRow->getString( ROW_TITLE ) );
                             pData->maSize = xRow->getLong( ROW_SIZE );
 
+                            SAL_WARN( "svtools.contnr", "pData->SetNewTitle: "  << xRow->getString( ROW_TITLE ) );
                             if ( bHasTargetURL &&
                                 INetURLObject( aContentURL ).GetProtocol() == INetProtocol::VndSunStarHier )
                             {

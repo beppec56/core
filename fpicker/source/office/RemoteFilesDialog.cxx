@@ -1053,6 +1053,8 @@ IMPL_LINK_TYPED( RemoteFilesDialog, TreeSelectHdl, SvTreeListBox *, pBox, void )
 {
     OUString* sURL = static_cast< OUString* >( pBox->GetHdlEntry()->GetUserData() );
 
+    SAL_WARN( "fpicker.office", "TreeSelectHdl - sURL: " << *sURL << ", GetDisplayText(): " << pBox->GetDisplayText() );
+
     if( sURL )
     {
         OpenURL( *sURL );
@@ -1239,6 +1241,7 @@ OUString RemoteFilesDialog::getCurrentFileText() const
 
 void RemoteFilesDialog::setCurrentFileText( const OUString& rText, bool bSelectAll )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::setCurrentFileText - rText: " << rText);
     if( m_pName_ed )
     {
         m_pName_ed->SetText( rText );
@@ -1334,7 +1337,6 @@ void RemoteFilesDialog::UpdateControls( const OUString& rURL )
 
         m_bServiceChanged = false;
     }
-
     m_pPath->SetURL( rURL );
 
     m_pTreeView->SetSelectHdl( Link<SvTreeListBox*,void>() );
@@ -1361,6 +1363,7 @@ void RemoteFilesDialog::UpdateControls( const OUString& rURL )
 
             if( rFolders[i].mbIsFolder )
             {
+                SAL_WARN( "fpicker.office", "UpdateControls - rFolders[i].maURL: " << rFolders[i].maURL );
                 aFolders.push_back( std::pair< OUString, OUString > ( sTitle, aFolderName ) );
             }
 
