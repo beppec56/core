@@ -181,6 +181,7 @@ RemoteFilesDialog::RemoteFilesDialog( vcl::Window* pParent, WinBits nBits )
     , m_pContainer( nullptr )
     , m_pAddMenu( nullptr )
 {
+    SAL_WARN( "fpicker.office", ">>>>>>>>>>>>>>>> RemoteFilesDialog ctor" );
     get( m_pCancel_btn, "cancel" );
     get( m_pAddService_btn, "add_service_btn" );
     get( m_pServices_lb, "services_lb" );
@@ -292,11 +293,13 @@ RemoteFilesDialog::RemoteFilesDialog( vcl::Window* pParent, WinBits nBits )
 
 RemoteFilesDialog::~RemoteFilesDialog()
 {
+    SAL_WARN( "fpicker.office", "<<<<<<<<<<<<<<<<<<<<<<<< RemoteFilesDialog Dtor" );
     disposeOnce();
 }
 
 void RemoteFilesDialog::dispose()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::dispose" );
     m_pFileView->SetSelectHdl( Link<SvTreeListBox*,void>() );
 
     // save window state
@@ -360,6 +363,7 @@ void RemoteFilesDialog::dispose()
 
 void RemoteFilesDialog::Resize()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::Resize" );
     ModalDialog::Resize();
 
     if( m_pFileView && m_pContainer )
@@ -372,6 +376,7 @@ void RemoteFilesDialog::Resize()
 
 short RemoteFilesDialog::Execute()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::Execute" );
     if( m_pServices_lb->GetEntryCount() > 0 )
     {
         Show();
@@ -390,6 +395,7 @@ short RemoteFilesDialog::Execute()
 
 void RemoteFilesDialog::Show()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::Show" );
     SvtFileDialog_Base::Show();
 
     if( m_nWidth > 0 && m_nHeight > 0 )
@@ -436,6 +442,7 @@ OUString lcl_GetServiceType( const ServicePtr& pService )
 
 void RemoteFilesDialog::InitSize()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::InitSize" );
     if( m_sIniKey.isEmpty() )
         return;
 
@@ -471,6 +478,7 @@ void RemoteFilesDialog::InitSize()
 
 void RemoteFilesDialog::FillServicesListbox()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::FillServicesListbox" );
     m_pServices_lb->Clear();
     m_aServices.clear();
 
@@ -518,6 +526,7 @@ void RemoteFilesDialog::FillServicesListbox()
 
 int RemoteFilesDialog::GetSelectedServicePos()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::GetSelectedServicePos" );
     int nSelected = m_pServices_lb->GetSelectEntryPos();
     int nPos = 0;
     int i = -1;
@@ -555,6 +564,7 @@ void RemoteFilesDialog::AddFilter( const OUString& rFilter, const OUString& rTyp
 
 FileViewResult RemoteFilesDialog::OpenURL( OUString const & sURL )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::OpenURL" );
     FileViewResult eResult = eFailure;
 
     if( m_pFileView )
@@ -610,6 +620,7 @@ FileViewResult RemoteFilesDialog::OpenURL( OUString const & sURL )
 
 void RemoteFilesDialog::AddFileExtension()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::AddFileExtension" );
     if( m_nCurrentFilter != LISTBOX_ENTRY_NOTFOUND )
     {
         OUString sExt = m_aFilters[m_nCurrentFilter].second;
@@ -627,6 +638,7 @@ void RemoteFilesDialog::AddFileExtension()
 
 void RemoteFilesDialog::EnableControls()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::EnableControls" );
     if( m_pServices_lb->GetEntryCount() > 0 )
     {
         m_pServices_lb->Enable();
@@ -688,6 +700,7 @@ void RemoteFilesDialog::EnableControls()
 
 void RemoteFilesDialog::DisableControls()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::DisableControls" );
     m_pServices_lb->Enable( false );
     m_pFilter_lb->Enable( false );
     m_pAddService_btn->Enable( false );
@@ -702,6 +715,7 @@ void RemoteFilesDialog::DisableControls()
 void RemoteFilesDialog::SavePassword( const OUString& rURL, const OUString& rUser
                                     , const OUString& rPassword, bool bPersistent )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::SavePassword" );
     if( rURL.isEmpty() || rUser.isEmpty() || rPassword.isEmpty() )
         return;
 
@@ -741,6 +755,7 @@ IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, ListViewHdl, Button*, void )
 
 IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, AddServiceHdl, Button*, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, AddServiceHdl" );
     ScopedVclPtrInstance< PlaceEditDialog > aDlg( this );
     aDlg->ShowPasswordControl();
     short aRetCode = aDlg->Execute();
@@ -784,6 +799,7 @@ IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, AddServiceHdl, Button*, void )
 
 IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SelectServiceHdl, ListBox&, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, SelectServiceHdl" );
     int nPos = GetSelectedServicePos();
 
     if( nPos >= 0 )
@@ -798,6 +814,7 @@ IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SelectServiceHdl, ListBox&, void )
 
 IMPL_LINK_TYPED ( RemoteFilesDialog, EditServiceMenuHdl, MenuButton *, pButton, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, EditServiceMenuHdl" );
     OString sIdent( pButton->GetCurItemIdent() );
     if( sIdent == "edit_service"  && m_pServices_lb->GetEntryCount() > 0 )
     {
@@ -938,6 +955,7 @@ IMPL_LINK_TYPED ( RemoteFilesDialog, EditServiceMenuHdl, MenuButton *, pButton, 
 
 IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, DoubleClickHdl, SvTreeListBox*, bool )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, DoubleClickHdl" );
     if( m_pFileView->GetSelectionCount() )
     {
         SvTreeListEntry* pEntry = m_pFileView->FirstSelected();
@@ -965,6 +983,7 @@ IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, DoubleClickHdl, SvTreeListBox*, bool )
 
 IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SelectHdl, SvTreeListBox*, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, SelectHdl" );
     SvTreeListEntry* pEntry = m_pFileView->FirstSelected();
 
     if( pEntry )
@@ -983,8 +1002,11 @@ IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SelectHdl, SvTreeListBox*, void )
                 aURL.SetUser( aCurrentURL.GetUser() );
 
                 m_sPath = aURL.GetMainURL( INetURLObject::NO_DECODE );
-
-                m_pName_ed->SetText( INetURLObject::decode( aURL.GetLastName(), INetURLObject::DECODE_WITH_CHARSET ) );
+                // set the file name only if we are not in save mode
+                // in save mode the file name should be there already
+                SAL_WARN( "fpicker.office", "new file set: " << INetURLObject::decode( aURL.GetLastName(), INetURLObject::DECODE_WITH_CHARSET ) );
+                if( m_eMode != REMOTEDLG_MODE_SAVE )
+                    m_pName_ed->SetText( INetURLObject::decode( aURL.GetLastName(), INetURLObject::DECODE_WITH_CHARSET ) );
             }
             else
             {
@@ -1002,11 +1024,13 @@ IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SelectHdl, SvTreeListBox*, void )
 
 IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, FileNameGetFocusHdl, Control&, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, FileNameGetFocusHdl" );
     m_pFileView->SetNoSelection();
 }
 
 IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, FileNameModifyHdl, Edit&, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, FileNameModifyHdl" );
     m_pFileView->SetNoSelection();
     if( !m_pOk_btn->IsEnabled() )
         EnableControls();
@@ -1014,6 +1038,7 @@ IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, FileNameModifyHdl, Edit&, void )
 
 IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SplitHdl, Splitter*, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, SplitHdl" );
     sal_Int32 nSplitPos = m_pSplitter->GetSplitPosPixel();
 
     // Resize the tree list box
@@ -1036,6 +1061,7 @@ IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SplitHdl, Splitter*, void )
 
 IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SelectFilterHdl, ListBox&, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, SelectFilterHdl" );
     unsigned int nPos = m_pFilter_lb->GetSelectEntryPos();
 
     if( nPos != LISTBOX_ENTRY_NOTFOUND && !m_aFilters[nPos].second.isEmpty() )
@@ -1051,6 +1077,7 @@ IMPL_LINK_NOARG_TYPED( RemoteFilesDialog, SelectFilterHdl, ListBox&, void )
 
 IMPL_LINK_TYPED( RemoteFilesDialog, TreeSelectHdl, SvTreeListBox *, pBox, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, TreeSelectHdl" );
     OUString* sURL = static_cast< OUString* >( pBox->GetHdlEntry()->GetUserData() );
 
     if( sURL )
@@ -1062,11 +1089,13 @@ IMPL_LINK_TYPED( RemoteFilesDialog, TreeSelectHdl, SvTreeListBox *, pBox, void )
 
 IMPL_LINK_TYPED ( RemoteFilesDialog, SelectBreadcrumbHdl, Breadcrumb*, pPtr, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, SelectBreadcrumbHdl" );
     OpenURL( pPtr->GetHdlURL() );
 }
 
 IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, NewFolderHdl, Button*, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, NewFolderHdl" );
     m_pFileView->EndInplaceEditing();
 
     SmartContent aContent( m_pFileView->GetViewURL() );
@@ -1093,6 +1122,7 @@ IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, NewFolderHdl, Button*, void )
 
 IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, OkHdl, Button*, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, OkHdl" );
     OUString sNameNoExt = m_pName_ed->GetText();
     OUString sPathNoExt;
 
@@ -1173,6 +1203,7 @@ IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, OkHdl, Button*, void )
 
 IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, CancelHdl, Button*, void )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog, CancelHdl" );
     if( m_pCurrentAsyncAction.is() )
     {
         m_pCurrentAsyncAction->cancel();
@@ -1188,11 +1219,13 @@ IMPL_LINK_NOARG_TYPED ( RemoteFilesDialog, CancelHdl, Button*, void )
 
 SvtFileView* RemoteFilesDialog::GetView()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::GetView" );
     return m_pFileView;
 }
 
 void RemoteFilesDialog::SetHasFilename( bool )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::SetHasFilename" );
 }
 
 void RemoteFilesDialog::SetBlackList( const css::uno::Sequence< OUString >& rBlackList )
@@ -1224,13 +1257,14 @@ void RemoteFilesDialog::SetPath( const OUString& rNewURL )
     {
         INetURLObject aUrl( m_sPath );
         OUString sFileName = aUrl.GetLastName( INetURLObject::DECODE_WITH_CHARSET );
-
+        SAL_WARN( "fpicker.office", "rNewURL: " << rNewURL );
         m_pName_ed->SetText( sFileName );
     }
 }
 
 OUString RemoteFilesDialog::getCurrentFileText() const
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::getCurrentFileText" );
     OUString sReturn;
     if( m_pName_ed )
         sReturn = m_pName_ed->GetText();
@@ -1260,6 +1294,7 @@ void RemoteFilesDialog::AddFilterGroup(
 
 OUString RemoteFilesDialog::GetCurFilter() const
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::GetCurFilter" );
     OUString sFilter;
 
     if( m_nCurrentFilter != LISTBOX_ENTRY_NOTFOUND )
@@ -1272,11 +1307,13 @@ OUString RemoteFilesDialog::GetCurFilter() const
 
 OUString RemoteFilesDialog::getCurFilter( ) const
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::getCurFilter" );
     return GetCurFilter();
 }
 
 void RemoteFilesDialog::SetCurFilter( const OUString& rFilter )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::SetCurFilter" );
     DBG_ASSERT( !IsInExecute(), "SvtFileDialog::SetCurFilter: currently executing!" );
 
     // look for corresponding filter
@@ -1315,6 +1352,7 @@ void RemoteFilesDialog::onAsyncOperationFinished()
 
 void RemoteFilesDialog::UpdateControls( const OUString& rURL )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::UpdateControls" );
     int nPos = GetSelectedServicePos();
 
     if( nPos >= 0 && m_bServiceChanged && rURL == m_aServices[nPos]->GetUrl() )
@@ -1384,11 +1422,13 @@ void RemoteFilesDialog::EnableAutocompletion( bool )
 
 const OUString& RemoteFilesDialog::GetPath()
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::GetPath" );
     return m_sPath;
 }
 
 std::vector<OUString> RemoteFilesDialog::GetPathList() const
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::GetPathList" );
     std::vector<OUString> aList;
     sal_uLong nCount = m_pFileView->GetSelectionCount();
     SvTreeListEntry* pEntry = nCount ? m_pFileView->FirstSelected() : nullptr;
@@ -1413,6 +1453,7 @@ std::vector<OUString> RemoteFilesDialog::GetPathList() const
 
 bool RemoteFilesDialog::ContentIsFolder( const OUString& rURL )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::ContentIsFolder" );
     try
     {
         Reference< XInteractionHandler > xInteractionHandler(
@@ -1432,6 +1473,7 @@ bool RemoteFilesDialog::ContentIsFolder( const OUString& rURL )
 
 bool RemoteFilesDialog::ContentIsDocument( const OUString& rURL )
 {
+    SAL_WARN( "fpicker.office", "RemoteFilesDialog::ContentIsDocument" );
     try
     {
         Reference< XInteractionHandler > xInteractionHandler(
