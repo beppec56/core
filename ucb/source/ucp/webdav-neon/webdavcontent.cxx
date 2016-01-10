@@ -2824,89 +2824,100 @@ Content::ResourceType Content::resourceTypeForLocks(
         }
         else
         {
-            try
+            getResourceOptions( Environment );
+            if( m_aDAVCapabilities.isClass1() )
             {
-                // we need only DAV:supportedlock
-                std::vector< DAVResource > resources;
-                std::vector< OUString > aPropNames;
-                uno::Sequence< beans::Property > aProperties( 1 );
-                aProperties[ 0 ].Name = DAVProperties::SUPPORTEDLOCK;
-
-                ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
-                xResAccess->PROPFIND( DAVZERO, aPropNames, resources, Environment );
-
-                // only one resource should be returned
-                if ( resources.size() == 1 )
+                // this is at least a DAV, lock available, but not confirmed yet
+                eResourceTypeForLocks = DAV_NOLOCK;
+                if( m_aDAVCapabilities.isClass2() ||
+                    m_aDAVCapabilities.isClass3() )
                 {
-                    // we may have received a bunch of other properties
-                    // (some servers seems to do so)
-                    // but we need only supported lock for this check
-                    // all returned properties are in
-                    // resources.properties[n].Name/.Value
-
-                    std::vector< DAVPropertyValue >::iterator it;
-
-                    for ( it = resources[0].properties.begin();
-                          it != resources[0].properties.end(); ++it)
+                    try
                     {
-                        if ( (*it).Name ==  DAVProperties::SUPPORTEDLOCK )
+                        // we need only DAV:supportedlock
+                        std::vector< DAVResource > resources;
+                        std::vector< OUString > aPropNames;
+                        uno::Sequence< beans::Property > aProperties( 1 );
+                        aProperties[ 0 ].Name = DAVProperties::SUPPORTEDLOCK;
+
+                        ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
+                        xResAccess->PROPFIND( DAVZERO, aPropNames, resources, Environment );
+
+                        // only one resource should be returned
+                        if ( resources.size() == 1 )
                         {
-                            uno::Sequence< ucb::LockEntry > aSupportedLocks;
-                            if ( (*it).Value >>= aSupportedLocks )
+                            // we may have received a bunch of other properties
+                            // (some servers seems to do so)
+                            // but we need only supported lock for this check
+                            // all returned properties are in
+                            // resources.properties[n].Name/.Value
+
+                            std::vector< DAVPropertyValue >::iterator it;
+
+                            for ( it = resources[0].properties.begin();
+                                  it != resources[0].properties.end(); ++it)
                             {
-                                // this is at least a DAV, no lock confirmed yet
-                                eResourceTypeForLocks = DAV_NOLOCK;
-                                for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
+                                if ( (*it).Name ==  DAVProperties::SUPPORTEDLOCK )
                                 {
-                                    if ( aSupportedLocks[ n ].Scope == ucb::LockScope_EXCLUSIVE &&
-                                         aSupportedLocks[ n ].Type == ucb::LockType_WRITE )
+                                    uno::Sequence< ucb::LockEntry > aSupportedLocks;
+                                    if ( (*it).Value >>= aSupportedLocks )
                                     {
-                                        // requested locking mode is supported
-                                        eResourceTypeForLocks = DAV;
-                                        SAL_INFO( "ucb.ucp.webdav", "resourceTypeForLocks - URL: <"
-                                                  << m_xIdentifier->getContentIdentifier() << ">, DAV lock/unlock supported");
+                                        for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
+                                        {
+                                            if ( aSupportedLocks[ n ].Scope == ucb::LockScope_EXCLUSIVE &&
+                                                 aSupportedLocks[ n ].Type == ucb::LockType_WRITE )
+                                            {
+                                                // requested locking mode is supported
+                                                eResourceTypeForLocks = DAV;
+                                                SAL_INFO( "ucb.ucp.webdav", "resourceTypeForLocks - URL: <"
+                                                          << m_xIdentifier->getContentIdentifier() << ">, DAV lock/unlock supported");
+                                                break;
+                                            }
+                                        }
                                         break;
                                     }
                                 }
-                                break;
                             }
+                        }
+                    }
+                    catch ( DAVException const & e )
+                    {
+                        xResAccess->resetUri();
+                        //grab the error code
+                        switch( e.getStatus() )
+                        {
+                            case SC_NOT_FOUND:
+                                SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() - URL: <"
+                                          << m_xIdentifier->getContentIdentifier() << "> was not found. ");
+                                eResourceTypeForLocks = NOT_FOUND;
+                                break;
+                                // some servers returns SC_FORBIDDEN, instead
+                                // TODO: probably remove it, when OPTIONS implemented
+                                // the meaning of SC_FORBIDDEN is, according to <http://tools.ietf.org/html/rfc7231#section-6.5.3>:
+                                // The 403 (Forbidden) status code indicates that the server understood
+                                // the request but refuses to authorize it
+                            case SC_FORBIDDEN:
+                                // Errors SC_NOT_IMPLEMENTED and SC_METHOD_NOT_ALLOWED are
+                                // part of base http 1.1 RFCs
+                            case SC_NOT_IMPLEMENTED:        // <http://tools.ietf.org/html/rfc7231#section-6.6.2>
+                            case SC_METHOD_NOT_ALLOWED:     // <http://tools.ietf.org/html/rfc7231#section-6.5.5>
+                                // they all mean the resource is NON_DAV
+                                SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException (SC_FORBIDDEN, SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
+                                          << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
+                                eResourceTypeForLocks = NON_DAV;
+                                break;
+                            default:
+                                //fallthrough
+                                SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException - URL: <"
+                                          << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
+                                eResourceTypeForLocks = UNKNOWN;
                         }
                     }
                 }
             }
-            catch ( DAVException const & e )
-            {
-                xResAccess->resetUri();
-                //grab the error code
-                switch( e.getStatus() )
-                {
-                    case SC_NOT_FOUND:
-                        SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() - URL: <"
-                                  << m_xIdentifier->getContentIdentifier() << "> was not found. ");
-                        eResourceTypeForLocks = NOT_FOUND;
-                        break;
-                        // some servers returns SC_FORBIDDEN, instead
-                        // TODO: probably remove it, when OPTIONS implemented
-                        // the meaning of SC_FORBIDDEN is, according to <http://tools.ietf.org/html/rfc7231#section-6.5.3>:
-                        // The 403 (Forbidden) status code indicates that the server understood
-                        // the request but refuses to authorize it
-                    case SC_FORBIDDEN:
-                        // Errors SC_NOT_IMPLEMENTED and SC_METHOD_NOT_ALLOWED are
-                        // part of base http 1.1 RFCs
-                    case SC_NOT_IMPLEMENTED:        // <http://tools.ietf.org/html/rfc7231#section-6.6.2>
-                    case SC_METHOD_NOT_ALLOWED:     // <http://tools.ietf.org/html/rfc7231#section-6.5.5>
-                        // they all mean the resource is NON_DAV
-                        SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException (SC_FORBIDDEN, SC_NOT_IMPLEMENTED or SC_METHOD_NOT_ALLOWED) - URL: <"
-                                  << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
-                        eResourceTypeForLocks = NON_DAV;
-                        break;
-                    default:
-                        //fallthrough
-                        SAL_WARN( "ucb.ucp.webdav", "resourceTypeForLocks() DAVException - URL: <"
-                                  << m_xIdentifier->getContentIdentifier() << ">, DAV error: " << e.getError() << ", HTTP error: " << e.getStatus() );
-                        eResourceTypeForLocks = UNKNOWN;
-                }
-            }
+            else
+                eResourceTypeForLocks = NON_DAV;
+
         }
     }
     osl::MutexGuard g(m_aMutex);
@@ -2980,7 +2991,7 @@ void Content::lock(
         // this exception is mapped directly to the ucb correct one, without
         // going into the cancelCommandExecution() user interaction
         // this exception should be managed by the issuer of 'lock' command
-        switch(e.getError())
+        switch( e.getError() )
         {
             case DAVException::DAV_LOCKED:
             {
