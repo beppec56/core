@@ -3690,106 +3690,151 @@ void Content::getResourceOptions(
                     const std::unique_ptr< DAVResourceAccess > & rResAccess )
     throw ( css::uno::Exception, std::exception )
 {
-    try
+
+    OUString aRedirURL;
+    OUString aTargetURL = rResAccess->getURL();
+    // first check if in cache, if not, then send method to server
+    if ( !aStaticDAVOptionsCache.restoreDAVOptions(
+             aTargetURL, rDAVOptions ) )
     {
-        // OPTIONS always needs an interaction handler.
-        // In case xEnv is present, uses the interaction handler provided
-        // in xEnv.
-        // In case xEnv is not present, supply a command env to OPTIONS()
-        // that contains an interaction handler in order to activate the
-        // credential dialog if the server request them.
-        // The command env is needed by lower level function for examples as
-        // NeonSession_CertificationNotify where it is used to check the server
-        // certificate or ask the user for a manual confirmation if the certificate
-        // needs the user visual check.
-        // xEnv is still used in cancelCommandExecution(), so the cancelling operates
-        // as the client application (e.g. framework) requested.
-        css::uno::Reference< css::ucb::XCommandEnvironment > xAuthEnv( xEnv );
-        if( !xAuthEnv.is() )
+        try
         {
-            css:: uno::Reference< task::XInteractionHandler > xIH(
-                css::task::InteractionHandler::createWithParent( m_xContext, nullptr ), css::uno::UNO_QUERY_THROW );
+            // OPTIONS always needs an interaction handler.
+            // In case xEnv is present, uses the interaction handler provided
+            // in xEnv.
+            // In case xEnv is not present, supply a command env to OPTIONS()
+            // that contains an interaction handler in order to activate the
+            // credential dialog if the server request them.
+            // The command env is needed by lower level function for examples as
+            // NeonSession_CertificationNotify where it is used to check the server
+            // certificate or ask the user for a manual confirmation if the certificate
+            // needs the user visual check.
+            // xEnv is still used in cancelCommandExecution(), so the cancelling operates
+            // as the client application (e.g. framework) requested.
+            css::uno::Reference< css::ucb::XCommandEnvironment > xAuthEnv( xEnv );
+            if( !xAuthEnv.is() )
+            {
+                css:: uno::Reference< task::XInteractionHandler > xIH(
+                    css::task::InteractionHandler::createWithParent( m_xContext, nullptr ), css::uno::UNO_QUERY_THROW );
 
-            xAuthEnv = css::ucb::CommandEnvironment::create(
-                m_xContext, xIH, css::uno::Reference< ucb::XProgressHandler >() ) ;
-        }
+                xAuthEnv = css::ucb::CommandEnvironment::create(
+                    m_xContext, xIH, css::uno::Reference< ucb::XProgressHandler >() ) ;
+            }
 
-        rResAccess->OPTIONS( rDAVOptions, xAuthEnv );
-        // method didn't give errors, but NON_DAV for now
-        // will turn this to DAV after the check on LOCK below
-        // IMPORTANT: some server will answer without errors, even if the resource is not present
+            rResAccess->OPTIONS( rDAVOptions, xAuthEnv );
+            // method didn't give errors, but NON_DAV for now
+            // will turn this to DAV after the check on LOCK below
+            // IMPORTANT: some server will answer without errors, even if the resource is not present
+            sal_uInt32 nLifeTime = ( rDAVOptions.isClass1() ||
+                                     rDAVOptions.isClass2() ||
+                                     rDAVOptions.isClass3() ) ?
+                m_nOptsCacheLifeDAV : // a WebDAV site
+                m_nOptsCacheLifeImplWeb;  // a site implementing OPTIONS but
+                                             // it's not DAV
+            // check if redirected
+            aRedirURL = rResAccess->getURL();
+            if( aRedirURL == aTargetURL)
+            { // no redirection
+                aRedirURL.clear();
+            }
+            // it's not WebDAV
+            aStaticDAVOptionsCache.addDAVOptions(
+                aTargetURL, aRedirURL, rDAVOptions,
+                nLifeTime );
 
 #if defined SAL_LOG_INFO
-        { //debug
-            // print the m_aDAVOptions values
-            SAL_INFO( "ucb.ucp.webdav", "DAVOptions for URL <" << rResAccess->getURL()
-                      << "> : Class1: " << rDAVOptions.isClass1()
-                      << ", Class2: " << rDAVOptions.isClass2()
-                      << ", Class3: " << rDAVOptions.isClass3()
-                      << ", m_aAllowedMethods: " << rDAVOptions.getAllowedMethods() );
-        } //debug
+            { //debug
+                // print the m_aDAVOptions values
+                SAL_INFO( "ucb.ucp.webdav", "DAVOptions for URL <" << rDAVOptions.getURL()
+                          << "> : Class1: " << rDAVOptions.isClass1()
+                          << ", Class2: " << rDAVOptions.isClass2()
+                          << ", Class3: " << rDAVOptions.isClass3()
+                          << ", m_aAllowedMethods: " << rDAVOptions.getAllowedMethods() );
+            } //debug
 #endif
-    }
-    catch ( DAVException const & e )
-    {
-        rResAccess->resetUri();
-
-        switch( e.getError() )
+        }
+        catch ( DAVException const & e )
         {
-            case DAVException::DAV_HTTP_TIMEOUT:
-            case DAVException::DAV_HTTP_CONNECT:
+            // first, remove from cache, will be added if needed, depending on the error received
+            aStaticDAVOptionsCache.removeDAVOptions( aTargetURL );
+            rResAccess->resetUri();
+
+            switch( e.getError() )
             {
-                // something bad happened to the connection
-                // not same as not found, this instead happens when the server does'n exist or does'n aswer at all
-                // probably a new bit stating 'timed out' should be added to opts var?
-                // in any case abort the command
-                cancelCommandExecution( e, xEnv );
-                // unreachable
-            }
-            break;
-            case DAVException::DAV_HTTP_AUTH:
-            {
-                SAL_WARN( "ucb.ucp.webdav", "OPTIONS - DAVException Authentication error for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
-                // - the remote site is a WebDAV with special configuration: read/only for read operations
-                //   and read/write for write operations, the user is not allowed to lock/write and
-                //   she cancelled the credentials request.
-                //   this is not actually an error, it means only that for current user this is a standard web,
-                //   though possibly DAV enabled
-            }
-            break;
-            case DAVException::DAV_HTTP_ERROR:
-            {
-                switch( e.getStatus() )
+                case DAVException::DAV_HTTP_TIMEOUT:
+                case DAVException::DAV_HTTP_CONNECT:
                 {
-                    case SC_FORBIDDEN:
-                        SAL_WARN( "ucb.ucp.webdav","OPTIONS - Forbidden for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
-                        rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
-                        break;
-                    case SC_BAD_REQUEST:
-                        SAL_WARN( "ucb.ucp.webdav","OPTIONS - Bad request for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
-                        rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
-                        break;
-                    case SC_METHOD_NOT_ALLOWED:
-                        // OPTIONS method must be implemented in DAV
-                        // resource is NON_DAV, or not advertising it
-                        SAL_WARN( "ucb.ucp.webdav","OPTIONS - Method not allowed for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
-                        rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
-                        break;
-                    case SC_NOT_FOUND:
-                    {
-                        SAL_WARN( "ucb.ucp.webdav", "OPTIONS - Resource not found for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
-                    }
-                    break;
-                    default:
-                        break;
+                    // something bad happened to the connection
+                    // not same as not found, this instead happens when the server does'n exist or does'n aswer at all
+                    // probably a new bit stating 'timed out' should be added to opts var?
+                    // in any case abort the command
+                    cancelCommandExecution( e, xEnv );
+                    // unreachable
                 }
-            }
-            break;
-            default: // leave the resource type as UNKNOWN, for now
-                // it means this will be managed as a standard http site
-                SAL_WARN( "ucb.ucp.webdav","OPTIONS - DAVException for URL <" << m_xIdentifier->getContentIdentifier() << ">, DAV error: "
-                          << e.getError() << ", HTTP error: "<<e.getStatus() );
                 break;
+                case DAVException::DAV_HTTP_AUTH:
+                {
+                    SAL_WARN( "ucb.ucp.webdav", "OPTIONS - DAVException Authentication error for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                    // - the remote site is a WebDAV with special configuration: read/only for read operations
+                    //   and read/write for write operations, the user is not allowed to lock/write and
+                    //   she cancelled the credentials request.
+                    //   this is not actually an error, it means only that for current user this is a standard web,
+                    //   though possibly DAV enabled
+                }
+                break;
+                case DAVException::DAV_HTTP_ERROR:
+                {
+                    switch( e.getStatus() )
+                    {
+                        case SC_FORBIDDEN:
+                            SAL_WARN( "ucb.ucp.webdav","OPTIONS - Forbidden for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                            // cache it, so OPTIONS won't be called again, this URL does not support it
+                            aStaticDAVOptionsCache.addDAVOptions(
+                                aTargetURL, aRedirURL,
+                                rDAVOptions,
+                                m_nOptsCacheLifeNotImpl );
+                            break;
+                        case SC_BAD_REQUEST:
+                            SAL_WARN( "ucb.ucp.webdav","OPTIONS - Bad request for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                            // cache it, so OPTIONS won't be called again, this URL does not support it
+                            aStaticDAVOptionsCache.addDAVOptions(
+                                aTargetURL, aRedirURL,
+                                rDAVOptions,
+                                m_nOptsCacheLifeNotImpl );
+                            break;
+                        case SC_METHOD_NOT_ALLOWED:
+                            // OPTIONS method must be implemented in DAV
+                            // resource is NON_DAV, or not advertising it
+                            SAL_WARN( "ucb.ucp.webdav","OPTIONS - Method not allowed for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                            // cache it, so OPTIONS won't be called again, this URL does not support it
+                            aStaticDAVOptionsCache.addDAVOptions(
+                                aTargetURL, aRedirURL,
+                                rDAVOptions,
+                                m_nOptsCacheLifeNotImpl );
+                            break;
+                        case SC_NOT_FOUND:
+                        {
+                            aStaticDAVOptionsCache.addDAVOptions(
+                                aTargetURL, aRedirURL,
+                                rDAVOptions,
+                                m_nOptsCacheLifeNotFound );
+                            SAL_WARN( "ucb.ucp.webdav", "OPTIONS - Resource not found for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                        }
+                        break;
+                        default:
+                            break;
+                    }
+                }
+                break;
+                default: // leave the resource type as UNKNOWN, for now
+                    // it means this will be managed as a standard http site
+                    SAL_WARN( "ucb.ucp.webdav","OPTIONS - DAVException for URL <" << m_xIdentifier->getContentIdentifier() << ">, DAV error: "
+                              << e.getError() << ", HTTP error: "<<e.getStatus() );
+                    break;
+            }
         }
     }
 }
