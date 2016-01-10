@@ -1339,6 +1339,36 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
                         if ( 1 == resources.size() )
                         {
+#if defined SAL_LOG_INFO
+                            {//debug
+                                // print received resources
+                                std::vector< DAVPropertyValue >::const_iterator it = resources[0].properties.begin();
+                                std::vector< DAVPropertyValue >::const_iterator end = resources[0].properties.end();
+                                while ( it != end )
+                                {
+                                    OUString aPropValue;
+                                    bool    bValue;
+                                    uno::Sequence< ucb::LockEntry > aSupportedLocks;
+                                    if( (*it).Value >>= aPropValue )
+                                        SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" << aPropValue );
+                                    else if( (*it).Value >>= bValue )
+                                        SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" <<
+                                                  ( bValue ? "true" : "false" ) );
+                                    else if( (*it).Value >>= aSupportedLocks )
+                                    {
+                                        SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getPropertyValues) - returned property: " << (*it).Name << ":" );
+                                        for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
+                                        {
+                                            SAL_INFO( "ucb.ucp.webdav","      scope: "
+                                                      << ( aSupportedLocks[ n ].Scope ? "shared":"exclusive" )
+                                                      << ", type: "
+                                                      << ( aSupportedLocks[ n ].Type ? "" : "write" ) );
+                                        }
+                                    }
+                                    ++it;
+                                }
+                            }
+#endif
                             if ( xProps.get())
                                 xProps->addProperties(
                                     aPropNames,
@@ -3426,6 +3456,7 @@ Content::ResourceType Content::getResourceType(
     }
 
     ResourceType eResourceType = UNKNOWN;
+    DAVOptions aDAVOptions;
 
     const OUString & rURL = rResAccess->getURL();
     const OUString aScheme(
@@ -3437,6 +3468,7 @@ Content::ResourceType Content::getResourceType(
     }
     else
     {
+        getResourceOptions( xEnv, aDAVOptions, rResAccess );
         // In case xEnv is present, uses the interaction handler provided
         // in xEnv.
         // In case xEnv is not present, supply a command env to PROPFIND()
@@ -3458,57 +3490,109 @@ Content::ResourceType Content::getResourceType(
                 m_xContext, xIH, css::uno::Reference< ucb::XProgressHandler >() ) ;
         }
 
-        try
+        if( aDAVOptions.isClass1() ||
+            aDAVOptions.isClass2() ||
+            aDAVOptions.isClass3() ) // at least class one is needed
         {
-            // Try to fetch some frequently used property value, e.g. those
-            // used when loading documents... along with identifying whether
-            // this is a DAV resource.
-            std::vector< DAVResource > resources;
-            std::vector< OUString > aPropNames;
-            uno::Sequence< beans::Property > aProperties( 5 );
-            aProperties[ 0 ].Name = "IsFolder";
-            aProperties[ 1 ].Name = "IsDocument";
-            aProperties[ 2 ].Name = "IsReadOnly";
-            aProperties[ 3 ].Name = "MediaType";
-            aProperties[ 4 ].Name = DAVProperties::SUPPORTEDLOCK;
-
-            ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
-
-            rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xAuthEnv );
-
-            if ( resources.size() == 1 )
+            try
             {
-                osl::MutexGuard g(m_aMutex);
-                m_xCachedProps.reset(
-                    new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );
-                m_xCachedProps->containsAllNames(
-                    aProperties, m_aFailedPropNames );
+                // Try to fetch some frequently used property value, e.g. those
+                // used when loading documents... along with identifying whether
+                // this is a DAV resource.
+                std::vector< DAVResource > resources;
+                std::vector< OUString > aPropNames;
+                uno::Sequence< beans::Property > aProperties( 5 );
+                aProperties[ 0 ].Name = "IsFolder";
+                aProperties[ 1 ].Name = "IsDocument";
+                aProperties[ 2 ].Name = "IsReadOnly";
+                aProperties[ 3 ].Name = "MediaType";
+                aProperties[ 4 ].Name = DAVProperties::SUPPORTEDLOCK;
+
+                ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
+
+                rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xAuthEnv );
+
+                if ( resources.size() == 1 )
+                {
+#if defined SAL_LOG_INFO
+                    {//debug
+                        // print received resources
+                        std::vector< DAVPropertyValue >::const_iterator it = resources[0].properties.begin();
+                        std::vector< DAVPropertyValue >::const_iterator end = resources[0].properties.end();
+                        while ( it != end )
+                        {
+                            OUString aPropValue;
+                            bool    bValue;
+                            uno::Sequence< ucb::LockEntry > aSupportedLocks;
+                            if((*it).Value >>= aPropValue )
+                                SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" << aPropValue );
+                            else if( (*it).Value >>= bValue )
+                                SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" <<
+                                          ( bValue ? "true" : "false" ) );
+                            else if( (*it).Value >>= aSupportedLocks )
+                            {
+                                SAL_INFO( "ucb.ucp.webdav", "PROPFIND (getResourceType) - ret'd prop: " << (*it).Name << ":" );
+                                for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
+                                {
+                                    SAL_INFO( "ucb.ucp.webdav","PROPFIND (getResourceType) -       supportedlock[" << n <<"]: scope: "
+                                              << ( aSupportedLocks[ n ].Scope ? "shared":"exclusive" )
+                                              << ", type: "
+                                              << ( aSupportedLocks[ n ].Type ? "" : "write" ) );
+                                }
+                            }
+                            ++it;
+                        }
+                    }
+#endif
+                    osl::MutexGuard g(m_aMutex);
+                    m_xCachedProps.reset(
+                        new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );
+                    m_xCachedProps->containsAllNames(
+                        aProperties, m_aFailedPropNames );
+                }
+                eResourceType = DAV;
             }
-            eResourceType = DAV;
+            catch ( DAVException const & e )
+            {
+                rResAccess->resetUri();
+
+                SAL_WARN( "ucb.ucp.webdav", "Content::getResourceType returned errors, DAV: " << e.getError() << ", http error: "  << e.getStatus() );
+
+                if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
+                {
+                    // Status SC_METHOD_NOT_ALLOWED is a safe indicator that the
+                    // resource is NON_DAV
+                    eResourceType = NON_DAV;
+                }
+                else if (networkAccessAllowed != nullptr)
+                {
+                    *networkAccessAllowed = *networkAccessAllowed
+                        && shouldAccessNetworkAfterException(e);
+                }
+                // if the two net events below happen, something
+                // is going on to the connection so break the command flow
+                if ( ( e.getError() == DAVException::DAV_HTTP_TIMEOUT ) ||
+                     ( e.getError() == DAVException::DAV_HTTP_CONNECT ) )
+                {
+                    cancelCommandExecution( e, xEnv );
+                    // unreachable
+                }
+            }
         }
-        catch ( DAVException const & e )
+        else
         {
             rResAccess->resetUri();
 
-            if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
+            if ( aDAVOptions.isResourceFound() )
             {
-                // Status SC_METHOD_NOT_ALLOWED is a safe indicator that the
-                // resource is NON_DAV
                 eResourceType = NON_DAV;
             }
-            else if (networkAccessAllowed != nullptr)
+            else
             {
-                *networkAccessAllowed = *networkAccessAllowed
-                    && shouldAccessNetworkAfterException(e);
-            }
-            // if the two net events below happen, something
-            // is going on to the connection so break the command flow
-            if ( ( e.getError() == DAVException::DAV_HTTP_TIMEOUT ) ||
-                 ( e.getError() == DAVException::DAV_HTTP_CONNECT ) )
-            {
-                cancelCommandExecution( e, xEnv );
-                // unreachable
-            }
+                //resource doesn't exist
+                if ( networkAccessAllowed != nullptr )
+                    *networkAccessAllowed = false;
+          }
         }
     }
 
