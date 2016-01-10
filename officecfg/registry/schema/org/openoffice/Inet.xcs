@@ -163,6 +163,31 @@
         </info>
 	<value>60</value>
       </prop>
+      <!-- WebDAV OPTIONS cache lifetime time values -->
+      <prop oor:name="OptsCacheLifeImplWeb" oor:type="xs:int" oor:nillable="false">
+        <info>
+          <desc>Specifies the Web/DAV server OPTIONS cache lifetime, when the server is Web only, implementing OPTIONS. Time in seconds. Min. 0 sec (no caching) max. 3600 sec (1h).</desc>
+        </info>
+	<value>600</value>
+      </prop>
+      <prop oor:name="OptsCacheLifeDAV" oor:type="xs:int" oor:nillable="false">
+        <info>
+          <desc>Specifies the Web/DAV server OPTIONS cache lifetime, when the server is WebDAV. Time in seconds. Min. 0 sec (no caching) max. 3600 sec (1h).</desc>
+        </info>
+	<value>600</value>
+      </prop>
+      <prop oor:name="OptsCacheLifeNotImpl" oor:type="xs:int" oor:nillable="false">
+        <info>
+          <desc>Specifies the Web/DAV server OPTIONS cache lifetime, when the server does not implement OPTIONS method. Time in seconds. Min. 0 sec (no caching) max. 43200 sec (12h).</desc>
+        </info>
+	<value>3600</value>
+      </prop>
+      <prop oor:name="OptsCacheLifeNotFound" oor:type="xs:int" oor:nillable="false">
+        <info>
+          <desc>Specifies the Web/DAV server OPTIONS cache lifetime, when the requested URL is not found on server. Time in seconds. Min. 0 sec (no caching) max. 30 sec.</desc>
+        </info>
+	<value>15</value>
+      </prop>
     </group>
   </component>
 </oor:component-schema>
