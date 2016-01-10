@@ -3465,60 +3465,84 @@ Content::ResourceType Content::getResourceType(
     }
     else
     {
-        try
+        getResourceOptions( xEnv );
+
+        if( m_aDAVCapabilities.isClass1() ||
+            m_aDAVCapabilities.isClass2() ||
+            m_aDAVCapabilities.isClass3() ) // at least class one is needed
         {
-            // Try to fetch some frequently used property value, e.g. those
-            // used when loading documents... along with identifying whether
-            // this is a DAV resource.
-            std::vector< DAVResource > resources;
-            std::vector< OUString > aPropNames;
-            uno::Sequence< beans::Property > aProperties( 5 );
-            aProperties[ 0 ].Name = "IsFolder";
-            aProperties[ 1 ].Name = "IsDocument";
-            aProperties[ 2 ].Name = "IsReadOnly";
-            aProperties[ 3 ].Name = "MediaType";
-            aProperties[ 4 ].Name = DAVProperties::SUPPORTEDLOCK;
-
-            ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
-
-            rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xEnv );
-
-            if ( resources.size() == 1 )
+            try
             {
-                osl::MutexGuard g(m_aMutex);
-                m_xCachedProps.reset(
-                    new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );
-                m_xCachedProps->containsAllNames(
-                    aProperties, m_aFailedPropNames );
+                // Try to fetch some frequently used property value, e.g. those
+                // used when loading documents... along with identifying whether
+                // this is a DAV resource.
+                std::vector< DAVResource > resources;
+                std::vector< OUString > aPropNames;
+                uno::Sequence< beans::Property > aProperties( 5 );
+                aProperties[ 0 ].Name = "IsFolder";
+                aProperties[ 1 ].Name = "IsDocument";
+                aProperties[ 2 ].Name = "IsReadOnly";
+                aProperties[ 3 ].Name = "MediaType";
+                aProperties[ 4 ].Name = DAVProperties::SUPPORTEDLOCK;
+
+                ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
+
+                rResAccess->PROPFIND( DAVZERO, aPropNames, resources, xEnv );
+
+                if ( resources.size() == 1 )
+                {
+                    osl::MutexGuard g(m_aMutex);
+                    m_xCachedProps.reset(
+                        new CachableContentProperties( ContentProperties( resources[ 0 ] ) ) );
+                    m_xCachedProps->containsAllNames(
+                        aProperties, m_aFailedPropNames );
+                }
+                eResourceType = DAV;
             }
-            eResourceType = DAV;
+            catch ( DAVException const & e )
+            {
+                rResAccess->resetUri();
+
+                SAL_WARN( "ucb.ucp.webdav", "Content::getResourceType returned errors, DAV: " << e.getError() << ", http error: "  << e.getStatus() );
+
+                if ( e.getStatus() == SC_NOT_FOUND )
+                {
+                    eResourceType = NOT_FOUND;
+                }
+                if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
+                {
+                    // Status SC_METHOD_NOT_ALLOWED is a safe indicator that the
+                    // resource is NON_DAV
+                    eResourceType = NON_DAV;
+                }
+                else if (networkAccessAllowed != nullptr)
+                {
+                    *networkAccessAllowed = *networkAccessAllowed
+                        && shouldAccessNetworkAfterException(e);
+                }
+                // if the two net events below happen, something
+                // is going on to the connection so break the command flow
+                if ( ( e.getError() == DAVException::DAV_HTTP_TIMEOUT ) ||
+                     ( e.getError() == DAVException::DAV_HTTP_CONNECT ) )
+                {
+                    cancelCommandExecution( e, xEnv );
+                    // unreachable
+                }
+            }
         }
-        catch ( DAVException const & e )
+        else
         {
-            rResAccess->resetUri();
-
-            if ( e.getStatus() == SC_NOT_FOUND )
+            if( m_aDAVCapabilities.isResourceFound() )
             {
-                eResourceType = NOT_FOUND;
-            }
-            if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
-            {
-                // Status SC_METHOD_NOT_ALLOWED is a safe indicator that the
-                // resource is NON_DAV
                 eResourceType = NON_DAV;
             }
-            else if (networkAccessAllowed != nullptr)
+            else
             {
-                *networkAccessAllowed = *networkAccessAllowed
-                    && shouldAccessNetworkAfterException(e);
-            }
-            // if the two net events below happen, something
-            // is going on to the connection so break the command flow
-            if ( ( e.getError() == DAVException::DAV_HTTP_TIMEOUT ) ||
-                 ( e.getError() == DAVException::DAV_HTTP_CONNECT ) )
-            {
-                cancelCommandExecution( e, xEnv );
-                // unreachable
+                //resource doesn't exist
+                if(networkAccessAllowed != 0)
+                    *networkAccessAllowed = false;
+
+                eResourceType = NOT_FOUND;
             }
         }
     }
