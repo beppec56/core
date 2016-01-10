@@ -3600,6 +3600,10 @@ void Content::getResourceOptions(
               const css::uno::Reference< css::ucb::XCommandEnvironment >& xEnv )
     throw ( css::uno::Exception, std::exception )
 {
+    const sal_uInt32 nOptImplementedWebLifeTime  = (60*60*3 ); // 3 hours
+    const sal_uInt32 nOptImplementedDAVLifeTime  = (60*3 ); // 3 minutes
+    const sal_uInt32 nOptNotImplementedLifeTime  = (60*60*12); // 12 hours
+    const sal_uInt32 nOptNotFoundLifeTime  = 15; // 15 seconds
 
     std::unique_ptr< DAVResourceAccess > xResAccess;
     {
@@ -3607,6 +3611,9 @@ void Content::getResourceOptions(
         xResAccess.reset( new DAVResourceAccess( *m_xResAccess.get() ) );
     }
 
+    // first check if in cache, if not, then send method to server
+    if ( !aStaticDAVCapabilitiesCache.restoreDAVCapabilities(
+             m_xIdentifier->getContentIdentifier(), m_aDAVCapabilities ) )
     {
         try
         {
@@ -3630,11 +3637,21 @@ void Content::getResourceOptions(
             // method didn't give errors, but NON_DAV for now
             // will turn this to DAV after the check on LOCK below
             // IMPORTANT: some server will answer without errors, even if the resource is not present
+            sal_uInt32 nLifeTime = ( m_aDAVCapabilities.isClass1() ||
+                                     m_aDAVCapabilities.isClass2() ||
+                                     m_aDAVCapabilities.isClass3() ) ?
+                                         nOptImplementedDAVLifeTime : // a WebDAV site
+                                         nOptImplementedWebLifeTime;  // a site implementing OPTIONS but
+                                                                      // it's not WebDAV
+
+            aStaticDAVCapabilitiesCache.addDAVCapabilities(
+                m_xIdentifier->getContentIdentifier(), m_aDAVCapabilities,
+                nLifeTime );
 
 #if defined SAL_LOG_INFO
             { //debug
                 // print the m_aDAVCapabilities values
-                SAL_INFO( "ucb.ucp.webdav", "DAVCapabilities for URL <" << xResAccess->getURL()
+                SAL_INFO( "ucb.ucp.webdav", "DAVCapabilities for URL <" << m_aDAVCapabilities.m_sURL
                           << "> : Class1: " << m_aDAVCapabilities.isClass1()
                           << ", Class2: " << m_aDAVCapabilities.isClass2()
                           << ", Class3: " << m_aDAVCapabilities.isClass3()
@@ -3645,6 +3662,8 @@ void Content::getResourceOptions(
         }
         catch ( DAVException const & e )
         {
+            // first, remove from cache, will be added if needed, depending on the error received
+            aStaticDAVCapabilitiesCache.removeDAVCapabilities( m_xIdentifier->getContentIdentifier() );
             xResAccess->resetUri();
 
             switch( e.getError() )
@@ -3682,20 +3701,39 @@ void Content::getResourceOptions(
                         case SC_FORBIDDEN:
                             SAL_WARN( "ucb.ucp.webdav","OPTIONS - Forbidden for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                             m_aDAVCapabilities.reset();
+                            // cache it, so OPTIONS won't be called again, this URL does not support it
+                            aStaticDAVCapabilitiesCache.addDAVCapabilities(
+                                m_xIdentifier->getContentIdentifier(),
+                                m_aDAVCapabilities,
+                                nOptNotImplementedLifeTime );
                             break;
                         case SC_BAD_REQUEST:
                             SAL_WARN( "ucb.ucp.webdav","OPTIONS - Bad request for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                             m_aDAVCapabilities.reset();
+                            // cache it, so OPTIONS won't be called again, this URL does not support it
+                            aStaticDAVCapabilitiesCache.addDAVCapabilities(
+                                m_xIdentifier->getContentIdentifier(),
+                                m_aDAVCapabilities,
+                                nOptNotImplementedLifeTime );
                             break;
                         case SC_METHOD_NOT_ALLOWED:
                             // OPTIONS method must be implemented in DAV
                             // resource is NON_DAV, or not advertising it
                             SAL_WARN( "ucb.ucp.webdav","OPTIONS - Method not allowed for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                             m_aDAVCapabilities.reset();
+                            // cache it, so OPTIONS won't be called again, this URL does not support it
+                            aStaticDAVCapabilitiesCache.addDAVCapabilities(
+                                m_xIdentifier->getContentIdentifier(),
+                                m_aDAVCapabilities,
+                                nOptNotImplementedLifeTime );
                             break;
                         case SC_NOT_FOUND:
                         {
                             m_aDAVCapabilities.setResourceFound( false );
+                            aStaticDAVCapabilitiesCache.addDAVCapabilities(
+                                m_xIdentifier->getContentIdentifier(),
+                                m_aDAVCapabilities,
+                                nOptNotFoundLifeTime );
                             SAL_WARN( "ucb.ucp.webdav", "OPTIONS - Resource not found for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
                         }
                         break;
