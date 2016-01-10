@@ -93,6 +93,12 @@
 using namespace com::sun::star;
 using namespace webdav_ucp;
 
+// static class, to manage a simple OPTIONS cache
+// key is the URL, element is the DAVCapabilities resulting from an OPTIONS call.
+// Cached DAVCapabilities have a lifetime that depends on the errors received or not received.
+// see Content::getResourceOptions for details
+static DAVCapabilitiesCache aStaticDAVCapabilitiesCache;
+
 
 // Content Implementation.
 
