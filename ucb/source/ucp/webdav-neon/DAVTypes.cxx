@@ -57,4 +57,74 @@ DAVCapabilities::~DAVCapabilities()
 {
 }
 
+
+// DAVCapabilitiesCache implementation
+
+DAVCapabilitiesCache::DAVCapabilitiesCache()
+{
+}
+
+DAVCapabilitiesCache::~DAVCapabilitiesCache()
+{
+}
+
+bool DAVCapabilitiesCache::restoreDAVCapabilities( const OUString & rURL, DAVCapabilities & rDAVCapabilities )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    // search the URL in the static map
+    DAVCapabilitiesMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it == m_aTheCache.end() )
+        return false;
+    else
+    {
+        // check if the capabilities are stale, before restoring
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        if ( (*it).second.m_nStaleTime < t1.Seconds )
+        {
+            // if stale, remove from cache, do not restore
+            removeDAVCapabilities( rURL );
+            return false;
+            // return false instead
+        }
+        rDAVCapabilities = (*it).second;
+        return true;
+    }
+}
+
+
+void DAVCapabilitiesCache::removeDAVCapabilities( const OUString & rURL )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    DAVCapabilitiesMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        m_aTheCache.erase( it );
+    }
+}
+
+
+void DAVCapabilitiesCache::addDAVCapabilities( const OUString & rURL, DAVCapabilities & rDAVCapabilities, const sal_uInt32 nLifeTime )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    rDAVCapabilities.m_sURL = aEncodedUrl;
+
+    TimeValue t1;
+    osl_getSystemTime( &t1 );
+    rDAVCapabilities.m_nStaleTime = t1.Seconds + nLifeTime;
+
+    m_aTheCache[ aEncodedUrl ] = rDAVCapabilities;
+}
+
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

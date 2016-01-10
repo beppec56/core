@@ -120,6 +120,31 @@ namespace webdav_ucp
         };
     };
 
+    typedef std::map< OUString, DAVCapabilities > DAVCapabilitiesMap;
+
+    class DAVCapabilitiesCache
+    {
+        DAVCapabilitiesMap m_aTheCache;
+        osl::Mutex         m_aMutex;
+    public:
+        explicit DAVCapabilitiesCache();
+        ~DAVCapabilitiesCache();
+
+        bool restoreDAVCapabilities( const OUString & rURL, DAVCapabilities & rDAVCapabilities );
+        void removeDAVCapabilities( const OUString & rURL );
+        void addDAVCapabilities( const OUString & rURL, DAVCapabilities & rDAVCapabilities,
+                                 const sal_uInt32 nLifeTime );
+
+    private:
+
+        /// remove the last '/' in aUrl, if exists
+        void normalizeURLLastChar( OUString& aUrl ) {
+            if ( aUrl.getLength() > 1 &&
+                 ( ( aUrl.lastIndexOf( '/' ) + 1 ) == aUrl.getLength() ) )
+                aUrl = aUrl.copy(0, aUrl.getLength() - 1 );
+        };
+    };
+
     enum Depth { DAVZERO = 0, DAVONE = 1, DAVINFINITY = -1 };
 
     enum ProppatchOperation { PROPSET = 0, PROPREMOVE = 1 };
