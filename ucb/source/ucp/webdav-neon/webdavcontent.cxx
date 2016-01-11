@@ -842,6 +842,8 @@ void Content::addProperty( const ucb::PropertyCommandArgument& aCmdArg,
             osl::Guard< osl::Mutex > aGuard( m_aMutex );
             m_xResAccess.reset( new DAVResourceAccess( *xResAccess.get() ) );
         }
+        // TODO PLACEHOLDER:
+        // remove target URL options from cache, since PROPPATCH may change them
 
         // Notify propertyset info change listeners.
         beans::PropertySetInfoChangeEvent evt(
@@ -1831,6 +1833,8 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         {
             // Set property values at server.
             xResAccess->PROPPATCH( aProppatchValues, xEnv );
+            // TODO PLACEHOLDER:
+            // remove target URL options from cache, since PROPPATCH may change it
 
             std::vector< ProppatchValue >::const_iterator it
                 = aProppatchValues.begin();
@@ -1879,6 +1883,9 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
 
             xResAccess->MOVE(
                 sourceURI.GetPath(), targetURI.GetURI(), false, xEnv );
+            // TODO PLACEHOLDER:
+            // remove src and dest URL options from cache, since MOVE may change them
+
             // @@@ Should check for resources that could not be moved
             //     (due to source access or target overwrite) and send
             //     this information through the interaction handler.
@@ -2657,6 +2664,8 @@ void Content::transfer(
                                 rArgs.NameClash
                                     == ucb::NameClash::OVERWRITE,
                                 Environment );
+            // TODO PLACEHOLDER:
+            // remove src and dest URL options from cache, since MOVE may change them
 
             if ( xSource.is() )
             {
@@ -2684,6 +2693,8 @@ void Content::transfer(
                                 rArgs.NameClash
                                     == ucb::NameClash::OVERWRITE,
                                 Environment );
+            // TODO PLACEHOLDER:
+            // remove src and dest URL options from cache, since COPY may change them
 
 // DAV resources store all additional props on server!
 //              // Copy own and all children's Additional Core Properties.
