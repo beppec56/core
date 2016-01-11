@@ -2394,6 +2394,9 @@ void Content::insert(
             else
             {
                 xResAccess->PUT( xInputStream, Environment );
+                // remove options from cache, PUT may change it
+                // it will be refreshed when needed
+                aStaticDAVCapabilitiesCache.removeDAVCapabilities( xResAccess->getURL() );
             }
             // no error , set the resourcetype to unknown type
             // the resource may have transitioned from NOT FOUND or UNKNOWN to something else
@@ -2494,6 +2497,9 @@ void Content::insert(
         try
         {
             xResAccess->PUT( xInputStream, Environment );
+            // remove options from cache, PUT may change it
+            // it will be refreshed when needed
+            aStaticDAVCapabilitiesCache.removeDAVCapabilities( xResAccess->getURL() );
         }
         catch ( DAVException const & e )
         {
