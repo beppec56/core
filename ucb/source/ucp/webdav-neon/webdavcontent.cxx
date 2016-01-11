@@ -1276,6 +1276,27 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
         }
     }
 
+    // In case xEnv is present, uses the interaction handler provided
+    // in xEnv.
+    // In case xEnv is not present, supply a command env to PROPFIND() and HEAD()
+    // that contains an interaction handler in order to activate the
+    // credential dialog if the server request them.
+    // The command env is needed by lower level function for examples as
+    // NeonSession_CertificationNotify where it is used to check the server
+    // certificate or ask the user for a manual confirmation if the certificate
+    // needs the user visual check.
+    // xEnv is still used in cancelCommandExecution(), so the cancelling operates
+    // as the client application (e.g. framework) requested.
+    css::uno::Reference< css::ucb::XCommandEnvironment > xAuthEnv( xEnv );
+    if( !xAuthEnv.is() )
+    {
+        css:: uno::Reference< task::XInteractionHandler > xIH(
+            css::task::InteractionHandler::createWithParent( m_xContext, nullptr ), css::uno::UNO_QUERY_THROW );
+
+        xAuthEnv = css::ucb::CommandEnvironment::create(
+            m_xContext, xIH, css::uno::Reference< ucb::XProgressHandler >() ) ;
+    }
+
     if ( !m_bTransient && !bHasAll )
     {
 
@@ -1368,7 +1389,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     try
                     {
                         xResAccess->PROPFIND(
-                            DAVZERO, aPropNames, resources, xEnv );
+                            DAVZERO, aPropNames, resources, xAuthEnv );
 
                         if ( 1 == resources.size() )
                         {
@@ -1451,7 +1472,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     try
                     {
                         DAVResource resource;
-                        xResAccess->HEAD( aHeaderNames, resource, xEnv );
+                        xResAccess->HEAD( aHeaderNames, resource, xAuthEnv );
                         m_bDidGetOrHead = true;
 
                         if ( xProps.get() )
