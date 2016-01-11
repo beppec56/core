@@ -2985,6 +2985,10 @@ void Content::lock(
             uno::Sequence< OUString >() );
 
         xResAccess->LOCK( aLock, Environment );
+        // if the lock was on a non existent resource,
+        // OPTIONS may have changed as a consequence of the lock operation
+        if ( m_eResourceTypeForLocks == NOT_FOUND )
+            aStaticDAVCapabilitiesCache.removeDAVCapabilities( xResAccess->getURL() );
 
         {
             osl::Guard< osl::Mutex > aGuard( m_aMutex );
@@ -3098,6 +3102,9 @@ void Content::unlock(
         }
 
         xResAccess->UNLOCK( Environment );
+        // remove options from cache, unlock may change it
+        // it will be refreshed when needed
+        aStaticDAVCapabilitiesCache.removeDAVCapabilities( xResAccess->getURL() );
 
         {
             osl::Guard< osl::Mutex > aGuard( m_aMutex );
