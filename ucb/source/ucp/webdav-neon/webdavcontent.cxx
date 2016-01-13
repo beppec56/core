@@ -2938,6 +2938,8 @@ Content::ResourceType Content::resourceTypeForLocks(
                         ContentProperties::UCBNamesToDAVNames( aProperties, aPropNames );
                         rResAccess->PROPFIND( DAVZERO, aPropNames, resources, Environment );
 
+                        bool wasSupportedlockFound = false;
+
                         // only one resource should be returned
                         if ( resources.size() == 1 )
                         {
@@ -2954,11 +2956,15 @@ Content::ResourceType Content::resourceTypeForLocks(
                             {
                                 if ( (*it).Name ==  DAVProperties::SUPPORTEDLOCK )
                                 {
+                                    wasSupportedlockFound = true;
                                     uno::Sequence< ucb::LockEntry > aSupportedLocks;
                                     if ( (*it).Value >>= aSupportedLocks )
                                     {
                                         for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
                                         {
+                                            // TODO: if the lock type is changed from 'exclusive write' to 'shared write'
+                                            // e.g. to implement 'Calc shared file feature', the ucb::LockScope_EXCLUSIVE
+                                            // value should be checked as well, adaptation the code may be needed
                                             if ( aSupportedLocks[ n ].Scope == ucb::LockScope_EXCLUSIVE &&
                                                  aSupportedLocks[ n ].Type == ucb::LockType_WRITE )
                                             {
@@ -2973,6 +2979,16 @@ Content::ResourceType Content::resourceTypeForLocks(
                                     }
                                 }
                             }
+                        }
+                        //check if this is still only a DAV_NOLOCK
+                        if ( !wasSupportedlockFound && eResourceTypeForLocks == DAV_NOLOCK )
+                        {
+                            SAL_INFO( "ucb.ucp.webdav", "This WebDAV server has no supportedlock property, check for allowed LOCK method in OPTIONS" );
+                            // TODO: if the lock type is changed from 'exclusive write' to 'shared write'
+                            // e.g. to implement 'Calc shared file feature', and we arrive to this fallback
+                            // and the LOCK is allowed, we should assume that only exclusive write lock is available
+                            if ( aDAVOptions.isLockAllowed() )
+                                eResourceTypeForLocks = DAV;
                         }
                     }
                     catch ( DAVException const & e )
