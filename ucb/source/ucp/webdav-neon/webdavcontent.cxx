@@ -3166,6 +3166,10 @@ void Content::lock(
                 //grab the error code
                 switch( e.getStatus() )
                 {
+                    // The 'case SC_NOT_FOUND' just below tries to solve a problem in eXo Platform
+                    // WebDAV connector which apparently fail on resource first creation
+                    // rfc4918 section-7.3 (see link below)
+                    case SC_NOT_FOUND:              // <http://tools.ietf.org/html/rfc7231#section-6.5.4>
                     // The 'case SC_PRECONDITION_FAILED' just below tries to solve a problem
                     // in SharePoint when locking the resource on first creation fails due to this:
                     // <https://msdn.microsoft.com/en-us/library/jj575265%28v=office.12%29.aspx#id15>
