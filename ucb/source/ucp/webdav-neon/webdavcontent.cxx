@@ -2750,6 +2750,8 @@ void Content::transfer(
                                 rArgs.NameClash
                                     == ucb::NameClash::OVERWRITE,
                                 Environment );
+            aStaticDAVOptionsCache.removeDAVOptions( sourceURI.GetURI() );
+            aStaticDAVOptionsCache.removeDAVOptions( targetURI.GetURI() );
 
 // DAV resources store all additional props on server!
 //              // Copy own and all children's Additional Core Properties.
