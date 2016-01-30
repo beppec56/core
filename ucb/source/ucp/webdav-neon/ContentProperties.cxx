@@ -34,6 +34,7 @@
  *************************************************************************/
 #include <osl/diagnose.h>
 #include <com/sun/star/util/DateTime.hpp>
+#include "com/sun/star/ucb/LockEntry.hpp"
 #include "NeonUri.hxx"
 #include "DAVResource.hxx"
 #include "DAVProperties.hxx"
@@ -451,6 +452,7 @@ void ContentProperties::addProperty( const OUString & rName,
         // Map DAV:getcontenttype to UCP:MediaType (1:1)
         (*m_xProps)[ OUString("MediaType") ]
             = PropertyValue( rValue, true );
+        SAL_INFO( "ucb.ucp.webdav", "save: " << rName);
     }
     //  else if ( rName.equals( DAVProperties::GETETAG ) )
     //  {
@@ -511,6 +513,45 @@ void ContentProperties::addProperty( const OUString & rName,
     (*m_xProps)[ rName ] = PropertyValue( rValue, bIsCaseSensitive );
 }
 
+//debug only
+void ContentProperties::debugPrintNames()
+{
+    try
+    {
+        PropertyValueMap::const_iterator it = m_xProps->begin();
+        const PropertyValueMap::const_iterator end = m_xProps->end();
+        SAL_INFO("ucb.ucp.webdav","ContentProperties props names:" );
+        while ( it != end )
+        { //
+            OUString aValue;
+            bool    bValue;
+            uno::Sequence< ucb::LockEntry > aSupportedLocks;
+            const css::uno::Any & rValue = (*it).second.value();
+            try
+            {
+                if(rValue >>= aValue)
+                    SAL_INFO("ucb.ucp.webdav","  "<< (*it).first<<":"<<aValue);
+                else if( rValue >>= bValue )
+                    SAL_INFO("ucb.ucp.webdav","  "<< (*it).first<<":"<< (bValue ? "true":"false" ) );
+                else if(rValue >>= aSupportedLocks)
+                {
+                    SAL_INFO("ucb.ucp.webdav","  "<< (*it).first );
+                    for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
+                    {
+                        SAL_INFO("ucb.ucp.webdav","      scope: "
+                                 <<(aSupportedLocks[ n ].Scope ? "shared":"exclusive")
+                                 <<", type: "<< (aSupportedLocks[ n ].Type ? "" : "write") );
+                    }
+                }
+                else
+                    SAL_INFO("ucb.ucp.webdav","  "<< (*it).first<<": <unknown format>" );
+            }
+            catch (...) {}
+            ++it;
+        }
+    }
+    catch (...) {}
+}
 
 // CachableContentProperties Implementation.
 

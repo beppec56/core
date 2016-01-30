@@ -192,6 +192,7 @@ OUString SfxFilter::GetTypeFromStorage(
         xProps->getPropertyValue("MediaType") >>= aMediaType;
         if ( !aMediaType.isEmpty() )
         {
+            SAL_WARN("sfx2.doc","aMediaType: "<<aMediaType);
             css::datatransfer::DataFlavor aDataFlavor;
             aDataFlavor.MimeType = aMediaType;
             SotClipboardFormatId nClipId = SotExchange::GetFormat( aDataFlavor );

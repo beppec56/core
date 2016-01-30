@@ -713,7 +713,6 @@ uno::Any SAL_CALL Content::execute(
     }
 
     SAL_INFO( "ucb.ucp.webdav", "Content::execute: end: command: " << aCommand.Name );
-
     return aRet;
 }
 
@@ -1218,6 +1217,15 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
     uno::Reference< ucb::XContentIdentifier > xIdentifier;
     rtl::Reference< ::ucbhelper::ContentProviderImplHelper > xProvider;
 
+    {//debug
+        sal_Int32 nCount = rProperties.getLength();
+        for ( sal_Int32 n = 0; n < nCount; ++n )
+        {
+            const beans::Property & rProp = rProperties[ n ];
+            SAL_INFO( "ucb.ucp.webdav", "Content::getPropertyValues 2 - rProperties.Name: " << rProp.Name);
+        }
+    }
+
     {
         osl::Guard< osl::Mutex > aGuard( m_aMutex );
 
@@ -1230,17 +1238,25 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
         if ( m_xCachedProps.get() )
         {
             xCachedProps.reset( new ContentProperties( *m_xCachedProps.get() ) );
+            { //debug
+                xCachedProps.get()->debugPrintNames();
+            }
 
             std::vector< OUString > aMissingProps;
             if ( xCachedProps->containsAllNames( rProperties, aMissingProps ) )
             {
                 // All properties are already in cache! No server access needed.
                 bHasAll = true;
+                {//debug
+                    SAL_INFO("ucb.ucp.webdav","All Props in cache!");
+                }
             }
 
             // use the cached ContentProperties instance
             xProps.reset( new ContentProperties( *xCachedProps.get() ) );
         }
+        else //debug
+            SAL_INFO("ucb.ucp.webdav","Props cache NOT PRESENT!");
     }
 
     if ( !m_bTransient && !bHasAll )

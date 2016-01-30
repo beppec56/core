@@ -3194,6 +3194,7 @@ SvKeyValueIterator* SfxMedium::GetHeaderAttributes_Impl()
                 Any aAny = pImp->aContent.getPropertyValue("MediaType");
                 OUString aContentType;
                 aAny >>= aContentType;
+                SAL_WARN("sfx.doc","aContentType: "<<aContentType);
 
                 pImp->xAttributes->Append( SvKeyValue( OUString("content-type"), aContentType ) );
             }
