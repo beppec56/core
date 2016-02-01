@@ -1449,9 +1449,6 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
         if ( bNetworkAccessAllowed )
         {
-            if( eType != DAV )
-                m_bDidGetOrHead = false;
-
             // All properties obtained already?
             std::vector< OUString > aMissingProps;
             if ( !( xProps.get()
@@ -1466,6 +1463,14 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                 ContentProperties::UCBNamesToHTTPNames(
                     rProperties,
                     aHeaderNames );
+
+                if( eType != DAV )
+                {
+                    // in case of not DAV PROFIND (previously in program flow) failed
+                    // so we need to add the only prop that's common
+                    // to DAV and NON_DAV: MediaType, that maps to Content-Type
+                    aHeaderNames.push_back( "Content-Type" );
+                }
 
                 if ( !aHeaderNames.empty() )
                 {
