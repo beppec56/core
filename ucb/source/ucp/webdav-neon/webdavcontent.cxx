@@ -2072,6 +2072,7 @@ uno::Any Content::open(
         if ( xOut.is() )
         {
             // PUSH: write data
+            OUString aTargetURL =  m_xIdentifier->getContentIdentifier();
             try
             {
                 std::unique_ptr< DAVResourceAccess > xResAccess;
@@ -2088,6 +2089,8 @@ uno::Any Content::open(
                 std::vector< OUString > aHeaders;
 
                 xResAccess->GET( xOut, aHeaders, aResource, xEnv );
+                //for redirection
+                aTargetURL = xResAccess->getURL();
                 m_bDidGetOrHead = true;
 
                 {
@@ -2106,6 +2109,7 @@ uno::Any Content::open(
             }
             catch ( DAVException const & e )
             {
+                aStaticDAVOptionsCache.removeDAVOptions( aTargetURL );
                 cancelCommandExecution( e, xEnv );
                 // Unreachable
             }
@@ -2116,6 +2120,7 @@ uno::Any Content::open(
             if ( xDataSink.is() )
             {
                 // PULL: wait for client read
+                OUString aTargetURL =  m_xIdentifier->getContentIdentifier();
                 try
                 {
                     std::unique_ptr< DAVResourceAccess > xResAccess;
@@ -2134,6 +2139,8 @@ uno::Any Content::open(
 
                     uno::Reference< io::XInputStream > xIn
                         = xResAccess->GET( aHeaders, aResource, xEnv );
+                    //for redirection
+                    aTargetURL = xResAccess->getURL();
                     m_bDidGetOrHead = true;
 
                     {
@@ -2155,6 +2162,7 @@ uno::Any Content::open(
                 }
                 catch ( DAVException const & e )
                 {
+                    aStaticDAVOptionsCache.removeDAVOptions( aTargetURL );
                     cancelCommandExecution( e, xEnv );
                     // Unreachable
                 }
