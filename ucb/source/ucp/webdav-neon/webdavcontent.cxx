@@ -1300,17 +1300,25 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
         if ( m_xCachedProps.get() )
         {
             xCachedProps.reset( new ContentProperties( *m_xCachedProps.get() ) );
+            { //debug
+                xCachedProps.get()->debugPrintNames();
+            }
 
             std::vector< OUString > aMissingProps;
             if ( xCachedProps->containsAllNames( rProperties, aMissingProps ) )
             {
                 // All properties are already in cache! No server access needed.
                 bHasAll = true;
-            }
+                {//debug
+                    SAL_INFO("ucb.ucp.webdav","All Props in cache!");
+                }
+             }
 
             // use the cached ContentProperties instance
             xProps.reset( new ContentProperties( *xCachedProps.get() ) );
         }
+        else //debug
+            SAL_INFO("ucb.ucp.webdav","Props cache NOT PRESENT!");
     }
 
     if ( !m_bTransient && !bHasAll )
@@ -2936,6 +2944,32 @@ Content::ResourceType Content::resourceTypeForLocks(
     const uno::Reference< ucb::XCommandEnvironment >& Environment,
     const std::unique_ptr< DAVResourceAccess > & rResAccess)
 {
+    { //debug
+        std::unique_ptr< ContentProperties > xProps;
+        if ( m_xCachedProps.get() )
+        {
+            std::unique_ptr< ContentProperties > xCachedProps;
+            xCachedProps.reset( new ContentProperties( *m_xCachedProps.get() ) );
+            xCachedProps.get()->debugPrintNames();
+            // uno::Sequence< ucb::LockEntry > aSupportedLocks;
+            // if ( m_xCachedProps->getValue( DAVProperties::SUPPORTEDLOCK )
+            //     >>= aSupportedLocks )            //get the cached value for supportedlock
+            // {
+            //     for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
+            //     {
+            //         if ( aSupportedLocks[ n ].Scope
+            //                 == ucb::LockScope_EXCLUSIVE &&
+            //              aSupportedLocks[ n ].Type
+            //                 == ucb::LockType_WRITE )
+            //             SAL_INFO("ucb.ucp.webdav","DAVProperties::SUPPORTEDLOCK cached returns TRUE");
+            //     }
+            // }
+            // else
+            //     SAL_INFO("ucb.ucp.webdav","DAVProperties::SUPPORTEDLOCK not cached");
+        }
+        else
+            SAL_INFO("ucb.ucp.webdav","Props cache NOT PRESENT!");
+    } //debug
 
     ResourceType eResourceTypeForLocks = UNKNOWN;
     {
