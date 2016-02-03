@@ -34,6 +34,7 @@
  *************************************************************************/
 #include <osl/diagnose.h>
 #include <com/sun/star/util/DateTime.hpp>
+#include "com/sun/star/ucb/LockEntry.hpp"
 #include "NeonUri.hxx"
 #include "DAVResource.hxx"
 #include "DAVProperties.hxx"
@@ -519,6 +520,46 @@ void ContentProperties::addProperty( const OUString & rName,
     (*m_xProps)[ rName ] = PropertyValue( rValue, bIsCaseSensitive );
 }
 
+
+//debug only
+void ContentProperties::debugPrintNames()
+{
+    try
+    {
+        PropertyValueMap::const_iterator it = m_xProps->begin();
+        const PropertyValueMap::const_iterator end = m_xProps->end();
+        SAL_INFO_A("ucb.ucp.webdav","ContentProperties props names:" );
+        while ( it != end )
+        { //
+            OUString aValue;
+            bool    bValue;
+            uno::Sequence< ucb::LockEntry > aSupportedLocks;
+            const css::uno::Any & rValue = (*it).second.value();
+            try
+            {
+                if(rValue >>= aValue)
+                    SAL_INFO_A("ucb.ucp.webdav","  "<< (*it).first<<":"<<aValue);
+                else if( rValue >>= bValue )
+                    SAL_INFO_A("ucb.ucp.webdav","  "<< (*it).first<<":"<< (bValue ? "true":"false" ) );
+                else if(rValue >>= aSupportedLocks)
+                {
+                    SAL_INFO_A("ucb.ucp.webdav","  "<< (*it).first );
+                    for ( sal_Int32 n = 0; n < aSupportedLocks.getLength(); ++n )
+                    {
+                        SAL_INFO_A("ucb.ucp.webdav","      scope: "
+                                 <<(aSupportedLocks[ n ].Scope ? "shared":"exclusive")
+                                 <<", type: "<< (aSupportedLocks[ n ].Type ? "" : "write") );
+                    }
+                }
+                else
+                    SAL_INFO_A("ucb.ucp.webdav","  "<< (*it).first<<": <unknown format>" );
+            }
+            catch (...) {}
+            ++it;
+        }
+    }
+    catch (...) {}
+}
 
 
 
