@@ -243,6 +243,7 @@ extern "C" int NeonSession_NeonAuth( void *       inUserData,
  * cancel the request. (if non-zero, username and password are
  * ignored.)  */
 
+    SAL_INFO("ucb.ucp.webdav","NeonSession_NeonAuth - called");
     NeonSession * theSession = static_cast< NeonSession * >( inUserData );
     DAVAuthListener * pListener
         = theSession->getRequestEnvironment().m_xAuthListener.get();
@@ -355,6 +356,7 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
                                                 int,
                                                 const ne_ssl_certificate *cert )
 {
+    SAL_INFO("ucb.ucp.webdav","NeonSession_CertificationNotify called");
     OSL_ASSERT( cert );
 
     NeonSession * pSession = static_cast< NeonSession * >( userdata );
@@ -551,6 +553,7 @@ extern "C" void NeonSession_PreSendRequest( ne_request * req,
         DAVRequestHeaders::const_iterator it1( rHeaders.begin() );
         const DAVRequestHeaders::const_iterator end1( rHeaders.end() );
 
+        OUString SentHeader;
         while ( it1 != end1 )
         {
             OString aHeader
@@ -561,7 +564,10 @@ extern "C" void NeonSession_PreSendRequest( ne_request * req,
                                           RTL_TEXTENCODING_UTF8 );
             ne_buffer_concat( headers, aHeader.getStr(), ": ",
                               aValue.getStr(), EOL, nullptr );
-
+            SentHeader += (*it1).first;
+            SentHeader += ": ";
+            SentHeader += (*it1).second;
+            SentHeader += ", ";
             ++it1;
         }
     }
@@ -1633,7 +1639,10 @@ void NeonSession::UNLOCK( const OUString & inPath,
     NeonLock * theLock
         = m_aNeonLockStore.findByUri( makeAbsoluteURL( inPath ) );
     if ( !theLock )
+    {
+        SAL_INFO("ucb.ucp.webdav","DAVException::DAV_NOT_LOCKED issued");
         throw DAVException( DAVException::DAV_NOT_LOCKED );
+    }
 
     SAL_INFO( "ucb.ucp.webdav", "UNLOCK - relative URL: <" << inPath << "> token: <" << theLock->token << ">"  );
     Init( rEnv );
@@ -1805,6 +1814,7 @@ void NeonSession::HandleError( int nError,
     switch ( nError )
     {
         case NE_OK:
+            SAL_INFO("ucb.ucp.webdav","No error on NEON");
             return;
 
         case NE_ERROR:        // Generic error
@@ -1849,6 +1859,7 @@ void NeonSession::HandleError( int nError,
                                     m_aHostName, m_nPort ) );
 
         case NE_AUTH:         // User authentication failed on server
+            SAL_WARN("ucb.ucp.webdav","DAVException::DAV_HTTP_AUTH");
             throw DAVException( DAVException::DAV_HTTP_AUTH,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );
@@ -1878,6 +1889,7 @@ void NeonSession::HandleError( int nError,
                                     m_aHostName, m_nPort ) );
 
         case NE_RETRY:        // Retry request (ne_end_request ONLY)
+            SAL_WARN("ucb.ucp.webdav","DAVException::DAV_HTTP_RETRY");
             throw DAVException( DAVException::DAV_HTTP_RETRY,
                                 NeonUri::makeConnectionEndPointString(
                                     m_aHostName, m_nPort ) );

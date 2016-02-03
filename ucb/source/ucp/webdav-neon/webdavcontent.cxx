@@ -420,7 +420,8 @@ uno::Any SAL_CALL Content::execute(
 {
     SAL_INFO( "ucb.ucp.webdav", "Content::execute: start: command: " <<
               aCommand.Name << ", env: " <<
-              (Environment.is() ? "present" : "missing") );
+              (Environment.is() ? "present" : "missing")
+              << ", URL: " << m_xIdentifier->getContentIdentifier() );
 
     uno::Any aRet;
 
@@ -636,6 +637,26 @@ uno::Any SAL_CALL Content::execute(
         // see: http://tools.ietf.org/html/rfc4918#section-7.3
         // If the resource doesn't exists and the lock is not enabled (DAV with
         // no lock or a simple web) the error will be dealt with inside lock() method
+
+        {//debug
+            OUString sType;
+            switch(eType)
+                {
+                case UNKNOWN: sType ="UNKNOWN (the type of the Web resource is unknown)";
+                    break;
+                case NOT_FOUND: sType = "NOT_FOUND (the Web resource does not exists)";
+                    break;
+                case FTP: sType = "FTP (the Web resource exists but it's ftp)";
+                    break;
+                case NON_DAV: sType = "NON_DAV (the Web resource exists but it's not DAV)";
+                    break;
+                case DAV: sType = "DAV (the type of the Web resource is DAV with lock/unlock available)";
+                    break;
+                case DAV_NOLOCK: sType = "DAV_NOLOCK (the type of the Web resource is DAV with no lock/unlock available)";
+                }
+            SAL_INFO( "ucb.ucp.webdav","eResourceType: " << sType);
+        }
+
         if ( eType == NOT_FOUND ||
             eType == DAV )
         {
@@ -749,7 +770,8 @@ uno::Any SAL_CALL Content::execute(
         // Unreachable
     }
 
-    SAL_INFO( "ucb.ucp.webdav", "Content::execute: end: command: " << aCommand.Name );
+    SAL_INFO( "ucb.ucp.webdav", "Content::execute: end: command: " << aCommand.Name
+        << ", URL: " << m_xIdentifier->getContentIdentifier() );
 
     return aRet;
 }
@@ -1257,6 +1279,15 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
     uno::Reference< ucb::XContentIdentifier > xIdentifier;
     rtl::Reference< ::ucbhelper::ContentProviderImplHelper > xProvider;
 
+    {//debug
+        sal_Int32 nCount = rProperties.getLength();
+        for ( sal_Int32 n = 0; n < nCount; ++n )
+        {
+            const beans::Property & rProp = rProperties[ n ];
+            SAL_INFO( "ucb.ucp.webdav", "Content::getPropertyValues 2 - rProperties.Name: " << rProp.Name);
+        }
+    }
+
     {
         osl::Guard< osl::Mutex > aGuard( m_aMutex );
 
@@ -1373,6 +1404,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     std::vector< DAVResource > resources;
                     try
                     {
+                        SAL_INFO("ucb.ucp.webdav","PROPFIND 1 (getPropertyValues)");
                         xResAccess->PROPFIND(
                             DAVZERO, aPropNames, resources, xEnv );
 
@@ -1507,6 +1539,9 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
         if ( eType == UNKNOWN )
         {
+            // TODO: check why the unknown type is used, seems more likely this
+            // is a new resource instead
+            SAL_INFO("ucb.ucp.webdav","use eType == " << eType << " to create new ContentProperties");
             xProps.reset( new ContentProperties( aUnescapedTitle ) );
         }
 
@@ -2465,6 +2500,7 @@ void Content::insert(
 
     if ( bTransient )
     {
+        SAL_INFO("ucb.ucp.webdav","bTransient is TRUE");
         // Assemble new content identifier...
         OUString aURL = getParentURL();
         if ( aURL.lastIndexOf( '/' ) != ( aURL.getLength() - 1 ) )
@@ -2576,6 +2612,7 @@ void Content::insert(
     }
     else
     {
+        SAL_INFO("ucb.ucp.webdav","bTransient is FALSE");
         if ( !xInputStream.is() )
         {
             ucbhelper::cancelCommandExecution(
@@ -2896,6 +2933,7 @@ Content::ResourceType Content::resourceTypeForLocks(
     const uno::Reference< ucb::XCommandEnvironment >& Environment,
     const std::unique_ptr< DAVResourceAccess > & rResAccess)
 {
+
     ResourceType eResourceTypeForLocks = UNKNOWN;
     {
         osl::MutexGuard g(m_aMutex);
@@ -3094,6 +3132,7 @@ void Content::lock(
         const uno::Reference< ucb::XCommandEnvironment >& Environment )
     throw( uno::Exception, std::exception )
 {
+    SAL_INFO("ucb.ucp.webdav","Content::lock - CALLED");
 // prepare aURL to be used in exception, see below
     OUString aURL;
     if ( m_bTransient )
@@ -3247,6 +3286,8 @@ void Content::unlock(
         const uno::Reference< ucb::XCommandEnvironment >& Environment )
     throw( uno::Exception, std::exception )
 {
+    SAL_INFO("ucb.ucp.webdav","Content::unlock - CALLED");
+
     // save the URL to clean cache
     OUString    aTargetUrl = m_xIdentifier->getContentIdentifier();
 
