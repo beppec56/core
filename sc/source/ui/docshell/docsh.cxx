@@ -827,6 +827,7 @@ void ScDocShell::Notify( SfxBroadcaster&, const SfxHint& rHint )
                                         bool bSaveToShared = false;
                                         if ( pSharedDocShell )
                                         {
+                                            SAL_WARN("sfx.doc","ScDocShell::Notify -");
                                             bSaveToShared = MergeSharedDocument( pSharedDocShell );
                                         }
 
@@ -838,6 +839,7 @@ void ScDocShell::Notify( SfxBroadcaster&, const SfxHint& rHint )
                                         // store to shared file
                                         if ( bSaveToShared )
                                         {
+                                            SAL_WARN("sfx.doc","ScDocShell::Notify - bSaveToShared");
                                             bool bChangedViewSettings = false;
                                             ScChangeViewSettings* pChangeViewSet = aDocument.GetChangeViewSettings();
                                             if ( pChangeViewSet && pChangeViewSet->ShowChanges() )

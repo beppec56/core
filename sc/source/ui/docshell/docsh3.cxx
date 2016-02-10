@@ -1131,6 +1131,7 @@ void ScDocShell::MergeDocument( ScDocument& rOtherDoc, bool bShared, bool bCheck
 
 bool ScDocShell::MergeSharedDocument( ScDocShell* pSharedDocShell )
 {
+    SAL_WARN("sc","ScDocShell::MergeSharedDocument");
     if ( !pSharedDocShell )
     {
         return false;
@@ -1146,10 +1147,14 @@ bool ScDocShell::MergeSharedDocument( ScDocShell* pSharedDocShell )
     ScChangeTrack* pSharedTrack = rSharedDoc.GetChangeTrack();
     if ( !pSharedTrack )
     {
+        SAL_WARN("sc","ScDocShell::MergeSharedDocument - no changes in this calc sheet ");
         return false;
     }
 
-    // reset show changes
+    // OUString aMessage = ">>>>>>>>>>>>>>>>>>>>>>>>>>> before merge:";
+    // aMessage += pThisTrack->ToString();
+    // SAL_WARN("sc", aMessage );
+
     ScChangeViewSettings aChangeViewSet;
     aChangeViewSet.SetShowChanges( false );
     aDocument.SetChangeViewSettings( aChangeViewSet );
@@ -1190,6 +1195,7 @@ bool ScDocShell::MergeSharedDocument( ScDocShell* pSharedDocShell )
             ScConflictsFinder aFinder( pSharedTrack, nActStartShared, nActEndShared, nActStartOwn, nActEndOwn, aConflictsList );
             if ( aFinder.Find() )
             {
+                SAL_WARN("sc","ScDocShell::MergeSharedDocument - Conflicts found !");
                 ScConflictsListHelper::TransformConflictsList( aConflictsList, nullptr, &aOwnInverseMergeMap );
                 bool bLoop = true;
                 while ( bLoop )
@@ -1316,6 +1322,10 @@ bool ScDocShell::MergeSharedDocument( ScDocShell* pSharedDocShell )
         ScopedVclPtrInstance< InfoBox > aInfoBox( GetActiveDialogParent(), ScGlobal::GetRscString( STR_DOC_UPDATED ) );
         aInfoBox->Execute();
     }
+
+    // OUString aMessage = "<<<<<<<<<<<<<<<<<<<<<<<<<<< after merge:";
+    // aMessage += pThisTrack->ToString();
+    // SAL_WARN("sc", aMessage );
 
     return ( pThisAction != nullptr );
 }

@@ -64,6 +64,7 @@ LockFileCommon::LockFileCommon( const OUString& aOrigURL, const OUString& aPrefi
     aShareURLString += aDocURL.GetName();
     aShareURLString += "%23"; // '#'
     m_aURL = INetURLObject( aShareURLString ).GetMainURL( INetURLObject::NO_DECODE );
+    SAL_WARN("svl","LockFileCommon::LockFileCommon - aShareURLString: "<<aShareURLString<<", m_aURL: "<<m_aURL<<", aPrefix: "<<aPrefix);
 }
 
 
@@ -74,6 +75,7 @@ LockFileCommon::~LockFileCommon()
 
 INetURLObject LockFileCommon::ResolveLinks( const INetURLObject& aDocURL )
 {
+    SAL_WARN("svl","LockFileCommon::ResolveLinks - ");
     if ( aDocURL.HasError() )
         throw lang::IllegalArgumentException();
 
@@ -98,6 +100,7 @@ INetURLObject LockFileCommon::ResolveLinks( const INetURLObject& aDocURL )
 
 void LockFileCommon::ParseList( const uno::Sequence< sal_Int8 >& aBuffer, std::vector< LockFileEntry > & aResult )
 {
+    SAL_WARN("svl","LockFileCommon::ParseList - ");
     sal_Int32 nCurPos = 0;
     while ( nCurPos < aBuffer.getLength() )
     {
@@ -108,6 +111,7 @@ void LockFileCommon::ParseList( const uno::Sequence< sal_Int8 >& aBuffer, std::v
 
 LockFileEntry LockFileCommon::ParseEntry( const uno::Sequence< sal_Int8 >& aBuffer, sal_Int32& io_nCurPos )
 {
+    SAL_WARN("svl","LockFileCommon::ParseEntry - ");
     LockFileEntry aResult;
 
     for ( LockFileComponent nInd : o3tl::enumrange<LockFileComponent>() )
@@ -125,6 +129,7 @@ LockFileEntry LockFileCommon::ParseEntry( const uno::Sequence< sal_Int8 >& aBuff
 
 OUString LockFileCommon::ParseName( const uno::Sequence< sal_Int8 >& aBuffer, sal_Int32& io_nCurPos )
 {
+    SAL_WARN("svl","LockFileCommon::ParseName - ");
     OStringBuffer aResult;
     bool bHaveName = false;
     bool bEscape = false;
@@ -157,12 +162,15 @@ OUString LockFileCommon::ParseName( const uno::Sequence< sal_Int8 >& aBuffer, sa
         }
     }
 
-    return OStringToOUString( aResult.makeStringAndClear(), RTL_TEXTENCODING_UTF8 );
+    OUString ret = OStringToOUString( aResult.makeStringAndClear(), RTL_TEXTENCODING_UTF8 );
+    SAL_WARN("svl","LockFileCommon::ParseName - returns: "<<ret);
+    return ret;
 }
 
 
 OUString LockFileCommon::EscapeCharacters( const OUString& aSource )
 {
+    SAL_WARN("svl","LockFileCommon::EscapeCharacters - ");
     OUStringBuffer aBuffer;
     const sal_Unicode* pStr = aSource.getStr();
     for ( sal_Int32 nInd = 0; nInd < aSource.getLength() && pStr[nInd] != 0; nInd++ )
@@ -178,6 +186,7 @@ OUString LockFileCommon::EscapeCharacters( const OUString& aSource )
 
 OUString LockFileCommon::GetOOOUserName()
 {
+    SAL_WARN("svl","LockFileCommon::GetOOOUserName - ");
     SvtUserOptions aUserOpt;
     OUString aName = aUserOpt.GetFirstName();
     if ( !aName.isEmpty() )
@@ -190,6 +199,7 @@ OUString LockFileCommon::GetOOOUserName()
 
 OUString LockFileCommon::GetCurrentLocalTime()
 {
+    SAL_WARN("svl","LockFileCommon::GetCurrentLocalTime - ");
     OUString aTime;
 
     TimeValue aSysTime;
@@ -214,6 +224,7 @@ OUString LockFileCommon::GetCurrentLocalTime()
 
 LockFileEntry LockFileCommon::GenerateOwnEntry()
 {
+    SAL_WARN("svl","LockFileCommon::GenerateOwnEntry - ");
     LockFileEntry aResult;
 
     aResult[LockFileComponent::OOOUSERNAME] = GetOOOUserName();

@@ -47,6 +47,72 @@
 IMPL_FIXEDMEMPOOL_NEWDEL( ScChangeActionCellListEntry )
 IMPL_FIXEDMEMPOOL_NEWDEL( ScChangeActionLinkEntry )
 
+//debug local
+namespace
+{
+    OUString lcl_print_eType( ScChangeActionType eActType )
+    {
+        OUString ret;
+        switch(eActType)
+        {
+            default: ret ="";
+                break;
+            case ScChangeActionType::SC_CAT_NONE:
+                ret = "SC_CAT_NONE";
+                break;
+            case SC_CAT_INSERT_COLS:
+                ret = "SC_CAT_INSERT_COLS";
+                break;
+            case SC_CAT_INSERT_ROWS:
+                ret = "SC_CAT_INSERT_ROWS";
+                break;
+            case SC_CAT_INSERT_TABS:
+                ret = "SC_CAT_INSERT_TABS";
+                break;
+            case SC_CAT_DELETE_COLS:
+                ret = "SC_CAT_DELETE_COLS";
+                break;
+            case SC_CAT_DELETE_ROWS:
+                ret = "SC_CAT_DELETE_ROWS";
+                break;
+            case SC_CAT_DELETE_TABS:
+                ret = "SC_CAT_DELETE_TABS";
+                break;
+            case SC_CAT_MOVE:
+                ret = "SC_CAT_MOVE";
+                break;
+            case SC_CAT_CONTENT:
+                ret = "SC_CAT_CONTENT";
+                break;
+            case SC_CAT_REJECT:
+                ret = "SC_CAT_REJECT";
+                break;
+        }
+        return ret;
+    }
+
+    OUString lcl_print_eActionState( ScChangeActionState eActState )
+    {
+        OUString ret;
+        switch(eActState)
+        {
+            default: ret ="";
+                break;
+            case SC_CAS_VIRGIN:
+                ret = "SC_CAS_VIRGIN";
+                break;
+            case SC_CAS_ACCEPTED:
+                ret = " SC_CAS_ACCEPTED";
+                break;
+            case SC_CAS_REJECTED:
+                ret = " SC_CAS_REJECTED";
+                break;
+
+        }
+        return ret;
+    }
+};
+
 ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScRange& rRange )
         :
         aBigRange( rRange ),
@@ -62,6 +128,7 @@ ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScRange& rRange
         eType( eTypeP ),
         eState( SC_CAS_VIRGIN )
 {
+    SAL_WARN("sc","ScChangeAction::ScChangeAction - 1 ctor eType: "<<lcl_print_eType(eType));
     aDateTime.ConvertToUTC();
 }
 
@@ -85,6 +152,7 @@ ScChangeAction::ScChangeAction(
         eType( eTypeP ),
         eState( eTempState )
 {
+    SAL_WARN("sc","ScChangeAction::ScChangeAction - 2 ctor eType: "<<lcl_print_eType(eType)<<", eState: "<<lcl_print_eActionState(eState)<<", aUser: "<<aUser<<", nAction: "<<nAction);
 }
 
 ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScBigRange& rRange,
@@ -103,11 +171,13 @@ ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScBigRange& rRa
         eType( eTypeP ),
         eState( SC_CAS_VIRGIN )
 {
+    SAL_WARN("sc","ScChangeAction::ScChangeAction - 3 ctor eType: "<<lcl_print_eType(eType));
     aDateTime.ConvertToUTC();
 }
 
 ScChangeAction::~ScChangeAction()
 {
+    SAL_WARN("sc","ScChangeAction::~ScChangeAction - Dtor eType: "<<lcl_print_eType(eType));
     RemoveAllLinks();
 }
 
@@ -2079,6 +2149,7 @@ ScChangeTrack::ScChangeTrack( ScDocument* pDocP ) :
         aFixDateTime( DateTime::SYSTEM ),
         pDoc( pDocP )
 {
+    SAL_WARN("sc","ScChangeTrack::ScChangeTrack - ctor");
     Init();
     SC_MOD()->GetUserOptions().AddListener(this);
 
@@ -2091,6 +2162,7 @@ ScChangeTrack::ScChangeTrack( ScDocument* pDocP, const std::set<OUString>& aTemp
         aFixDateTime( DateTime::SYSTEM ),
         pDoc( pDocP )
 {
+    SAL_WARN("sc","ScChangeTrack::ScChangeTrack - ctor");
     Init();
     SC_MOD()->GetUserOptions().AddListener(this);
     ppContentSlots = new ScChangeActionContent* [ nContentSlots ];
@@ -2099,6 +2171,7 @@ ScChangeTrack::ScChangeTrack( ScDocument* pDocP, const std::set<OUString>& aTemp
 
 ScChangeTrack::~ScChangeTrack()
 {
+    SAL_WARN("sc","ScChangeTrack::~ScChangeTrack - Dtor");
     SC_MOD()->GetUserOptions().RemoveListener(this);
     DtorClear();
     delete [] ppContentSlots;

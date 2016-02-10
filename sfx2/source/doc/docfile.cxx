@@ -1051,11 +1051,13 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
         return;
     }
 
+    SAL_WARN("sfx.doc","SfxMedium::LockOrigFileOnDemand - pImp->m_bLocked: "<<pImp->m_bLocked<<", IsLockingUsed(): " <<IsLockingUsed()<<", GetURLObject().HasError(): "<<GetURLObject().HasError());
     if (!IsLockingUsed() || GetURLObject().HasError())
         return;
 
     try
     {
+        SAL_WARN("sfx.doc","SfxMedium::LockOrigFileOnDemand - pImp->m_bLocked: "<<pImp->m_bLocked);
         if ( pImp->m_bLocked && bLoading
              && GetURLObject().GetProtocol() == INetProtocol::File )
         {
@@ -1274,6 +1276,7 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
                 GetItemSet()->Put( SfxBoolItem( SID_DOC_READONLY, true ) );
         }
 
+        SAL_WARN("sfx.doc","SfxMedium::LockOrigFileOnDemand (exiting) - pImp->m_bLocked: "<<pImp->m_bLocked);
         // when the file is locked, get the current file date
         if ( bResult && DocNeedsFileDateCheck() )
             GetInitFileDate( true );
@@ -2762,6 +2765,7 @@ void SfxMedium::UnlockFile( bool bReleaseLockStream )
         return;
     }
 
+    SAL_WARN("sfx.doc","SfxMedium::UnlockFile - pImp->m_bLocked: "<<pImp->m_bLocked<<", bReleaseLockStream: "<<bReleaseLockStream);
     if ( pImp->m_xLockingStream.is() )
     {
         if ( bReleaseLockStream )

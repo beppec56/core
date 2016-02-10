@@ -796,6 +796,7 @@ void ScXMLChangeTrackingImportHelper::SetNewCell(ScMyContentAction* pAction)
 
 void ScXMLChangeTrackingImportHelper::CreateChangeTrack(ScDocument* pTempDoc)
 {
+   SAL_WARN("sc","ScXMLChangeTrackingImportHelper::CreateChangeTrack");
     pDoc = pTempDoc;
     if (pDoc)
     {
