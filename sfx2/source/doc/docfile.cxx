@@ -986,8 +986,17 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
 
                         try
                         {
-                            aContentToLock.lock();
-                            bResult = true;
+                            bool bIsDocument;
+                            // when saving a document on WebDAv, by chance, we may have a folder with
+                            // same name as new document, depending on the server setup, the folder
+                            // can be locked as well:
+                            // lock only document, do not lock folder, when first saving a new document
+                            aContentToLock.getPropertyValue("IsDocument") >>= bIsDocument;
+                            if( bIsDocument )
+                            {
+                                aContentToLock.lock();
+                                bResult = true;
+                            }
                         }
                         catch ( ucb::InteractiveLockingLockedException& )
                         {
