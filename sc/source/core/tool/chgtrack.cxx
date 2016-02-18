@@ -43,6 +43,7 @@
 #include <unotools/useroptions.hxx>
 #include <sfx2/sfxsids.hrc>
 #include <memory>
+#include <tools/datetimeutils.hxx>
 
 IMPL_FIXEDMEMPOOL_NEWDEL( ScChangeActionCellListEntry )
 IMPL_FIXEDMEMPOOL_NEWDEL( ScChangeActionLinkEntry )
@@ -111,6 +112,34 @@ namespace
         }
         return ret;
     }
+
+
+    OUString lcl_BigRangeToString( ScBigRange aBigRange )
+    {
+        sal_Int32 nFromCol;
+        sal_Int32 nFromRow;
+        sal_Int32 nFromTab;
+        sal_Int32 nToCol;
+        sal_Int32 nToRow;
+        sal_Int32 nToTab;
+        aBigRange.GetVars(
+            nFromCol, nFromRow, nFromTab,
+            nToCol, nToRow, nToTab );
+        OUString ret;
+        ret = ", from: Col: ";
+        ret += OUString::number( nFromCol );
+        ret +=" Row: ";
+        ret += OUString::number( nFromRow );
+        ret +=" Table: ";
+        ret += OUString::number( nFromTab );
+        ret += " =-> Col: ";
+        ret += OUString::number( nToCol );
+        ret +=" Row: ";
+        ret += OUString::number( nToRow );
+        ret +=" Table: ";
+        ret += OUString::number( nToTab );
+        return ret;
+    }
 };
 
 ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScRange& rRange )
@@ -128,7 +157,7 @@ ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScRange& rRange
         eType( eTypeP ),
         eState( SC_CAS_VIRGIN )
 {
-    SAL_WARN("sc","ScChangeAction::ScChangeAction - 1 ctor eType: "<<lcl_print_eType(eType));
+    SAL_WARN("sc","ScChangeAction::ScChangeAction - 1 ctor " << toString());
     aDateTime.ConvertToUTC();
 }
 
@@ -152,7 +181,6 @@ ScChangeAction::ScChangeAction(
         eType( eTypeP ),
         eState( eTempState )
 {
-    SAL_WARN("sc","ScChangeAction::ScChangeAction - 2 ctor eType: "<<lcl_print_eType(eType)<<", eState: "<<lcl_print_eActionState(eState)<<", aUser: "<<aUser<<", nAction: "<<nAction);
 }
 
 ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScBigRange& rRange,
@@ -171,13 +199,12 @@ ScChangeAction::ScChangeAction( ScChangeActionType eTypeP, const ScBigRange& rRa
         eType( eTypeP ),
         eState( SC_CAS_VIRGIN )
 {
-    SAL_WARN("sc","ScChangeAction::ScChangeAction - 3 ctor eType: "<<lcl_print_eType(eType));
+    SAL_WARN("sc","ScChangeAction::ScChangeAction - 3 ctor "<<toString());
     aDateTime.ConvertToUTC();
 }
 
 ScChangeAction::~ScChangeAction()
 {
-    SAL_WARN("sc","ScChangeAction::~ScChangeAction - Dtor eType: "<<lcl_print_eType(eType));
     RemoveAllLinks();
 }
 
@@ -717,6 +744,26 @@ void ScChangeAction::AddDependent( sal_uLong nActionNumber,
             pAct->AddLink( this, pLink );
         }
     }
+}
+
+OUString ScChangeAction::toString() const
+{
+    OUString ret = "eType: ";
+    ret += lcl_print_eType(eType);
+    ret += ", eState: ";
+    ret += lcl_print_eActionState(eState);
+
+
+    ret += ", aUser: ";
+    ret += aUser;
+    ret += ", nAction: ";
+    ret += OUString::number( nAction );
+    ret += " - ";
+    ret += OStringToOUString( DateTimeToOString( aDateTime ), RTL_TEXTENCODING_ASCII_US );
+    ret += ", ";
+    ret += lcl_BigRangeToString(aBigRange);
+
+    return ret;
 }
 
 //  ScChangeActionIns
@@ -1361,6 +1408,19 @@ bool ScChangeActionMove::Reject( ScDocument* pDoc )
 //  ScChangeActionContent
 IMPL_FIXEDMEMPOOL_NEWDEL( ScChangeActionContent )
 
+
+OUString ScChangeActionContent::toString() const
+{
+    OUString ret = ScChangeAction::toString();
+    ret += " '";
+    ret += maOldValue;
+    ret += "' =-> '";
+    ret += maNewValue;
+    ret += "'";
+
+    return ret;
+}
+
 ScChangeActionContent::ScChangeActionContent( const ScRange& rRange ) :
     ScChangeAction(SC_CAT_CONTENT, rRange),
     pNextContent(nullptr),
@@ -1387,6 +1447,7 @@ ScChangeActionContent::ScChangeActionContent( const sal_uLong nActionNumber,
 
     if (!sOldValue.isEmpty()) // #i40704# don't overwrite SetCell result with empty string
         maOldValue = sOldValue; // set again, because SetCell removes it
+    SAL_WARN("sc","ScChangeActionContent::ScChangeActionContent ctor 1 - "<<toString());
 }
 
 ScChangeActionContent::ScChangeActionContent( const sal_uLong nActionNumber,
@@ -1405,6 +1466,7 @@ ScChangeActionContent::ScChangeActionContent( const sal_uLong nActionNumber,
 
     if (!sNewValue.isEmpty()) // #i40704# don't overwrite SetCell result with empty string
         maNewValue = sNewValue; // set again, because SetCell removes it
+    SAL_WARN("sc","ScChangeActionContent::ScChangeActionContent ctor 2 - "<<toString());
 }
 
 ScChangeActionContent::~ScChangeActionContent()
@@ -1414,6 +1476,7 @@ ScChangeActionContent::~ScChangeActionContent()
 
 void ScChangeActionContent::ClearTrack()
 {
+//    SAL_WARN("sc","ScChangeActionContent::ClearTrack");
     RemoveFromSlot();
     if ( pPrevContent )
         pPrevContent->pNextContent = pNextContent;
@@ -1423,6 +1486,7 @@ void ScChangeActionContent::ClearTrack()
 
 ScChangeActionContent* ScChangeActionContent::GetTopContent() const
 {
+//    SAL_WARN("sc","ScChangeActionContent::GetTopContent");
     if ( pNextContent )
     {
         ScChangeActionContent* pContent = pNextContent;
@@ -1435,6 +1499,7 @@ ScChangeActionContent* ScChangeActionContent::GetTopContent() const
 
 ScChangeActionLinkEntry* ScChangeActionContent::GetDeletedIn() const
 {
+//    SAL_WARN("sc","ScChangeActionContent::GetDeletedIn");
     if ( pNextContent )
         return GetTopContent()->pLinkDeletedIn;
     return pLinkDeletedIn;
@@ -1442,6 +1507,7 @@ ScChangeActionLinkEntry* ScChangeActionContent::GetDeletedIn() const
 
 ScChangeActionLinkEntry** ScChangeActionContent::GetDeletedInAddress()
 {
+//    SAL_WARN("sc","ScChangeActionContent::GetDeletedInAddress");
     if ( pNextContent )
         return GetTopContent()->GetDeletedInAddress();
     return &pLinkDeletedIn;
@@ -1451,17 +1517,20 @@ void ScChangeActionContent::SetOldValue(
     const ScCellValue& rCell, const ScDocument* pFromDoc, ScDocument* pToDoc, sal_uLong nFormat )
 {
     SetValue(maOldValue, maOldCell, nFormat, rCell, pFromDoc, pToDoc);
+    SAL_WARN("sc","ScChangeActionContent::SetOldValue 1 "<<toString());
 }
 
 void ScChangeActionContent::SetOldValue(
     const ScCellValue& rCell, const ScDocument* pFromDoc, ScDocument* pToDoc )
 {
     SetValue(maOldValue, maOldCell, aBigRange.aStart.MakeAddress(), rCell, pFromDoc, pToDoc);
+    SAL_WARN("sc","ScChangeActionContent::SetOldValue 2 "<<toString());
 }
 
 void ScChangeActionContent::SetNewValue( const ScCellValue& rCell, ScDocument* pDoc )
 {
     SetValue(maNewValue, maNewCell, aBigRange.aStart.MakeAddress(), rCell, pDoc, pDoc);
+    SAL_WARN("sc","ScChangeActionContent::SetNewValue - "<<toString());
 }
 
 void ScChangeActionContent::SetOldNewCells(
@@ -1483,6 +1552,7 @@ void ScChangeActionContent::SetNewCell(
     // #i40704# allow to set formatted text here - don't call SetNewValue with string from XML filter
     if (!rFormatted.isEmpty())
         maNewValue = rFormatted;
+    SAL_WARN("sc","ScChangeActionContent::SetNewCell - "<<toString());
 }
 
 void ScChangeActionContent::SetValueString(
@@ -1500,11 +1570,13 @@ void ScChangeActionContent::SetValueString(
     }
     else
         rValue = rStr;
+    SAL_WARN("sc","ScChangeActionContent::SetValueString - "<<toString());
 }
 
 void ScChangeActionContent::SetOldValue( const OUString& rOld, ScDocument* pDoc )
 {
     SetValueString(maOldValue, maOldCell, rOld, pDoc);
+    SAL_WARN("sc","ScChangeActionContent::SetOldValue 3 "<<toString());
 }
 
 void ScChangeActionContent::GetOldString( OUString& rStr, const ScDocument* pDoc ) const
@@ -1779,6 +1851,7 @@ void ScChangeActionContent::SetValue(
 {
     sal_uLong nFormat = NeedsNumberFormat(rOrgCell) ? pFromDoc->GetNumberFormat(rPos) : 0;
     SetValue(rStr, rCell, nFormat, rOrgCell, pFromDoc, pToDoc);
+    SAL_WARN("sc","ScChangeActionContent::SetValue 1 ");
 }
 
 void ScChangeActionContent::SetValue(
@@ -1809,6 +1882,7 @@ void ScChangeActionContent::SetValue(
     }
     else
         rCell.clear();
+    SAL_WARN("sc","ScChangeActionContent::SetValue 2 ");
 }
 
 void ScChangeActionContent::SetCell( OUString& rStr, ScCellValue& rCell, sal_uLong nFormat, const ScDocument* pDoc )
@@ -4784,5 +4858,6 @@ void ScChangeTrack::MergeActionState( ScChangeAction* pAct, const ScChangeAction
         }
     }
 }
+
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

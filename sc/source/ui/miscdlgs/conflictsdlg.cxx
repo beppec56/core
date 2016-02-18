@@ -162,6 +162,59 @@ bool ScConflictsFinder::DoActionsIntersect( const ScChangeAction* pAction1, cons
 {
     if ( pAction1 && pAction2 && pAction1->GetBigRange().Intersects( pAction2->GetBigRange() ) )
     {
+        {//debubg
+            // sal_Int32 nR1FromCol;
+            // sal_Int32 nR1FromRow;
+            // sal_Int32 nR1FromTab;
+            // sal_Int32 nR1ToCol;
+            // sal_Int32 nR1ToRow;
+            // sal_Int32 nR1ToTab;
+            // pAction1->GetBigRange().GetVars(
+            //     nR1FromCol, nR1FromRow, nR1FromTab,
+            //     nR1ToCol, nR1ToRow, nR1ToTab );
+            // sal_Int32 nR2FromCol;
+            // sal_Int32 nR2FromRow;
+            // sal_Int32 nR2FromTab;
+            // sal_Int32 nR2ToCol;
+            // sal_Int32 nR2ToRow;
+            // sal_Int32 nR2ToTab;
+            // pAction2->GetBigRange().GetVars(
+            //     nR2FromCol, nR2FromRow, nR2FromTab,
+            //     nR2ToCol, nR2ToRow, nR2ToTab );
+
+            // OUString data = " the FILE range from Col: ";
+            // data += OUString::number( nR1FromCol );
+            // data += ", Row: ";
+            // data += OUString::number( nR1FromRow );
+            // data += ", Tab: ";
+            // data += OUString::number( nR1FromTab );
+            // data += " =-> Col: ";
+            // data += OUString::number( nR1ToCol );
+            // data += ", Row: ";
+            // data += OUString::number( nR1ToRow );
+            // data += ", Tab: ";
+            // data += OUString::number( nR1ToTab );
+            // data += " ";
+            OUString data = " the SHARED range: ";
+            data += pAction1->toString();
+            // data += " the USER range from Col: ";
+            // data += OUString::number( nR2FromCol );
+            // data += ", Row: ";
+            // data += OUString::number( nR2FromRow );
+            // data += ", Tab: ";
+            // data += OUString::number( nR2FromTab );
+            // data += " =-> Col: ";
+            // data += OUString::number( nR2ToCol );
+            // data += ", Row: ";
+            // data += OUString::number( nR2ToRow );
+            // data += ", Tab: ";
+            // data += OUString::number( nR2ToTab );
+            // data += " ";
+            data += " the USER range: ";
+            data += pAction2->toString();
+
+            SAL_WARN("sc","FOUND intersection: "<<data);
+        }
         return true;
     }
     return false;

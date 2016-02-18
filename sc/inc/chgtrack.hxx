@@ -394,6 +394,9 @@ public:
                         // only to be used in the XML import
     void                AddDependent( sal_uLong nActionNumber,
                                 const ScChangeTrack* pTrack );
+    //debug
+    virtual OUString toString() const;
+
 };
 
 //  ScChangeActionIns
@@ -794,6 +797,8 @@ public:
     bool IsMatrixOrigin() const;
     // OldCell
     bool IsOldMatrixReference() const;
+
+    virtual OUString toString() const override;
 };
 
 //  ScChangeActionReject
