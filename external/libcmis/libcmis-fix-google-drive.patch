@@ -1,0 +1,110 @@
+diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-providers.cxx
+--- old-src/src/libcmis/oauth2-providers.cxx	2016-03-01 17:14:26.000000000 +0100
++++ new-src/src/libcmis/oauth2-providers.cxx	2016-04-27 15:52:43.184407990 +0200
+@@ -37,11 +37,28 @@
+ string OAuth2Providers::OAuth2Gdrive( HttpSession* session, const string& authUrl,
+                                       const string& username, const string& password )
+ {
++    /* This member function implements 'Google OAuth 2.0 for Web Server Applications'
++     * HTTP/REST interaction mode.
++     * The interaction is carried out by libcmis, with no web browser involved.
++     *
++     * Normal sequence (without 2FA) is:
++     * 1) a get to activate login page
++     *    receive first login page, html format
++     * 2) subsequent post to sent email
++     *    receive html page for password input
++     * 3) subsequent post to send password
++     *    receive html page for application consent
++     * 4) subsequent post to send a consent for the application
++     *    receive a single-use authorization code
++     *    this code is returned as a string
++     */
++
+     static const string CONTENT_TYPE( "application/x-www-form-urlencoded" );
+     // STEP 1: Log in
+     string res;
+     try
+     {
++        // send the first get, receives the html login page
+         res = session->httpGetRequest( authUrl )->getStream( )->str( );
+     }
+     catch ( const CurlException& e )
+@@ -49,20 +66,19 @@
+         return string( );
+     }
+ 
+-    string loginPost, loginLink; 
+-    if ( !parseResponse( res.c_str( ), loginPost, loginLink ) ) 
++    string loginEmailPost, loginEmailLink;
++    if ( !parseResponse( res.c_str( ), loginEmailPost, loginEmailLink ) )
+         return string( );
+-    
+-    loginPost += "Email=";  
+-    loginPost += string( username );
+-    loginPost += "&Passwd=";
+-    loginPost += string( password );
+-    
+-    istringstream loginIs( loginPost );
+-    string loginRes;
+-    try 
++
++    loginEmailPost += "Email=";
++    loginEmailPost += string( username );
++
++    istringstream loginEmailIs( loginEmailPost );
++    string loginEmailRes;
++    try
+     {
+-        loginRes = session->httpPostRequest ( loginLink, loginIs, CONTENT_TYPE )
++        // send a post with user email, receives the html page for password input
++        loginEmailRes = session->httpPostRequest ( loginEmailLink, loginEmailIs, CONTENT_TYPE )
+                         ->getStream( )->str( );
+     }
+     catch ( const CurlException& e )
+@@ -70,9 +86,32 @@
+         return string( );
+     }
+ 
++    string loginPasswdPost, loginPasswdLink;
++    if ( !parseResponse( loginEmailRes.c_str( ), loginPasswdPost, loginPasswdLink ) )
++        return string( );
++
++    loginPasswdPost += "&Passwd=";
++    loginPasswdPost += string( password );
++
++    istringstream loginPasswdIs( loginPasswdPost );
++    string loginPasswdRes;
++    try
++    {
++        // send a post with user password, receives the application consent page
++        loginPasswdRes = session->httpPostRequest ( loginPasswdLink, loginPasswdIs, CONTENT_TYPE )
++                        ->getStream( )->str( );
++    }
++    catch ( const CurlException& e )
++    {
++        return string( );
++    }
++
++    // CODE PLACEHOLDER: STEP 1c, check if the returned page is for 2FA code request ?
++    // need a callback to input code on user side!
++
+     // STEP 2: allow libcmis to access google drive
+-    string approvalPost, approvalLink; 
+-    if ( !parseResponse( loginRes. c_str( ), approvalPost, approvalLink) )
++    string approvalPost, approvalLink;
++    if ( !parseResponse( loginPasswdRes. c_str( ), approvalPost, approvalLink) )
+         return string( );
+     approvalPost += "submit_access=true";
+ 
+@@ -80,7 +119,9 @@
+     string approvalRes;
+     try
+     {
+-        approvalRes = session->httpPostRequest ( approvalLink, approvalIs, 
++        // send a post with application consent, receives a page with the
++        // single-use authorization code
++        approvalRes = session->httpPostRequest ( approvalLink, approvalIs,
+                             CONTENT_TYPE) ->getStream( )->str( );
+     }
+     catch ( const CurlException& e )
