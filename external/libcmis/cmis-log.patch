@@ -1,0 +1,192 @@
+diff -aru old-src/src/libcmis/http-session.cxx new-src/src/libcmis/http-session.cxx
+--- old-src/src/libcmis/http-session.cxx	2016-03-02 14:59:05.000000000 +0100
++++ new-src/src/libcmis/http-session.cxx	2016-03-16 18:20:14.834577897 +0100
+@@ -235,6 +235,10 @@
+ 
+ libcmis::HttpResponsePtr HttpSession::httpGetRequest( string url ) throw ( CurlException )
+ {
++    {
++        string dummy = url;
++        cout << "HttpSession::httpGetRequest - " << dummy << endl;
++    }
+     checkOAuth2( url );
+ 
+     // Reset the handle for the request
+@@ -417,6 +421,11 @@
+     try
+     {
+         httpRunRequest( url, headers, redirect );
++        {
++            string dummy = url;
++            string dummy2 = isStr;
++            cout << "HttpSession::httpPostRequest - url: "<<dummy<< "   "<<dummy2<<endl;
++        }
+         response->getData( )->finish();
+     }
+     catch ( const CurlException& e )
+@@ -537,12 +546,23 @@
+     for ( vector< string >::iterator it = headers.begin( ); it != headers.end( ); ++it )
+         headers_slist = curl_slist_append( headers_slist, it->c_str( ) );
+ 
++    //debug url
++//    cout << "HttpSession::httpRunRequest - " << url << endl;
++
++    //debug headers
++    for ( vector< string >::iterator it = headers.begin( ); it != headers.end( ); ++it )
++        cout << "HttpSession::httpRunRequest - " << it->c_str( )  << endl;
++    
+     // If we are using OAuth2, then add the proper header with token to authenticate
+     // Otherwise, just set the credentials normally using in libcurl options
+     if ( m_oauth2Handler != NULL && !m_oauth2Handler->getHttpHeader( ).empty() )
+     {
+         headers_slist = curl_slist_append( headers_slist,
+                                            m_oauth2Handler->getHttpHeader( ).c_str( ) );
++        {
++            string dummy = m_oauth2Handler->getHttpHeader( ).c_str( );
++            cout << "HttpSession::httpRunRequest - oauth2 header: " << dummy;
++        }
+     }
+     else if ( !getUsername().empty() )
+     {
+diff -aru old-src/src/libcmis/oauth2-handler.cxx new-src/src/libcmis/oauth2-handler.cxx
+--- old-src/src/libcmis/oauth2-handler.cxx	2016-03-01 17:14:26.000000000 +0100
++++ new-src/src/libcmis/oauth2-handler.cxx	2016-03-16 17:40:19.873893620 +0100
+@@ -94,6 +94,10 @@
+         "&redirect_uri="     + m_data->getRedirectUri() +
+         "&grant_type=authorization_code" ;
+ 
++    {
++        string dummy = authCode;
++        cout << "OAuth2Handler::fetchTokens - authCode: "  << dummy << endl;
++    }
+     istringstream is( post );
+ 
+     libcmis::HttpResponsePtr resp;
+@@ -112,6 +116,11 @@
+     Json jresp = Json::parse( resp->getStream( )->str( ) );
+     m_access = jresp[ "access_token" ].toString( );
+     m_refresh = jresp[ "refresh_token" ].toString( );
++    {
++        string dummy = m_access;
++        string dummy2 = m_refresh;
++        cout << "OAuth2Handler::fetchTokens - access_token: "  << dummy << ", refresh_token: " << dummy2<<endl;
++    }
+ }
+ 
+ void OAuth2Handler::refresh( ) throw ( libcmis::Exception )
+diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-providers.cxx
+--- old-src/src/libcmis/oauth2-providers.cxx	2016-03-01 17:14:26.000000000 +0100
++++ new-src/src/libcmis/oauth2-providers.cxx	2016-03-16 18:22:56.247009813 +0100
+@@ -37,12 +37,31 @@
+ string OAuth2Providers::OAuth2Gdrive( HttpSession* session, const string& authUrl,
+                                       const string& username, const string& password )
+ {
++    /* Normal sequence (not 2FA) is:
++     * 1) a get to activate login page
++     *    receive login page, html format
++     * 2) subsequent post to sent name+password
++     *    receive html page for application consent
++     * 3) subsequent post to send a consent for the application
++     *    receive a single-use authorization code
++     *    this code is returned as a string
++     *
++     * Briefly this member function implements what in a
++     * 'Google OAuth 2.0' would be the Google server part of a Web Apps OAuth 2.0 mode
++     *
++     * Depending on server whim, point 1) above can be split in two, one page for the
++     * user name, then a page for the password
++     * 
++     */
++    
+     static const string CONTENT_TYPE( "application/x-www-form-urlencoded" );
+     // STEP 1: Log in
+     string res;
+     try
+     {
++        // send the first get, receives the html login page
+         res = session->httpGetRequest( authUrl )->getStream( )->str( );
++//        cout << "OAuth2Providers::OAuth2Gdrive 1 ---- html page to ask for credentials ----------------\n"<<res <<endl;
+     }
+     catch ( const CurlException& e )
+     {
+@@ -62,6 +81,12 @@
+     string loginRes;
+     try 
+     {
++        {
++            string dummy = loginRes;
++            cout << "OAuth2Providers::OAuth2Gdrive ------------- 1post sending credential, receive as answer html page to ask application consent:\n"<<dummy <<endl;
++        }
++        // in case of 2FA here Google send a page for single time code input
++        // send a post with user name+password, receives the application consent page
+         loginRes = session->httpPostRequest ( loginLink, loginIs, CONTENT_TYPE )
+                         ->getStream( )->str( );
+     }
+@@ -69,6 +94,7 @@
+     {
+         return string( );
+     }
++    // STEP 1b, check for 2FA code request ?
+ 
+     // STEP 2: allow libcmis to access google drive
+     string approvalPost, approvalLink; 
+@@ -80,6 +106,12 @@
+     string approvalRes;
+     try
+     {
++        {
++            string dummy = approvalRes;
++//            cout << "OAuth2Providers::OAuth2Gdrive ------------- 2post send consent for application, receive html page containing the code for this session:\n"<<dummy <<endl;
++        }
++        // send a post with application consent, receives a page with the
++        // single-use authorization code
+         approvalRes = session->httpPostRequest ( approvalLink, approvalIs, 
+                             CONTENT_TYPE) ->getStream( )->str( );
+     }
+@@ -90,7 +122,10 @@
+ 
+     // STEP 3: Take the authentication code from the text bar
+     string code = parseCode( approvalRes.c_str( ) );
+-
++    {
++        string dummy = code;
++        cout << "OAuth2Providers::OAuth2Gdrive --------- returned code for the session  --------------------------- code: "<<dummy <<endl;
++    }
+     return code;
+ }
+ 
+@@ -174,6 +209,7 @@
+ 
+ int OAuth2Providers::parseResponse ( const char* response, string& post, string& link )
+ {
++//    cout << "OAuth2Providers::parseResponse - "<<response <<endl;
+     xmlDoc *doc = htmlReadDoc ( BAD_CAST( response ), NULL, 0,
+             HTML_PARSE_NOWARNING | HTML_PARSE_RECOVER | HTML_PARSE_NOERROR );
+     if ( doc == NULL ) return 0;
+@@ -185,6 +221,7 @@
+         if ( xmlTextReaderRead ( reader ) != 1) break;
+         xmlChar* nodeName = xmlTextReaderName ( reader );
+         if ( nodeName == NULL ) continue;
++        cout << "OAuth2Providers::parseResponse - node: "<<nodeName <<endl;
+         // Find the redirect link
+         if ( xmlStrEqual( nodeName, BAD_CAST( "form" ) ) )
+         {
+@@ -193,7 +230,10 @@
+             if ( action != NULL )
+             {
+                 if ( xmlStrlen(action) > 0)
++                {
+                     link = string ( (char*) action);
++                    cout << "OAuth2Providers::parseResponse - action: "<<link <<endl;
++                }
+                 xmlFree (action);
+             }
+         }
+@@ -212,6 +252,7 @@
+                     post += string ( "=" ); 
+                     post += libcmis::escape( ( char * ) value ); 
+                     post += string ( "&" );
++                    cout << "OAuth2Providers::parseResponse - "<<post <<endl;
+                 }
+             }
+             xmlFree( name );
