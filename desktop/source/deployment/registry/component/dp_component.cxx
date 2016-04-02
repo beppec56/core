@@ -622,6 +622,7 @@ Reference<deployment::XPackage> BackendImpl::bindPackage_(
     bool bRemoved, OUString const & identifier,
     Reference<XCommandEnvironment> const & xCmdEnv )
 {
+    SAL_WARN("desktop.deployment","1 BackendImpl::bindPackage_ - "<<url << " "<<mediaType_ << " "<<identifier);
     OUString mediaType(mediaType_);
     if ( mediaType.isEmpty() || mediaType == "application/vnd.sun.star.uno-component" || mediaType == "application/vnd.sun.star.uno-typelibrary" )
     {
@@ -629,6 +630,7 @@ Reference<deployment::XPackage> BackendImpl::bindPackage_(
         ::ucbhelper::Content ucbContent;
         if (create_ucb_content( &ucbContent, url, xCmdEnv )) {
             const OUString title( StrTitle::getTitle( ucbContent ) );
+            SAL_WARN("desktop.deployment","2 title "<<title);
             if (title.endsWithIgnoreAsciiCase(SAL_DLLEXTENSION))
             {
                 mediaType = "application/vnd.sun.star.uno-component;type=native;platform=" +
@@ -647,6 +649,7 @@ Reference<deployment::XPackage> BackendImpl::bindPackage_(
             else if (title.endsWithIgnoreAsciiCase(".rdb"))
                 mediaType = "application/vnd.sun.star.uno-typelibrary;type=RDB";
         }
+        SAL_WARN("desktop.deployment","3 mediaType: "<<mediaType);
         if (mediaType.isEmpty())
             throw lang::IllegalArgumentException(
                 StrCannotDetectMediaType::get() + url,
@@ -657,6 +660,7 @@ Reference<deployment::XPackage> BackendImpl::bindPackage_(
     INetContentTypeParameterList params;
     if (INetContentTypes::parse( mediaType, type, subType, &params ))
     {
+        SAL_WARN("desktop.deployment","type: "<<type<<", subType: "<<subType);
         if (type.equalsIgnoreAsciiCase("application"))
         {
             OUString name;
@@ -669,7 +673,7 @@ Reference<deployment::XPackage> BackendImpl::bindPackage_(
             if (subType.equalsIgnoreAsciiCase("vnd.sun.star.uno-component"))
             {
                 // xxx todo: probe and evaluate component xml description
-
+                SAL_WARN("desktop.deployment","vnd.sun.star.uno-component");
                 auto const iter = params.find(OString("platform"));
                 bool bPlatformFits(iter == params.end());
                 OUString aPlatform;
@@ -713,6 +717,7 @@ Reference<deployment::XPackage> BackendImpl::bindPackage_(
             }
             else if (subType.equalsIgnoreAsciiCase("vnd.sun.star.uno-components"))
             {
+                SAL_WARN("desktop.deployment","vnd.sun.star.uno-components");
                 auto const iter = params.find(OString("platform"));
                 if (iter == params.end() || platform_fits(iter->second.m_sValue)) {
                     return new BackendImpl::ComponentsPackageImpl(
