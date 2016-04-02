@@ -35,13 +35,16 @@ final class RegistrationClassFinder {
                 return c;
             }
         }
+        System.out.println("RegistrationClassFinder.RegistrationClassFinder - "+locationUrl);
         URL url = new URL(locationUrl);
         Attributes attr = UnoClassLoader.getJarMainAttributes(url);
         String name = attr == null
             ? null : attr.getValue("RegistrationClassName");
         if (name == null) {
+            System.out.println("RegistrationClassFinder.RegistrationClassFinder - NOT RegistrationClassName");
             return null;
         }
+        System.out.println("RegistrationClassFinder.RegistrationClassFinder - RegistrationClassName: "+name);
         ClassLoader cl1 = RegistrationClassFinder.class.getClassLoader();
         ClassLoader cl2;
         if (cl1 instanceof UnoClassLoader) {
@@ -57,6 +60,7 @@ final class RegistrationClassFinder {
             }
             map.put(locationUrl, c);
         }
+        System.out.println("RegistrationClassFinder.RegistrationClassFinder - class found: "+c);
         return c;
     }
 
