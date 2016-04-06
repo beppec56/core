@@ -1493,8 +1493,6 @@ Sequence< OUString > AddonsOptions_Impl::GetPropertyNamesImages( const OUString&
     lResult[6] = aPropertyRootNode + m_aPropImagesNames[ OFFSET_IMAGES_SMALLHC_URL];
     lResult[7] = aPropertyRootNode + m_aPropImagesNames[ OFFSET_IMAGES_BIGHC_URL   ];
 
-    SAL_WARN("fwk","rootnode: " <<aPropertyRootNode<<", images: "<<lResult[4]<<","<<lResult[5]);
-
     return lResult;
 }
 
