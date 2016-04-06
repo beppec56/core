@@ -1383,8 +1383,11 @@ AddonsOptions_Impl::ImageEntry* AddonsOptions_Impl::ReadImageData( const OUStrin
             // has a higher priority.
             aPropertyData[i] >>= aImageURL;
 
+            SAL_WARN("fwk","aImageURL: " <<aImageURL);
+
             SubstituteVariables( aImageURL );
 
+            SAL_WARN("fwk","expanded aImageURL: " <<aImageURL);
             pEntry->addImage(IMGSIZE_BIG, Image(), aImageURL);
         }
     }
@@ -1489,6 +1492,8 @@ Sequence< OUString > AddonsOptions_Impl::GetPropertyNamesImages( const OUString&
     lResult[5] = aPropertyRootNode + m_aPropImagesNames[ OFFSET_IMAGES_BIG_URL ];
     lResult[6] = aPropertyRootNode + m_aPropImagesNames[ OFFSET_IMAGES_SMALLHC_URL];
     lResult[7] = aPropertyRootNode + m_aPropImagesNames[ OFFSET_IMAGES_BIGHC_URL   ];
+
+    SAL_WARN("fwk","rootnode: " <<aPropertyRootNode<<", images: "<<lResult[4]<<","<<lResult[5]);
 
     return lResult;
 }
