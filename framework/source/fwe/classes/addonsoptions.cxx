@@ -503,13 +503,16 @@ Image AddonsOptions_Impl::GetImageFromURL( const OUString& aURL, bool bBig, bool
         // actually read the image ...
         if (!rSizeEntry.aImage)
             rSizeEntry.aImage = ReadImageFromURL(rSizeEntry.aURL);
+        SAL_WARN("fwk","AddonsOptions_Impl::GetImageFromURL - aURL: "<<aURL<<
+                 ", bBig: "<<bBig<<", bNoScale: "<<bNoScale<<
+            " from "<<rSizeEntry.aURL<<", alt URL: "<<rOtherEntry.aURL);
 
         if (!rSizeEntry.aImage)
         { // try the other size and scale it
             aImage = ScaleImage(ReadImageFromURL(rOtherEntry.aURL), bBig);
             rSizeEntry.aImage = aImage;
             if (!rSizeEntry.aImage)
-                SAL_WARN("fwk", "failed to load addons image " << aURL);
+                SAL_WARN("fwk", "failed to load addons image " << aURL<<" from "<<rSizeEntry.aURL<<", alt URL: "<<rOtherEntry.aURL);
         }
 
         // FIXME: bNoScale is not terribly meaningful or useful
