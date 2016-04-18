@@ -142,7 +142,8 @@ IMPL_LINK_TYPED( SelectPersonaDialog, SearchPersonas, Button*, pButton, void )
     if( searchTerm.isEmpty( ) )
         return;
 
-    OUString rSearchURL = "https://services.addons.mozilla.org/en-US/firefox/api/1.5/search/" + searchTerm + "/9/9";
+//    OUString rSearchURL = "https://services.addons.mozilla.org/en-US/firefox/api/1.5/search/" + searchTerm + "/9/9";
+    OUString rSearchURL = "https://services.addons.mozillax.org/en-US/firefox/api/1.5/search/" + searchTerm + "/9/9";
     m_rSearchThread = new SearchAndParseThread( this, rSearchURL );
     m_rSearchThread->launch();
 }
