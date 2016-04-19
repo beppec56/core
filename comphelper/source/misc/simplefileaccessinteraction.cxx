@@ -18,13 +18,12 @@
  */
 
 #include <comphelper/simplefileaccessinteraction.hxx>
-
 #include <com/sun/star/task/XInteractionAbort.hpp>
-
 #include <com/sun/star/task/XInteractionApprove.hpp>
-
 #include <com/sun/star/ucb/AuthenticationRequest.hpp>
 #include <com/sun/star/ucb/CertificateValidationRequest.hpp>
+#include <com/sun/star/ucb/InteractiveIOException.hpp>
+#include <com/sun/star/ucb/InteractiveNetworkException.hpp>
 
 namespace comphelper{
 
@@ -38,12 +37,28 @@ SimpleFileAccessInteraction::SimpleFileAccessInteraction(const css::uno::Referen
     ::std::vector< ::ucbhelper::InterceptedInteraction::InterceptedRequest > lInterceptions;
     ::ucbhelper::InterceptedInteraction::InterceptedRequest                  aInterceptedRequest;
 
+    //intercept standard IO error exception (local file)
+    aInterceptedRequest.Handle = HANDLE_INTERACTIVEIOEXCEPTION;
+    aInterceptedRequest.Request <<= css::ucb::InteractiveIOException();
+    aInterceptedRequest.Continuation = cppu::UnoType<css::task::XInteractionAbort>::get();
+    aInterceptedRequest.MatchExact = false;
+    lInterceptions.push_back(aInterceptedRequest);
+
+    //intercept network error exception (WebDAV ucp provider)
+    aInterceptedRequest.Handle = HANDLE_INTERACTIVENETWORKEXCEPTION;
+    aInterceptedRequest.Request <<= css::ucb::InteractiveNetworkException();
+    aInterceptedRequest.Continuation = cppu::UnoType<css::task::XInteractionAbort>::get();
+    aInterceptedRequest.MatchExact = false;
+    lInterceptions.push_back(aInterceptedRequest);
+
+    //intercept certificate validation request (WebDAV ucp provider)
     aInterceptedRequest.Handle = HANDLE_CERTIFICATEREQUEST;
     aInterceptedRequest.Request <<= css::ucb::CertificateValidationRequest();
     aInterceptedRequest.Continuation = cppu::UnoType<css::task::XInteractionApprove>::get();
     aInterceptedRequest.MatchExact = false;
     lInterceptions.push_back(aInterceptedRequest);
 
+    //intercept authentication request (WebDAV ucp provider)
     aInterceptedRequest.Handle = HANDLE_AUTHENTICATIONREQUEST;
     aInterceptedRequest.Request <<= css::ucb::AuthenticationRequest();
     aInterceptedRequest.Continuation = cppu::UnoType<css::task::XInteractionApprove>::get();
@@ -77,6 +92,13 @@ ucbhelper::InterceptedInteraction::EInterceptionState SimpleFileAccessInteractio
     bool bAbort = false;
     switch(aRequest.Handle)
     {
+        case HANDLE_INTERACTIVENETWORKEXCEPTION:
+        case HANDLE_INTERACTIVEIOEXCEPTION:
+        {
+            bAbort = true;
+        }
+        break;
+
         case HANDLE_CERTIFICATEREQUEST:
         {
             // use default internal handler.
@@ -84,6 +106,7 @@ ucbhelper::InterceptedInteraction::EInterceptionState SimpleFileAccessInteractio
             {
                 m_bHandledByInternalHandler = true;
                 m_xInterceptedHandler->handle(xRequest);
+                return ::ucbhelper::InterceptedInteraction::E_INTERCEPTED;
             }
             else
                 bAbort = true;

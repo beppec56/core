@@ -31,8 +31,10 @@ namespace comphelper{
 class COMPHELPER_DLLPUBLIC SimpleFileAccessInteraction : public ::ucbhelper::InterceptedInteraction
 {
 private:
-    static const sal_Int32 HANDLE_CERTIFICATEREQUEST    = 0;
-    static const sal_Int32 HANDLE_AUTHENTICATIONREQUEST = 1;
+    static const sal_Int32 HANDLE_INTERACTIVEIOEXCEPTION = 0;
+    static const sal_Int32 HANDLE_INTERACTIVENETWORKEXCEPTION = 1;
+    static const sal_Int32 HANDLE_CERTIFICATEREQUEST    = 2;
+    static const sal_Int32 HANDLE_AUTHENTICATIONREQUEST = 3;
 
     bool m_bUsed;
     bool m_bHandledByMySelf;
