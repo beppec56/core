@@ -592,6 +592,7 @@ void SearchAndParseThread::execute()
             {
                 // in case of a returned CommandFailedException
                 // SimpleFileAccess serves it, returning an empty stream
+                SAL_WARN("cui.options","NO STREAM");
                 sProgress = CUI_RES(RID_SVXSTR_SEARCHERROR);
                 sProgress = sProgress.replaceAll("%1", m_aURL);
                 m_pPersonaDialog->SetProgress(sProgress);
@@ -602,6 +603,7 @@ void SearchAndParseThread::execute()
         {
             // a catch all clause, in case the exception is not
             // served elsewhere
+            SAL_WARN("cui.options","CATCH ALL");
             sProgress = CUI_RES(RID_SVXSTR_SEARCHERROR);
             sProgress = sProgress.replaceAll("%1", m_aURL);
             m_pPersonaDialog->SetProgress(sProgress);
