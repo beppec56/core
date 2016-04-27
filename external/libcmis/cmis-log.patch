@@ -76,8 +76,8 @@ diff -aru old-src/src/libcmis/oauth2-handler.cxx new-src/src/libcmis/oauth2-hand
  void OAuth2Handler::refresh( ) throw ( libcmis::Exception )
 diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-providers.cxx
 --- old-src/src/libcmis/oauth2-providers.cxx	2016-03-01 17:14:26.000000000 +0100
-+++ new-src/src/libcmis/oauth2-providers.cxx	2016-04-27 09:55:23.576727288 +0200
-@@ -37,15 +37,36 @@
++++ new-src/src/libcmis/oauth2-providers.cxx	2016-04-27 12:40:01.410000273 +0200
+@@ -37,31 +37,63 @@
  string OAuth2Providers::OAuth2Gdrive( HttpSession* session, const string& authUrl,
                                        const string& username, const string& password )
  {
@@ -104,7 +104,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
      string res;
      try
      {
-+        cout << "OAuth2Providers::OAuth2Gdrive 1 ---- html page to ask for credentials ----------------\n"<<res <<endl;
++        cout << "OAuth2Providers::OAuth2Gdrive 1get ---- html page to login ----------------"<<endl;
 +        // send the first get, receives the html login page
          res = session->httpGetRequest( authUrl )->getStream( )->str( );
      }
@@ -114,7 +114,26 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
          return string( );
      }
  
-@@ -62,6 +83,12 @@
+-    string loginPost, loginLink; 
+-    if ( !parseResponse( res.c_str( ), loginPost, loginLink ) ) 
++    string loginPost, loginLink;
++    cout << "======================="<<endl
++         <<"OAuth2Providers::OAuth2Gdrive 1 - received html page" <<endl
++         << res.c_str( ) << endl
++         << "=======================" << endl;
++
++    if ( !parseResponse( res.c_str( ), loginPost, loginLink ) )
+         return string( );
+-    
+-    loginPost += "Email=";  
++
++    loginPost += "Email=";
+     loginPost += string( username );
+     loginPost += "&Passwd=";
+     loginPost += string( password );
+-    
++
+     istringstream loginIs( loginPost );
      string loginRes;
      try 
      {
@@ -127,7 +146,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
          loginRes = session->httpPostRequest ( loginLink, loginIs, CONTENT_TYPE )
                          ->getStream( )->str( );
      }
-@@ -69,6 +96,7 @@
+@@ -69,6 +101,7 @@
      {
          return string( );
      }
@@ -135,7 +154,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
  
      // STEP 2: allow libcmis to access google drive
      string approvalPost, approvalLink; 
-@@ -80,6 +108,12 @@
+@@ -80,6 +113,12 @@
      string approvalRes;
      try
      {
@@ -148,7 +167,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
          approvalRes = session->httpPostRequest ( approvalLink, approvalIs, 
                              CONTENT_TYPE) ->getStream( )->str( );
      }
-@@ -90,7 +124,10 @@
+@@ -90,7 +129,10 @@
  
      // STEP 3: Take the authentication code from the text bar
      string code = parseCode( approvalRes.c_str( ) );
@@ -160,7 +179,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
      return code;
  }
  
-@@ -174,6 +211,7 @@
+@@ -174,6 +216,7 @@
  
  int OAuth2Providers::parseResponse ( const char* response, string& post, string& link )
  {
@@ -168,7 +187,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
      xmlDoc *doc = htmlReadDoc ( BAD_CAST( response ), NULL, 0,
              HTML_PARSE_NOWARNING | HTML_PARSE_RECOVER | HTML_PARSE_NOERROR );
      if ( doc == NULL ) return 0;
-@@ -185,6 +223,7 @@
+@@ -185,6 +228,7 @@
          if ( xmlTextReaderRead ( reader ) != 1) break;
          xmlChar* nodeName = xmlTextReaderName ( reader );
          if ( nodeName == NULL ) continue;
@@ -176,7 +195,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
          // Find the redirect link
          if ( xmlStrEqual( nodeName, BAD_CAST( "form" ) ) )
          {
-@@ -193,7 +232,10 @@
+@@ -193,7 +237,10 @@
              if ( action != NULL )
              {
                  if ( xmlStrlen(action) > 0)
@@ -187,7 +206,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
                  xmlFree (action);
              }
          }
-@@ -212,6 +254,7 @@
+@@ -212,6 +259,7 @@
                      post += string ( "=" ); 
                      post += libcmis::escape( ( char * ) value ); 
                      post += string ( "&" );
