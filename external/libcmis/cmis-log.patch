@@ -76,85 +76,128 @@ diff -aru old-src/src/libcmis/oauth2-handler.cxx new-src/src/libcmis/oauth2-hand
  void OAuth2Handler::refresh( ) throw ( libcmis::Exception )
 diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-providers.cxx
 --- old-src/src/libcmis/oauth2-providers.cxx	2016-03-01 17:14:26.000000000 +0100
-+++ new-src/src/libcmis/oauth2-providers.cxx	2016-04-27 12:40:01.410000273 +0200
-@@ -37,31 +37,63 @@
++++ new-src/src/libcmis/oauth2-providers.cxx	2016-04-27 15:14:24.810454430 +0200
+@@ -37,11 +37,29 @@
  string OAuth2Providers::OAuth2Gdrive( HttpSession* session, const string& authUrl,
                                        const string& username, const string& password )
  {
-+    /* Normal sequence (not 2FA) is:
++    /* This member function implements 'Google OAuth 2.0 for Web Server Applications'
++     * HTTP/REST interaction mode.
++     * The interaction is carried out by libcmis, with no web browser involved.
++     * 
++     * Normal sequence (without 2FA) is:
 +     * 1) a get to activate login page
-+     *    receive login page, html format
-+     * 2) subsequent post to sent name+password
++     *    receive first login page, html format
++     * 2) subsequent post to sent email
++     *    receive html page for password input
++     * 3) subsequent post to send password
 +     *    receive html page for application consent
-+     * 3) subsequent post to send a consent for the application
++     * 4) subsequent post to send a consent for the application
 +     *    receive a single-use authorization code
 +     *    this code is returned as a string
-+     *
-+     * Briefly this member function implements what in a
-+     * 'Google OAuth 2.0' would be the Google server part of a Web Apps OAuth 2.0 mode,
-+     * HTTP/REST interaction
-+     *
-+     * Depending on server whim, point 1) above can be split in two, one page for the
-+     * user name, then a page for the password
-+     * 
 +     */
-+    
++
      static const string CONTENT_TYPE( "application/x-www-form-urlencoded" );
      // STEP 1: Log in
      string res;
      try
      {
-+        cout << "OAuth2Providers::OAuth2Gdrive 1get ---- html page to login ----------------"<<endl;
++        cout << "OAuth2Providers::OAuth2Gdrive 1a - get ---- html start page to login ----------------"<<endl;
 +        // send the first get, receives the html login page
          res = session->httpGetRequest( authUrl )->getStream( )->str( );
      }
      catch ( const CurlException& e )
-     {
-+        cout << "OAuth2Providers::OAuth2Gdrive 1: EXCEPTION !" << endl;
+@@ -49,20 +67,59 @@
          return string( );
      }
  
 -    string loginPost, loginLink; 
 -    if ( !parseResponse( res.c_str( ), loginPost, loginLink ) ) 
-+    string loginPost, loginLink;
++    string loginEmailPost, loginEmailLink;
 +    cout << "======================="<<endl
-+         <<"OAuth2Providers::OAuth2Gdrive 1 - received html page" <<endl
++         <<"OAuth2Providers::OAuth2Gdrive 1a - received html page to provide email" <<endl
 +         << res.c_str( ) << endl
 +         << "=======================" << endl;
 +
-+    if ( !parseResponse( res.c_str( ), loginPost, loginLink ) )
++    if ( !parseResponse( res.c_str( ), loginEmailPost, loginEmailLink ) )
          return string( );
 -    
 -    loginPost += "Email=";  
-+
-+    loginPost += "Email=";
-     loginPost += string( username );
-     loginPost += "&Passwd=";
-     loginPost += string( password );
+-    loginPost += string( username );
+-    loginPost += "&Passwd=";
+-    loginPost += string( password );
 -    
+-    istringstream loginIs( loginPost );
+-    string loginRes;
 +
-     istringstream loginIs( loginPost );
-     string loginRes;
-     try 
-     {
++    loginEmailPost += "Email=";
++    loginEmailPost += string( username );
++
++    istringstream loginEmailIs( loginEmailPost );
++    string loginEmailRes;
++    try 
++    {
 +        {
-+            string dummy = loginRes;
-+            cout << "OAuth2Providers::OAuth2Gdrive ------------- 1post sending credential, receive as answer html page to ask application consent:\n"<<dummy <<endl;
++            string dummy = loginEmailRes;
++            cout << "OAuth2Providers::OAuth2Gdrive ------------- 1a post sending email, receive as answer html to introduce passsword"<<dummy <<endl;
 +        }
 +        // in case of 2FA here Google send a page for single time code input
-+        // send a post with user name+password, receives the application consent page
-         loginRes = session->httpPostRequest ( loginLink, loginIs, CONTENT_TYPE )
++        // send a post with user email, receives the html page for password input
++        loginEmailRes = session->httpPostRequest ( loginEmailLink, loginEmailIs, CONTENT_TYPE )
++                        ->getStream( )->str( );
++    }
++    catch ( const CurlException& e )
++    {
++        return string( );
++    }
++
++    cout << "======================="<<endl
++         <<"OAuth2Providers::OAuth2Gdrive 1a - received html page" <<endl
++         << loginEmailRes.c_str( ) << endl
++         << "=======================" << endl;
++
++    string loginPasswdPost, loginPasswdLink;
++    if ( !parseResponse( loginEmailRes.c_str( ), loginPasswdPost, loginPasswdLink ) )
++        return string( );
++
++    loginPasswdPost += "&Passwd=";
++    loginPasswdPost += string( password );
++
++    istringstream loginPasswdIs( loginPasswdPost );
++    string loginPasswdRes;
+     try 
+     {
+-        loginRes = session->httpPostRequest ( loginLink, loginIs, CONTENT_TYPE )
++        {
++            cout << "OAuth2Providers::OAuth2Gdrive ------------- 1b post sending password, receive as answer html page to ask application consent"<<endl;
++        }
++        // CODE PLACEHOLDER: in case of 2FA here Google send a page for single time code input
++
++        // send a post with user password, receives the application consent page
++        loginPasswdRes = session->httpPostRequest ( loginPasswdLink, loginPasswdIs, CONTENT_TYPE )
                          ->getStream( )->str( );
      }
-@@ -69,6 +101,7 @@
-     {
+     catch ( const CurlException& e )
+@@ -70,9 +127,17 @@
          return string( );
      }
-+    // STEP 1b, check for 2FA code request ?
  
++    // STEP 1c, check for 2FA code request ?
++    // need a callback to input code on user side!
++
++    cout << "======================="<<endl
++         <<"OAuth2Providers::OAuth2Gdrive 1b - received html page" <<endl
++         << loginPasswdRes.c_str( ) << endl
++         << "=======================" << endl;
++
      // STEP 2: allow libcmis to access google drive
      string approvalPost, approvalLink; 
-@@ -80,6 +113,12 @@
+-    if ( !parseResponse( loginRes. c_str( ), approvalPost, approvalLink) )
++    if ( !parseResponse( loginPasswdRes. c_str( ), approvalPost, approvalLink) )
+         return string( );
+     approvalPost += "submit_access=true";
+ 
+@@ -80,6 +145,12 @@
      string approvalRes;
      try
      {
@@ -167,8 +210,15 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
          approvalRes = session->httpPostRequest ( approvalLink, approvalIs, 
                              CONTENT_TYPE) ->getStream( )->str( );
      }
-@@ -90,7 +129,10 @@
+@@ -88,9 +159,17 @@
+         throw e.getCmisException( );
+     }
  
++    cout << "======================="<<endl
++         <<"OAuth2Providers::OAuth2Gdrive 2 - received approval code page" <<endl
++         << approvalRes.c_str( ) << endl
++         << "=======================" << endl;
++
      // STEP 3: Take the authentication code from the text bar
      string code = parseCode( approvalRes.c_str( ) );
 -
@@ -179,7 +229,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
      return code;
  }
  
-@@ -174,6 +216,7 @@
+@@ -174,6 +253,7 @@
  
  int OAuth2Providers::parseResponse ( const char* response, string& post, string& link )
  {
@@ -187,7 +237,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
      xmlDoc *doc = htmlReadDoc ( BAD_CAST( response ), NULL, 0,
              HTML_PARSE_NOWARNING | HTML_PARSE_RECOVER | HTML_PARSE_NOERROR );
      if ( doc == NULL ) return 0;
-@@ -185,6 +228,7 @@
+@@ -185,6 +265,7 @@
          if ( xmlTextReaderRead ( reader ) != 1) break;
          xmlChar* nodeName = xmlTextReaderName ( reader );
          if ( nodeName == NULL ) continue;
@@ -195,7 +245,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
          // Find the redirect link
          if ( xmlStrEqual( nodeName, BAD_CAST( "form" ) ) )
          {
-@@ -193,7 +237,10 @@
+@@ -193,7 +274,10 @@
              if ( action != NULL )
              {
                  if ( xmlStrlen(action) > 0)
@@ -206,7 +256,7 @@ diff -aru old-src/src/libcmis/oauth2-providers.cxx new-src/src/libcmis/oauth2-pr
                  xmlFree (action);
              }
          }
-@@ -212,6 +259,7 @@
+@@ -212,6 +296,7 @@
                      post += string ( "=" ); 
                      post += libcmis::escape( ( char * ) value ); 
                      post += string ( "&" );
