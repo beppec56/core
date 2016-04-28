@@ -17,6 +17,7 @@ $(eval $(call gb_UnpackedTarball_add_patches,nss,\
 	external/nss/nss-3.13.5-zlib-werror.patch \
 	external/nss/nss_macosx.patch \
 	external/nss/nss-win32-make.patch.1 \
+	external/nss/nss-3.22.2-disable-sslkeylog.patch \
 	$(if $(filter WNTMSC,$(OS)$(COM)),external/nss/nss.windows.patch \
         external/nss/nss.nowerror.patch \
 		external/nss/nss.vs2015.patch) \
