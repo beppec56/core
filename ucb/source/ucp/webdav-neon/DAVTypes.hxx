@@ -156,6 +156,45 @@ namespace webdav_ucp
 
         bool restoreDAVOptions( const OUString & rURL, DAVOptions & rDAVOptions );
         void removeDAVOptions( const OUString & rURL );
+
+        /** Check if the URL resource is a Web site, e.g. not DAV
+
+            @return bool
+                    true if resource is type Web, e.g. no DAV class exposed
+                    false if resource is DAV or it does'n exist
+         */
+        bool isResourceWeb( const OUString & rURL );
+
+        /** Check if the DAV options cached value was found
+            by the last OPTIONS method call.
+            If the cached value is found stale, it is removed.
+
+            @param OUString
+                   the resource URL
+            @return bool
+                    true if resource was found or if the Web resource DAV options
+                    are not present (meaning the resource should be checked for
+                    presence)
+                    false if resource was not found
+        */
+        bool isResourceFound( const OUString & rURL );
+
+
+        /** If the resource exists, check if the resource is not stale.
+            If option resource is stale, remove it from cache, forcing a OPTIONS to
+            check again on the next iteration.
+            If not stale, force the resource to 'not found'
+
+            @param OUString
+            the resource URL
+
+        */
+        void setResourceNotFound( const OUString & rURL );
+
+        /** If the resource was found by the last OPTIONS method call or the DAV options cached value
+            if found stale, it is removed.
+         */
+        void removeResourceFound( const OUString & rURL );
         void addDAVOptions( const OUString & rURL, const OUString & rRedirectedURL, DAVOptions & rDAVOptions,
                                  const sal_uInt32 nLifeTime );
     private:
