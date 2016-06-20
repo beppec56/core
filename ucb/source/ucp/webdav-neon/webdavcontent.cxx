@@ -1459,6 +1459,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
                 if ( !aHeaderNames.empty() )
                 {
+                    OUString aTargetURL = xResAccess->getURL();
                     try
                     {
                         DAVResource resource;
@@ -1480,6 +1481,12 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     }
                     catch ( DAVException const & e )
                     {
+                        // check if error is SC_NOT_FOUND
+                        // if URL resource not found, set the corresponding resource
+                        // element in option cache
+                        if( e.getStatus() == SC_NOT_FOUND )
+                            aStaticDAVOptionsCache.setResourceNotFound( aTargetURL );
+
                         bNetworkAccessAllowed
                             = shouldAccessNetworkAfterException( e );
 
@@ -2126,26 +2133,52 @@ uno::Any Content::open(
                     DAVResource aResource;
                     std::vector< OUString > aHeaders;
 
-                    uno::Reference< io::XInputStream > xIn
-                        = xResAccess->GET( aHeaders, aResource, xEnv );
-                    m_bDidGetOrHead = true;
-
+                    // check if the resource was present on the server
+                    if( aStaticDAVOptionsCache.isResourceFound( aTargetURL ) )
                     {
-                        osl::MutexGuard aGuard( m_aMutex );
+                        uno::Reference< io::XInputStream > xIn
+                            = xResAccess->GET( aHeaders, aResource, xEnv );
+                        //for redirection
+                        aTargetURL = xResAccess->getURL();
+                        m_bDidGetOrHead = true;
 
-                        // cache headers.
-                        if ( !m_xCachedProps.get())
-                            m_xCachedProps.reset(
-                                new CachableContentProperties( ContentProperties( aResource ) ) );
-                        else
-                            m_xCachedProps->addProperties(
-                                aResource.properties );
+                        {
+                            osl::MutexGuard aGuard( m_aMutex );
 
-                        m_xResAccess.reset(
-                            new DAVResourceAccess( *xResAccess.get() ) );
+                            // cache headers.
+                            if ( !m_xCachedProps.get())
+                                m_xCachedProps.reset(
+                                    new CachableContentProperties( ContentProperties( aResource ) ) );
+                            else
+                                m_xCachedProps->addProperties(
+                                    aResource.properties );
+
+                            m_xResAccess.reset(
+                                new DAVResourceAccess( *xResAccess.get() ) );
+                        }
+
+                        xDataSink->setInputStream( xIn );
                     }
+                    else
+                    {
+                        // return exception as if the resource was not found
+                        uno::Sequence< uno::Any > aArgs( 1 );
+                        aArgs[ 0 ] <<= beans::PropertyValue(
+                            OUString("Uri"), -1,
+                            uno::makeAny(aTargetURL),
+                            beans::PropertyState_DIRECT_VALUE);
 
-                    xDataSink->setInputStream( xIn );
+                        ucbhelper::cancelCommandExecution(
+                            uno::makeAny(
+                                ucb::InteractiveAugmentedIOException(
+                                    OUString("Not found!"),
+                                    static_cast< cppu::OWeakObject * >( this ),
+                                    task::InteractionClassification_ERROR,
+                                    ucb::IOErrorCode_NOT_EXISTING,
+                                    aArgs ) ),
+                            xEnv );
+                // Unreachable
+                    }
                 }
                 catch ( DAVException const & e )
                 {
@@ -3873,13 +3906,20 @@ void Content::getResourceOptions(
                         case SC_NOT_IMPLEMENTED:
                         case SC_METHOD_NOT_ALLOWED:
                         {
-                            // OPTIONS method must be implemented in DAV
-                            // resource is NON_DAV, or not advertising it
                             SAL_WARN( "ucb.ucp.webdav","OPTIONS - Method not implemented or not allowed for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
-                            rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                            // OPTIONS method must be implemented in DAV
+                            // hence, this resource is NON_DAV, or not advertising it, acting as a standard WEB site
+                            // but check for the physical URL resource existence, using a simple HEAD command
+                            sal_uInt32 nLifeTime = m_nOptsCacheLifeNotFound;
+                            if( isResourceExistent(xEnv, rResAccess ) )
+                            {
+                                nLifeTime = m_nOptsCacheLifeNotImpl;
+                                rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                            }
                             // cache it, so OPTIONS won't be called again, this URL does not support it
+                            // or the URL doesn't exist
                             aStaticDAVOptionsCache.addDAVOptions( rDAVOptions,
-                                                                  m_nOptsCacheLifeNotImpl );
+                                                                  nLifeTime );
                         }
                         break;
                         case SC_NOT_FOUND:
@@ -3890,17 +3930,66 @@ void Content::getResourceOptions(
                         }
                         break;
                         default:
-                            break;
+                        {
+                            SAL_WARN( "ucb.ucp.webdav","OPTIONS - Got HTTP error: " << e.getStatus() << " for URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                            // OPTIONS method must be implemented in DAV
+                            // resource is NON_DAV, or not advertising it, acting as a standard WEB site
+                            // so check for the physical URL resource existence, using a simple HEAD command
+                            sal_uInt32 nLifeTime = m_nOptsCacheLifeNotFound;
+                            if( isResourceExistent(xEnv, rResAccess ) )
+                            {
+                                nLifeTime = m_nOptsCacheLifeNotImpl;
+                                rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                            }
+                            // cache it, so OPTIONS won't be called again, this URL does not support it
+                            // or the URL doesn't exist
+                            aStaticDAVOptionsCache.addDAVOptions( rDAVOptions,
+                                                                  nLifeTime );
+                        }
+                        break;
                     }
                 }
                 break;
-                default: // leave the resource type as UNKNOWN, for now
-                    // it means this will be managed as a standard http site
+                default:
+                {
                     SAL_WARN( "ucb.ucp.webdav","OPTIONS - DAVException for URL <" << m_xIdentifier->getContentIdentifier() << ">, DAV error: "
-                              << e.getError() << ", HTTP error: "<<e.getStatus() );
-                    break;
+                              << e.getError() << ", HTTP error: " << e.getStatus() );
+                    // Acting as a standard WEB site
+                    // so check for the physical URL resource existence, using a simple HEAD command
+                    sal_uInt32 nLifeTime = m_nOptsCacheLifeNotFound;
+                    if( isResourceExistent(xEnv, rResAccess ) )
+                    {
+                        nLifeTime = m_nOptsCacheLifeNotImpl;
+                        rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                    }
+                    // cache it, so OPTIONS won't be called again, this URL does not support it
+                    // or the URL doesn't exist
+                    aStaticDAVOptionsCache.addDAVOptions( rDAVOptions,
+                                                          nLifeTime );
+                }
+                break;
             }
         }
+    }
+}
+
+
+//static
+bool Content::isResourceExistent( const css::uno::Reference< css::ucb::XCommandEnvironment >& xEnv,
+                                  const std::unique_ptr< DAVResourceAccess > & rResAccess)
+{
+    try
+    {
+        // do a HEAD
+        // if HEAD is successfull, set element found,
+        std::vector< OUString > aHeaderNames;
+        DAVResource resource;
+        rResAccess->HEAD( aHeaderNames, resource, xEnv );
+        return true;
+    }
+    catch (...)
+    {
+        return false;
     }
 }
 

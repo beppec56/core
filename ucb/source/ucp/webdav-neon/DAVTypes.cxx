@@ -145,4 +145,107 @@ void DAVOptionsCache::addDAVOptions( DAVOptions & rDAVOptions, const sal_uInt32 
 }
 
 
+bool DAVOptionsCache::isResourceWeb( const OUString & rURL )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    DAVOptionsMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        // first check for stale
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        if( (*it).second.getStaleTime() < t1.Seconds )
+        {
+            m_aTheCache.erase( it );
+            return false;
+        }
+
+        DAVOptions aDAVOption = (*it).second;
+        // check if the resource was present on server
+        return ( !aDAVOption.isClass1() &&
+                 !aDAVOption.isClass2() &&
+                 !aDAVOption.isClass3() );
+    }
+    return false;
+}
+
+
+bool DAVOptionsCache::isResourceFound( const OUString & rURL )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    DAVOptionsMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        // first check for stale
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        if( (*it).second.getStaleTime() < t1.Seconds )
+        {
+            m_aTheCache.erase( it );
+            return true; // to force again OPTIONS method
+        }
+
+        // check if the resource was present on server
+        return (*it).second.isResourceFound();
+    }
+    // this value is needed because some web server don't implement
+    // OPTIONS method, so the resource is considered found,
+    // until detected otherwise
+    return true;
+}
+
+
+void DAVOptionsCache::setResourceNotFound( const OUString & rURL )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    DAVOptionsMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        // first check for stale
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        if( (*it).second.getStaleTime() < t1.Seconds )
+        {
+            m_aTheCache.erase( it );
+        }
+        else
+            (*it).second.setResourceFound( false );
+    }
+}
+
+
+void DAVOptionsCache::removeResourceFound( const OUString & rURL )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    DAVOptionsMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        // first check if the resource was present on server
+        // remove only if the resource was found present
+        // remove as well if cache time elapsed
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        if( (*it).second.isResourceFound() ||
+            (*it).second.getStaleTime() < t1.Seconds )
+            m_aTheCache.erase( it );
+    }
+}
+
+
 /* vim:set shiftwidth=4 softtabstop=4 expandtab cinoptions=b1,g0,N-s cinkeys+=0=break: */
