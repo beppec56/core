@@ -1495,6 +1495,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                     try
                     {
                         DAVResource resource;
+                        SAL_WARN("ucb.ucp.webdav", " HEAD: call lower level (neon) get missing props, element exists");
                         xResAccess->HEAD( aHeaderNames, resource, xEnv );
                         m_bDidGetOrHead = true;
 
@@ -2122,6 +2123,7 @@ uno::Any Content::open(
                 DAVResource aResource;
                 std::vector< OUString > aHeaders;
 
+                SAL_WARN("ucb.ucp.webdav", " GET: call lower level (neon) open when writing");
                 xResAccess->GET( xOut, aHeaders, aResource, xEnv );
                 m_bDidGetOrHead = true;
 
@@ -2171,6 +2173,7 @@ uno::Any Content::open(
                     // check if the resource was present on the server
                     if( aStaticDAVOptionsCache.isResourceFound( aTargetURL ) )
                     {
+                        SAL_WARN("ucb.ucp.webdav", " GET: call lower level (neon) open when reading");
                         uno::Reference< io::XInputStream > xIn
                             = xResAccess->GET( aHeaders, aResource, xEnv );
                         //for redirection
@@ -3846,6 +3849,7 @@ void Content::getResourceOptions(
     {
         try
         {
+            SAL_WARN("ucb.ucp.webdav", "OPTIONS: call lower level (neon)");
             rResAccess->OPTIONS( rDAVOptions, xEnv );
             // IMPORTANT:the correctly implemented server will answer without errors, even if the resource is not present
             sal_uInt32 nLifeTime = ( rDAVOptions.isClass1() ||
@@ -4031,10 +4035,12 @@ bool Content::isResourceExistent( const css::uno::Reference< css::ucb::XCommandE
         std::vector< OUString > aHeaderNames;
         DAVResource resource;
         rResAccess->HEAD( aHeaderNames, resource, xEnv );
+        SAL_WARN( "ucb.ucp.webdav","Probe resource FOUND <"<<rResAccess->getURL() <<">");
         return true;
     }
     catch (...)
     {
+        SAL_WARN( "ucb.ucp.webdav","Probe resource NOT FOUND <"<<rResAccess->getURL() <<">");
         return false;
     }
 }
