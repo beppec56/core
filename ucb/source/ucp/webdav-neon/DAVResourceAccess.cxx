@@ -102,6 +102,7 @@ int DAVAuthListener_Impl::authenticate(
                         // system credentials.
                         inoutUserName.clear();
                         outPassWord.clear();
+                        SAL_INFO("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: System credentials where selected");
                     }
                     else
                     {
@@ -116,9 +117,17 @@ int DAVAuthListener_Impl::authenticate(
                     // go on.
                     return 0;
                 }
+                else
+                    SAL_WARN("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: Abort was selected <---------=");
             }
+            else
+                SAL_WARN("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: there is NO ucbhelper::InteractionContinuation (xSelection) <---------=");
         }
+        else
+            SAL_WARN("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: there is NO task::XInteractionHandler <---------=");
     }
+    else
+        SAL_WARN("ucb.ucp.webdav","DAVAuthListener_Impl::authenticate: there is NO XCommandEnv <---------=");
     // Abort.
     return -1;
 }
