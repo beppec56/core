@@ -3864,11 +3864,34 @@ void Content::getResourceOptions(
             rDAVOptions.setURL( aRedirURL );
             switch( e.getError() )
             {
+                // DAVException::DAV_HTTP_TIMEOUT
+                // if the server silently fail the OPTIONS request
+                // example: ISP transparent proxy enabled only for HEAD, GET, POST
+                // in this case we will behave as OPTIONS is not implementented
                 case DAVException::DAV_HTTP_TIMEOUT:
+                {
+                    SAL_WARN( "ucb.ucp.webdav","OPTIONS - DAV_HTTP_TIMEOUT URL <" << m_xIdentifier->getContentIdentifier() << ">" );
+                    // Perhaps OPTIONS is silently ignored, or
+                    // resource is NON_DAV, or not advertising it, so act as a standard WEB site
+                    // check for the physical URL resource existence, using a simple HEAD command
+                    // Unfortunately this has a side effect of doubling the timeout time if the connection
+                    // is actually timing out
+                    sal_uInt32 nLifeTime = m_nOptsCacheLifeNotFound;
+                    if( isResourceExistent(xEnv, rResAccess ) )
+                    {
+                        nLifeTime = m_nOptsCacheLifeNotImpl;
+                        rDAVOptions.setResourceFound(); // means it exists, but it's not DAV
+                    }
+                    // cache it, so OPTIONS won't be called again, this URL does not support it
+                    // or the URL doesn't exist
+                    aStaticDAVOptionsCache.addDAVOptions( rDAVOptions,
+                                                          nLifeTime );
+                }
+                break;
                 case DAVException::DAV_HTTP_CONNECT:
                 {
                     // something bad happened to the connection
-                    // not same as not found, this instead happens when the server does'n exist or does'n aswer at all
+                    // not same as not found, this instead happens when the server does'n exist
                     // probably a new bit stating 'timed out' should be added to opts var?
                     // in any case abort the command
                     cancelCommandExecution( e, xEnv );
