@@ -89,7 +89,10 @@ bool DAVOptionsCache::getDAVOptions( const OUString & rURL, DAVOptions & rDAVOpt
     DAVOptionsMap::iterator it;
     it = m_aTheCache.find( aEncodedUrl );
     if ( it == m_aTheCache.end() )
+    {
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::getDAVOptions - NOT in cache - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         return false;
+    }
     else
     {
         // check if the capabilities are stale, before restoring
@@ -99,9 +102,11 @@ bool DAVOptionsCache::getDAVOptions( const OUString & rURL, DAVOptions & rDAVOpt
         {
             // if stale, remove from cache, do not restore
             m_aTheCache.erase( it );
+            SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::getDAVOptions - REMOVED stale - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl << ", t1.Seconds: " << t1.Seconds << ", t1.Nanosec: " << t1.Nanosec );
             return false;
             // return false instead
         }
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::getDAVOptions - RESTORED - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         rDAVOptions = (*it).second;
         return true;
     }
@@ -118,6 +123,7 @@ void DAVOptionsCache::removeDAVOptions( const OUString & rURL )
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
     {
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::removeDAVOptions - rURL: " << rURL << ", aEncodedUrl: " << aEncodedUrl );
         m_aTheCache.erase( it );
     }
 }
@@ -141,6 +147,7 @@ void DAVOptionsCache::addDAVOptions( DAVOptions & rDAVOptions, const sal_uInt32 
     osl_getSystemTime( &t1 );
     rDAVOptions.setStaleTime( t1.Seconds + nLifeTime );
 
+    SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::addDAVOptions - aURL: "  << aURL << ", aEncodedUrl: " << aEncodedUrl << ", nLifeTime: " << nLifeTime );
     m_aTheCache[ aEncodedUrl ] = rDAVOptions;
 }
 
@@ -160,16 +167,19 @@ bool DAVOptionsCache::isResourceFound( const OUString & rURL )
         osl_getSystemTime( &t1 );
         if( (*it).second.getStaleTime() < t1.Seconds )
         {
+            SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::isResourceFound removed, returns TRUE - aURL: "  << aURL << ", aEncodedUrl: " << aEncodedUrl << ", nLifeTime: " << nLifeTime );
             m_aTheCache.erase( it );
             return true; // to force again OPTIONS method
         }
 
         // check if the resource was present on server
+        SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::isResourceFound, returns (*it).second.isResourceFound(): " << (*it).second.isResourceFound() << ", aURL: "  << aURL << ", aEncodedUrl: " << aEncodedUrl << ", nLifeTime: " << nLifeTime );
         return (*it).second.isResourceFound();
     }
     // this value is needed because some web server don't implement
     // OPTIONS method, so the resource is considered found,
     // until detected otherwise
+    SAL_WARN( "ucb.ucp.webdav", "DAVOptionsCache::isResourceFound NOT FOUND, returns TRUE - aURL: "  << aURL << ", aEncodedUrl: " << aEncodedUrl << ", nLifeTime: " << nLifeTime );
     return true;
 }
 
