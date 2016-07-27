@@ -80,6 +80,7 @@ $(eval $(call gb_CppunitTest_use_components,starmath_import,\
     svl/util/svl \
     svx/util/svx \
     unoxml/source/service/unoxml \
+    uui/util/uui \
     xmloff/util/xo \
 ))
 
