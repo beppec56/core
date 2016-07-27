@@ -72,6 +72,7 @@ $(eval $(call gb_CppunitTest_use_components,sw_ww8import,\
     unotools/util/utl \
     unoxml/source/rdf/unordf \
     unoxml/source/service/unoxml \
+    uui/util/uui \
     $(if $(filter DESKTOP,$(BUILD_TYPE)),xmlhelp/util/ucpchelp1) \
 ))
 
