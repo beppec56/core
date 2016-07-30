@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #get the branch point
-BRANCH_POINT=`diff -u <(git rev-list -200 --first-parent HEAD)   <(git rev-list -200 --first-parent libreoffice-5-0) | sed -ne 's/^ //p' | head -1`
-BRANCH_POINT2=`git log -n1 --format=%h $BRANCH_POINT`
+#get the branch point
+. ../conf-get-branch-point-lohs52.sh
 
 . ../gdrive-lohs-credential.shinc
 
