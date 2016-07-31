@@ -1432,6 +1432,9 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
             }
         }
 
+        aStaticDAVOptionsCache.debugStatus( xResAccess->getURL() );
+        SAL_WARN( "ucb.ucp.webdav", " bNetworkAccessAllowed: " << bNetworkAccessAllowed );
+
         if ( bNetworkAccessAllowed )
         {
             // All properties obtained already?

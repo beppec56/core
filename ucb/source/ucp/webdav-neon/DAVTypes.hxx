@@ -173,6 +173,8 @@ namespace webdav_ucp
         */
         bool isResourceFound( const OUString & rURL );
 
+        void debugStatus( const OUString & rURL );
+
     private:
 
         /// remove the last '/' in aUrl, if it exists

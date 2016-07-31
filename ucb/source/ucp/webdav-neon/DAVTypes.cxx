@@ -174,4 +174,30 @@ bool DAVOptionsCache::isResourceFound( const OUString & rURL )
 }
 
 
+void DAVOptionsCache::debugStatus( const OUString & rURL )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    DAVOptionsMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        // first check for stale
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        if( (*it).second.getStaleTime() < t1.Seconds )
+        {
+            SAL_WARN( "ucb.ucp.webdav", " element is STALE" );
+            // m_aTheCache.erase( it );
+            // return;
+        }
+
+        // check if the resource was present on server
+
+        SAL_WARN( "ucb.ucp.webdav",  "=---------->>>>> URL <" << rURL << "> isResourceFound(): " << (*it).second.isResourceFound() << ", isClass1(): " << (*it).second.isClass1() );
+    }
+}
+
 /* vim:set shiftwidth=4 softtabstop=4 expandtab cinoptions=b1,g0,N-s cinkeys+=0=break: */
