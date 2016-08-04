@@ -826,6 +826,8 @@ void Content::addProperty( const ucb::PropertyCommandArgument& aCmdArg,
     bool bIsSpecial = DAVProperties::isUCBSpecialProperty(
         aCmdArg.Property.Name, aSpecialName );
 
+    SAL_INFO( "ucb.ucp.webdav", " bIsSpecial: " << bIsSpecial << " Property.Name: " << aCmdArg.Property.Name << ", aSpecialName: " << aSpecialName );
+
     // Note: This requires network access!
     if ( getPropertySetInfo( xEnv, false /* don't cache data */ )
              ->hasPropertyByName(

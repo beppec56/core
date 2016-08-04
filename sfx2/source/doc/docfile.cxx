@@ -64,6 +64,8 @@
 #include <com/sun/star/logging/DocumentIOLogRing.hpp>
 #include <com/sun/star/logging/XSimpleLogRing.hpp>
 #include <com/sun/star/beans/PropertyValue.hpp>
+#include <com/sun/star/beans/PropertyAttribute.hpp>
+#include <com/sun/star/beans/XPropertyContainer.hpp>
 #include <com/sun/star/security/DocumentSignatureInformation.hpp>
 #include <com/sun/star/security/DocumentDigitalSignatures.hpp>
 #include <tools/urlobj.hxx>
@@ -993,6 +995,38 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
                         ucbhelper::Content aContentToLock(
                             GetURLObject().GetMainURL( INetURLObject::NO_DECODE ),
                             xComEnv, comphelper::getProcessComponentContext() );
+                        {//test && debug
+                            try
+                            {
+                                // get underlying Content Provider
+                                OUString aTheProp( "MyPrivateDavProperty" );
+                                css::uno::Reference< css::ucb::XContent >   rContentToLock =  aContentToLock.get();
+                                if( rContentToLock.is() )
+                                {
+                                    OUString aPropDef( "" );
+                                    // Obtain the property container
+                                    uno::Reference< XPropertyContainer > xProperties( rContentToLock.get(), UNO_QUERY );
+                                    if( xProperties.is() )
+                                    {
+                                        SAL_WARN( "ucb.ucp.webdav"," GOT XPropertyContainer!" );
+                                    // add the test property
+                                        xProperties->addProperty( aTheProp, css::beans::PropertyAttribute::REMOVABLE, css::uno::makeAny( aPropDef ) );
+                                        OUString aStr( "My value string" );
+                                        SAL_WARN( "ucb.ucp.webdav"," set value" );
+                                        aContentToLock.setPropertyValue( aTheProp, css::uno::makeAny( aStr ) );
+                                        OUString aPropValRet;
+                                        SAL_WARN( "ucb.ucp.webdav"," get value" );
+                                        aContentToLock.getPropertyValue( aTheProp ) >>= aPropValRet;
+                                        SAL_WARN( "ucb.ucp.webdav"," returned prop value: '" << aPropValRet << "'" );
+                                        xProperties->removeProperty( aTheProp );
+                                    }
+                                }
+                            }
+                            catch( uno::Exception& e )
+                            {
+                                SAL_WARN( "ucb.ucp.webdav"," Exception: " << e.Message );
+                            }
+                        }
 
                         try
                         {

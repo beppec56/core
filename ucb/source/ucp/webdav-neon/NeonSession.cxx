@@ -1081,6 +1081,7 @@ void NeonSession::PROPPATCH( const OUString & inPath,
             OUString aStringValue;
             if ( DAVProperties::isUCBDeadProperty( *pName ) )
             {
+                SAL_INFO( "ucb.ucp.webdav", "PROPPATCH - A dead property: " << (*pName).name << " " << (*pName).nspace );
                 // DAV dead property added by WebDAV UCP?
                 if ( !UCBDeadPropertyValue::toXML( rValue.value,
                                                    aStringValue ) )
@@ -1094,6 +1095,7 @@ void NeonSession::PROPPATCH( const OUString & inPath,
             }
             else if ( !( rValue.value >>= aStringValue ) )
             {
+                SAL_INFO( "ucb.ucp.webdav", "PROPPATCH - A complex property" );
                 // complex properties...
                 if ( rValue.name == DAVProperties::SOURCE )
                 {
