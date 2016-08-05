@@ -452,6 +452,7 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
 
     const uno::Reference< ucb::XCommandEnvironment > xEnv(
         pSession->getRequestEnvironment().m_xEnv );
+    SAL_WARN( "debug", "Need to check certificate with interaction !" );
     if ( xEnv.is() )
     {
         uno::Reference< task::XInteractionHandler > xIH(
@@ -472,26 +473,36 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
                     xSelection.get(), uno::UNO_QUERY );
                 if ( xApprove.is() )
                 {
+                    SAL_WARN( "debug", "Interaction handler: selection approved!" );
                     xCertificateContainer->addCertificate(
                         pSession->getHostName(), cert_subject,  true );
                     return 0;
                 }
                 else
                 {
+                    SAL_WARN( "debug", "Interaction handler: selection NOT approved!" );
                     // Don't trust cert
                     xCertificateContainer->addCertificate(
                         pSession->getHostName(), cert_subject, false );
                     return 1;
                 }
             }
+            else
+                SAL_WARN( "debug", "Interaction handler: no selection !" );
+
         }
         else
         {
+            SAL_WARN( "debug", "Don't trust cert, no interaction handler !" );
             // Don't trust cert
             xCertificateContainer->addCertificate(
                 pSession->getHostName(), cert_subject, false );
             return 1;
         }
+    }
+    else
+    {
+        SAL_WARN( "debug", "The xCommandEnvironment is missing: needed to check certificate!" );
     }
     return 1;
 }

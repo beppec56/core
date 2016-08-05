@@ -252,6 +252,7 @@ handleCertificateValidationRequest_(
     uno::Sequence< uno::Reference< task::XInteractionContinuation > > const &
         rContinuations)
 {
+    SAL_WARN( "debug", "handleCertificateValidationRequest start..." );
     uno::Reference< task::XInteractionApprove > xApprove;
     uno::Reference< task::XInteractionAbort > xAbort;
     getContinuations(rContinuations, &xApprove, &xAbort);
@@ -266,6 +267,7 @@ handleCertificateValidationRequest_(
          ((failures & security::CertificateValidity::ROOT_UNTRUSTED)
              == security::CertificateValidity::ROOT_UNTRUSTED) )
     {
+        SAL_WARN( "debug", "call dialog..." );
         trustCert = executeUnknownAuthDialog( pParent,
                                               xContext,
                                               rRequest.Certificate );
@@ -302,6 +304,7 @@ handleCertificateValidationRequest_(
               certHostNames )) &&
           trustCert )
     {
+        SAL_WARN( "debug", "call dialog..." );
         trustCert = executeSSLWarnDialog( pParent,
                                           xContext,
                                           rRequest.Certificate,
@@ -315,6 +318,7 @@ handleCertificateValidationRequest_(
                 == security::CertificateValidity::NOT_TIME_NESTED)) &&
               trustCert )
     {
+        SAL_WARN( "debug", "call dialog..." );
         trustCert = executeSSLWarnDialog( pParent,
                                           xContext,
                                           rRequest.Certificate,
@@ -332,6 +336,7 @@ handleCertificateValidationRequest_(
                 == security::CertificateValidity::INVALID)) &&
               trustCert )
     {
+        SAL_WARN( "debug", "call dialog..." );
         trustCert = executeSSLWarnDialog( pParent,
                                           xContext,
                                           rRequest.Certificate,
@@ -341,11 +346,13 @@ handleCertificateValidationRequest_(
 
     if ( trustCert )
     {
+        SAL_WARN( "debug", "set APPROVE" );
         if (xApprove.is())
             xApprove->select();
     }
     else
     {
+        SAL_WARN( "debug", "set ABORT" );
         if (xAbort.is())
             xAbort->select();
     }
@@ -357,6 +364,7 @@ bool
 UUIInteractionHelper::handleCertificateValidationRequest(
     uno::Reference< task::XInteractionRequest > const & rRequest)
 {
+    SAL_WARN( "debug", "UUIInteractionHelper::handleCertificateValidationRequest" );
     uno::Any aAnyRequest(rRequest->getRequest());
 
     ucb::CertificateValidationRequest aCertificateValidationRequest;
