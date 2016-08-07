@@ -2429,6 +2429,7 @@ void SfxMedium::GetMedium_Impl()
                         // the interaction handler to be used by the authentication dialog
                         if ( GetURLObject().isAnyKnownWebDAVScheme() )
                         {
+                            SAL_WARN( "debug", (GetInteractionHandler( true ).is() ? " handler exists" : " handler DO NOT exist") );
                             aMedium[utl::MediaDescriptor::PROP_AUTHENTICATIONHANDLER()] <<= GetInteractionHandler( true );
                         }
                         aMedium.addInputStream();

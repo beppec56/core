@@ -44,6 +44,7 @@ static SvStream* lcl_CreateStream( const OUString& rFileName, StreamMode eOpenMo
                                    const Reference < XInteractionHandler >& xInteractionHandler,
                                    bool bEnsureFileExists )
 {
+    SAL_WARN( "debug", "utl::lcl_CreateStream()");
     SvStream* pStream = nullptr;
     Reference< XUniversalContentBroker > ucb(
         UniversalContentBroker::create(
@@ -51,9 +52,11 @@ static SvStream* lcl_CreateStream( const OUString& rFileName, StreamMode eOpenMo
     UcbLockBytesRef xLockBytes;
     if ( eOpenMode & StreamMode::WRITE )
     {
+        SAL_WARN( "debug", " StreamMode::WRITE");
         bool bTruncate = bool( eOpenMode & StreamMode::TRUNC );
         if ( bTruncate )
         {
+            SAL_WARN( "debug", " bTruncate: " << bTruncate );
             try
             {
                 // truncate is implemented with deleting the original file
@@ -66,12 +69,15 @@ static SvStream* lcl_CreateStream( const OUString& rFileName, StreamMode eOpenMo
             catch ( const CommandAbortedException& )
             {
                 // couldn't truncate/delete
+                SAL_WARN( "debug", " StreamMode::WRITE, CommandAbortedException");
             }
             catch ( const ContentCreationException& )
             {
+                SAL_WARN( "debug", " StreamMode::WRITE, ContentCreationException");
             }
             catch ( const Exception& )
             {
+                SAL_WARN( "debug", " StreamMode::WRITE, Exception");
             }
         }
 
@@ -79,6 +85,7 @@ static SvStream* lcl_CreateStream( const OUString& rFileName, StreamMode eOpenMo
         {
             try
             {
+                SAL_WARN( "debug", " bTruncate: " << bTruncate  << ", bEnsureFileExists: " << bEnsureFileExists );
                 // make sure that the desired file exists before trying to open
                 SvMemoryStream aStream(0,0);
                 ::utl::OInputStreamWrapper* pInput = new ::utl::OInputStreamWrapper( aStream );
@@ -100,18 +107,22 @@ static SvStream* lcl_CreateStream( const OUString& rFileName, StreamMode eOpenMo
             catch ( const CommandAbortedException& )
             {
                 // currently never an error is detected !
+                SAL_WARN( "debug", " StreamMode::WRITE, CommandAbortedException");
             }
             catch ( const ContentCreationException& )
             {
+                SAL_WARN( "debug", " StreamMode::WRITE, ContentCreationException");
             }
             catch ( const Exception& )
             {
+                SAL_WARN( "debug", " StreamMode::WRITE, Exception");
             }
         }
     }
 
     try
     {
+        SAL_WARN( "debug", " create LockBytes using UCB");
         // create LockBytes using UCB
         ::ucbhelper::Content aContent(
             rFileName, Reference < XCommandEnvironment >(),
@@ -120,6 +131,7 @@ static SvStream* lcl_CreateStream( const OUString& rFileName, StreamMode eOpenMo
                                                     eOpenMode, xInteractionHandler );
         if ( xLockBytes.Is() )
         {
+            SAL_WARN( "debug", " xLockBytes.Is !");
             pStream = new SvStream( xLockBytes );
             pStream->SetBufferSize( 4096 );
             pStream->SetError( xLockBytes->GetError() );
@@ -127,12 +139,15 @@ static SvStream* lcl_CreateStream( const OUString& rFileName, StreamMode eOpenMo
     }
     catch ( const CommandAbortedException& )
     {
+        SAL_WARN( "debug", " StreamMode::WRITE, CommandAbortedException");
     }
     catch ( const ContentCreationException& )
     {
+        SAL_WARN( "debug", " StreamMode::WRITE, ContentCreationException");
     }
     catch ( const Exception& )
     {
+        SAL_WARN( "debug", " StreamMode::WRITE, Exception");
     }
 
     return pStream;
