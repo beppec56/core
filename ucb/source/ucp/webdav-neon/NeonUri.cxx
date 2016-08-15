@@ -98,6 +98,7 @@ NeonUri::NeonUri( const OUString & inUri )
     // #i77023#
     OUString aEscapedUri( ucb_impl::urihelper::encodeURI( inUri ) );
 
+    SAL_WARN( "debug", "aEscapedUri: " << aEscapedUri);
     OString theInputUri(
         aEscapedUri.getStr(), aEscapedUri.getLength(), RTL_TEXTENCODING_UTF8 );
 

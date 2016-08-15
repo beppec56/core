@@ -53,8 +53,8 @@ namespace ucb_impl { namespace urihelper {
             aFragment = rURI.copy( nFragment + 1 );
 
         sal_Int32 nParams = ( nFragment == -1 )
-            ? rURI.lastIndexOf( sal_Unicode( '?' ) )
-            : rURI.lastIndexOf( sal_Unicode( '?' ), nFragment );
+            ? rURI.indexOf( sal_Unicode( '?' ) )
+            : rURI.indexOf( sal_Unicode( '?' ), nFragment );
         if ( nParams != -1 )
             aParams = ( nFragment == -1 )
                 ? rURI.copy( nParams + 1 )

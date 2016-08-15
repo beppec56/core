@@ -1395,6 +1395,7 @@ void SAL_CALL IMPL_RTL_STRINGNAME( newFromSubString )( IMPL_RTL_STRINGDATA** ppT
     }
     if ( count < 0 || beginIndex < 0 || beginIndex + count > pFrom->length )
     {
+        SAL_WARN( "debug", "void SAL_CALL IMPL_RTL_STRINGNAME( newFromSubString )");
         assert(false); // fail fast at least in debug builds
         IMPL_RTL_STRINGNAME( newFromLiteral )( ppThis, "!!br0ken!!", 10, 0 );
         return;

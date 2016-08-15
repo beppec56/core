@@ -41,6 +41,11 @@ namespace
         CPPUNIT_ASSERT_EQUAL( OUString( "user%40anothername" ), aURI.GetUserInfo() );
         CPPUNIT_ASSERT_EQUAL( sal_Int32( 8040 ), aURI.GetPort() );
         CPPUNIT_ASSERT_EQUAL( OUString( "/aService/asegment/nextsegment/check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0" ), aURI.GetPath( ) );
+        // try URI encoding/decoding
+        OUString aURIToEnc( "http://www.digikey.com/web export/common/mkt/en/help.png?requestedName=help?requestedName=help?requestedName=help?requestedName=help?requestedName=help" );
+        webdav_ucp::NeonUri aURIEnc( aURIToEnc );
+        CPPUNIT_ASSERT_EQUAL( OUString( "http://www.digikey.com/web%20export/common/mkt/en/help.png?requestedName=help?requestedName=help?requestedName=help?requestedName=help?requestedName=help" ), aURIEnc.GetURI() );
+
     }
 
     CPPUNIT_TEST_SUITE_REGISTRATION( webdav_local_test );

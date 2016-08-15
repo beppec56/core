@@ -121,6 +121,7 @@ Content::Content(
 {
     try
     {
+        SAL_WARN( "ucb.ucp.webdav", "=-----------------> Identifier->getContentIdentifier(): " << Identifier->getContentIdentifier() );
         initOptsCacheLifeTime();
         m_xResAccess.reset( new DAVResourceAccess(
                 rxContext,
@@ -155,6 +156,7 @@ Content::Content(
 {
     try
     {
+        SAL_WARN( "ucb.ucp.webdav", "=-----------------> Identifier->getContentIdentifier(): " << Identifier->getContentIdentifier() );
         initOptsCacheLifeTime();
         m_xResAccess.reset( new DAVResourceAccess(
             rxContext, rSessionFactory, Identifier->getContentIdentifier() ) );
