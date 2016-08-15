@@ -2151,6 +2151,7 @@ uno::Any Content::open(
                     else
                     {
                         // return exception as if the resource was not found
+                        SAL_WARN( "ucb.ucp.webdav", "Return exception as if the resource WAS NOT FOUND" );
                         uno::Sequence< uno::Any > aArgs( 1 );
                         aArgs[ 0 ] <<= beans::PropertyValue(
                             OUString("Uri"), -1,
