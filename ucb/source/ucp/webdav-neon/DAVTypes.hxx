@@ -115,7 +115,7 @@ namespace webdav_ucp
         void setStaleTime( sal_uInt32 nStaleTime ) { m_nStaleTime = nStaleTime; };
 
         OUString & getURL() { return m_sURL; };
-        void setURL( OUString & sURL ) { m_sURL = sURL; };
+        void setURL( const OUString & sURL ) { m_sURL = sURL; };
 
         OUString & getRedirectedURL() { return m_sRedirectedURL; };
         void setRedirectedURL( OUString & sRedirectedURL ) { m_sRedirectedURL = sRedirectedURL; };

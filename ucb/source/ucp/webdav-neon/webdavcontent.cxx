@@ -2181,7 +2181,6 @@ uno::Any Content::open(
                         DAVOptions aDAVOptions;
                         if( aStaticDAVOptionsCache.getDAVOptions( aTargetURL, aDAVOptions ) )
                         {
-                            // get redirected url
                             aDAVOptions.setResourceFound( false );
                             aStaticDAVOptionsCache.addDAVOptions( aDAVOptions,
                                                                   m_nOptsCacheLifeNotFound );
@@ -2930,7 +2929,9 @@ Content::ResourceType Content::resourceTypeForLocks(
         else
         {
             DAVOptions aDAVOptions;
-            getResourceOptions( Environment, aDAVOptions, rResAccess );
+
+            if ( getResourceType( Environment ) == DAV )
+                getResourceOptions( Environment, aDAVOptions, rResAccess );
             if( aDAVOptions.isClass1() ||
                 aDAVOptions.isClass2() ||
                 aDAVOptions.isClass3() )
@@ -3640,10 +3641,9 @@ Content::ResourceType Content::getResourceType(
     }
     else
     {
-        getResourceOptions( xEnv, aDAVOptions, rResAccess );
-
-        // at least class one is needed
-        if( aDAVOptions.isClass1() )
+        bool optionsPresentInCache = aStaticDAVOptionsCache.getDAVOptions( rURL, aDAVOptions );
+        if( !optionsPresentInCache ||
+            ( optionsPresentInCache && aDAVOptions.isClass1() ) )// at least class one is needed
         {
             try
             {
@@ -3702,45 +3702,63 @@ Content::ResourceType Content::getResourceType(
                         aProperties, m_aFailedPropNames );
                 }
                 eResourceType = DAV;
+                // update options cache, if needed
+                getResourceOptions( xEnv, aDAVOptions, rResAccess );
             }
             catch ( DAVException const & e )
             {
                 rResAccess->resetUri();
+                aDAVOptions.reset();
+                aDAVOptions.setURL( rURL );
 
                 SAL_WARN( "ucb.ucp.webdav", "Content::getResourceType returned errors, DAV: " << e.getError() << ", http error: "  << e.getStatus() );
-
-                if ( e.getStatus() == SC_METHOD_NOT_ALLOWED )
-                {
-                    // Status SC_METHOD_NOT_ALLOWED is a safe indicator that the
-                    // resource is NON_DAV
-                    eResourceType = NON_DAV;
-                }
-                else if (networkAccessAllowed != nullptr)
+                // first check for possible use of network
+                // on part of the caller
+                if (networkAccessAllowed != nullptr)
                 {
                     *networkAccessAllowed = *networkAccessAllowed
                         && shouldAccessNetworkAfterException(e);
                 }
-                if ( e.getStatus() == SC_NOT_FOUND )
+
+                switch ( e.getStatus() )
                 {
-                    // arrives here if OPTIONS is still cached for a resource prevously available
-                    // operate on the OPTIONS cache:
-                    // if OPTIONS was not found, do nothing
-                    // else OPTIONS returned on a resource not existent  (example a server that allows lock on null resource) set
-                    // not found and adjust lifetime accordingly
-                    DAVOptions aDAVOptionsInner;
-                    if( aStaticDAVOptionsCache.getDAVOptions( rURL, aDAVOptionsInner ) )
+                    default:
+                    case SC_BAD_REQUEST:
+                    case SC_NOT_IMPLEMENTED:
+                    case SC_FORBIDDEN:
+                    case SC_METHOD_NOT_ALLOWED:
                     {
-                        // get redirected url
-                        aDAVOptionsInner.setResourceFound( false );
-                        aStaticDAVOptionsCache.addDAVOptions( aDAVOptionsInner,
+                        // Status SC_METHOD_NOT_ALLOWED is a safe indicator that the
+                        // resource is NON_DAV
+                        eResourceType = NON_DAV;
+                        aDAVOptions.setResourceFound();
+                        aStaticDAVOptionsCache.addDAVOptions( aDAVOptions,
+                                                              m_nOptsCacheLifeNotImpl );
+                    // Update or add the options in cache accordingly, don't call OPTIONS
+                    }
+                    break;
+                    case SC_NOT_FOUND:
+                    {
+                        // update the option to the new value and set
+                        // not found, adjust lifetime accordingly
+                        // resource doesn't exist!
+                        aStaticDAVOptionsCache.addDAVOptions( aDAVOptions,
                                                               m_nOptsCacheLifeNotFound );
                     }
+                    break;
                 }
                 // if the two net events below happen, something
                 // is going on to the connection so break the command flow
                 if ( ( e.getError() == DAVException::DAV_HTTP_TIMEOUT ) ||
                      ( e.getError() == DAVException::DAV_HTTP_CONNECT ) )
                 {
+                    // update the option to the new value and set
+                    // not found, adjust lifetime accordingly
+                    // resource doesn't exist!
+                    // in this case the *networkAccessAllowed value
+                    // was set previously
+                    aStaticDAVOptionsCache.addDAVOptions( aDAVOptions,
+                                                          m_nOptsCacheLifeNotFound );
                     cancelCommandExecution( e, xEnv );
                     // unreachable
                 }

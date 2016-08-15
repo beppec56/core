@@ -313,7 +313,8 @@ uno::Sequence< beans::Property > Content::getProperties(
     {
         // Obtain all properties supported for this resource from server.
         DAVOptions aDAVOptions;
-        getResourceOptions( xEnv, aDAVOptions, xResAccess );
+        if ( getResourceType( xEnv ) == DAV )
+            getResourceOptions( xEnv, aDAVOptions, xResAccess );
         // only Class 1 is needed for PROPFIND
         if ( aDAVOptions.isClass1() )
         {
