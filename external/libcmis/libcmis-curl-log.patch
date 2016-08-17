@@ -1,36 +1,182 @@
 diff -aru cmis-create-patch/old-src/libcmis/http-session.cxx cmis-create-patch/src/libcmis/http-session.cxx
 --- cmis-create-patch/old-src/libcmis/http-session.cxx	2016-03-02 14:59:05.000000000 +0100
-+++ cmis-create-patch/src/libcmis/http-session.cxx	2016-08-17 18:21:27.172963106 +0200
-@@ -249,6 +249,8 @@
-     curl_easy_setopt( m_curlHandle, CURLOPT_HEADERFUNCTION, &lcl_getHeaders );
-     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEHEADER, response.get() );
++++ cmis-create-patch/src/libcmis/http-session.cxx	2016-08-18 10:35:52.394850480 +0200
+@@ -40,6 +40,130 @@
  
-+    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
+ namespace
+ {
++// specific curl log funtions
++    void lcl_dump_header_string( FILE *stream, unsigned char *ptr, size_t size)
++    {
++        size_t i;
 +
-     // fix Cloudoku too many redirects error
-     // note: though curl doc says -1 is the default for MAXREDIRS, the error i got
-     // said it was 0
-@@ -304,6 +306,8 @@
++        for(i=0; i<size; i++) {
++            char x =
++                ( ( ptr[i] == 0xd || ptr[i] == 0xa) || (  ptr[i] >= 0x20 && ptr[i] < 0x80 ) ) ? ptr[i] : '.';
++            fputc(x, stream);
++            if(x == 0xa && i<(size-1))
++                fprintf(stream, "> ");
++        }
++    }
++
++    void lcl_dump_string( FILE *stream, unsigned char *ptr, size_t size)
++    {
++        size_t i;
++
++        for(i=0; i<size; i++) {
++            char x =
++                ( ( ptr[i] == 0xd || ptr[i] == 0xa) || (  ptr[i] >= 0x20 && ptr[i] < 0x80 ) ) ? ptr[i] : '.';
++            fputc(x, stream);
++        }
++    }
++
++    void lcl_dump_hex( FILE *stream, unsigned char *ptr, size_t size )
++    {
++        size_t i;
++        size_t c;
++        unsigned int width=0x10;
++
++        for(i=0; i<size; i+= width) {
++            fprintf(stream, "%4.4lx: ", (long)i);
++
++            /* show hex to the left */
++            for(c = 0; c < width; c++) {
++                if(i+c < size)
++                    fprintf(stream, "%02x ", ptr[i+c]);
++                else
++                    fputs("   ", stream);
++            }
++
++            /* show data on the right */
++            for(c = 0; (c < width) && (i+c < size); c++) {
++                char x = (ptr[i+c] >= 0x20 && ptr[i+c] < 0x80) ? ptr[i+c] : '.';
++                fputc(x, stream);
++            }
++
++            fputc('\n', stream); /* newline */
++        }
++    }
++
++    void lcl_dump_header(const char *text,
++              FILE *stream, unsigned char *ptr, size_t size)
++    {
++        fprintf(stream, "%s", text);
++        lcl_dump_header_string( stream, ptr, size );
++    }
++
++    void lcl_dump_data(const char *text,
++              FILE *stream, unsigned char *ptr, size_t size)
++    {
++        fprintf(stream, "%s, %10.10ld bytes (0x%8.8lx)\n",
++                text, (long)size, (long)size);
++        lcl_dump_string( stream, ptr, size );
++        fputc('\n', stream); /* newline */
++        lcl_dump_hex( stream, ptr, size );
++        fputc('\n', stream); /* newline */
++    }
++
++    void lcl_dump(const char *text,
++              FILE *stream, unsigned char *ptr, size_t size)
++    {
++        fprintf(stream, "%s, %10.10ld bytes (0x%8.8lx)\n",
++                text, (long)size, (long)size);
++        
++        lcl_dump_hex( stream, ptr, size );
++    }
++
++    int lcl_my_trace(CURL *handle, curl_infotype type,
++                 char *data, size_t size,
++                 void *userp)
++    {
++        (void) userp;
++        const char *text;
++        (void)handle; /* prevent compiler warning */
++
++        switch (type) {
++            case CURLINFO_TEXT:
++                fprintf(stderr, "* %s", data);
++                BOOST_FALLTHROUGH;
++            default: /* in case a new one is introduced to shock us */
++                return 0;
++
++            case CURLINFO_HEADER_OUT:
++                text = "> ";
++                lcl_dump_header(text, stderr, (unsigned char *)data, size);
++                break;
++            case CURLINFO_DATA_OUT:
++                text = "> Send data";
++                lcl_dump_data(text, stderr, (unsigned char *)data, size);
++                break;
++            case CURLINFO_SSL_DATA_OUT:
++                text = "> Send SSL data";
++                lcl_dump(text, stderr, (unsigned char *)data, size);
++                break;
++            case CURLINFO_HEADER_IN:
++                text = "< ";
++                lcl_dump_header(text, stderr, (unsigned char *)data, size);
++                break;
++            case CURLINFO_DATA_IN:
++                text = "< Recv data";
++                lcl_dump_data(text, stderr, (unsigned char *)data, size);
++                break;
++            case CURLINFO_SSL_DATA_IN:
++                text = "< Recv SSL data";
++                lcl_dump(text, stderr, (unsigned char *)data, size);
++                break;
++        }
++
++        return 0;
++    }
++
++
+     size_t lcl_getHeaders( void *ptr, size_t size, size_t nmemb, void *userdata )
+     {
+         libcmis::HttpResponse* response = static_cast< libcmis::HttpResponse* >( userdata );
+@@ -186,6 +310,7 @@
+ {
+     curl_global_init( CURL_GLOBAL_ALL );
+     m_curlHandle = curl_easy_init( );
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_my_trace);
+ }
+ 
+ HttpSession& HttpSession::operator=( const HttpSession& copy )
+@@ -243,6 +368,9 @@
  
      libcmis::HttpResponsePtr response( new libcmis::HttpResponse( ) );
  
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_my_trace);
 +    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
 +
      curl_easy_setopt( m_curlHandle, CURLOPT_WRITEFUNCTION, lcl_bufferData );
      curl_easy_setopt( m_curlHandle, CURLOPT_WRITEDATA, response->getData( ).get( ) );
  
-@@ -390,6 +394,8 @@
+@@ -304,6 +432,9 @@
  
      libcmis::HttpResponsePtr response( new libcmis::HttpResponse( ) );
  
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_my_trace);
 +    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
 +
      curl_easy_setopt( m_curlHandle, CURLOPT_WRITEFUNCTION, lcl_bufferData );
      curl_easy_setopt( m_curlHandle, CURLOPT_WRITEDATA, response->getData( ).get( ) );
  
-@@ -474,6 +480,9 @@
+@@ -390,6 +521,9 @@
+ 
+     libcmis::HttpResponsePtr response( new libcmis::HttpResponse( ) );
+ 
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_my_trace);
++    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
++
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEFUNCTION, lcl_bufferData );
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEDATA, response->getData( ).get( ) );
+ 
+@@ -473,7 +607,13 @@
+     curl_easy_reset( m_curlHandle );
      initProtocols( );
  
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_my_trace);
++    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
++
      curl_easy_setopt( m_curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE" );
 +
 +    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
