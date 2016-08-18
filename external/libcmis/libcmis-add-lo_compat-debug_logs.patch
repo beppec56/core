@@ -1,0 +1,245 @@
+diff -aru cmis-create-patch/old-src/libcmis/http-session.cxx cmis-create-patch/src/libcmis/http-session.cxx
+--- cmis-create-patch/old-src/libcmis/http-session.cxx	2016-03-02 14:59:05.000000000 +0100
++++ cmis-create-patch/src/libcmis/http-session.cxx	2016-08-20 16:49:59.975379675 +0200
+@@ -27,6 +27,7 @@
+  */
+ #include <cctype>
+ #include <string>
++#include <sstream>
+ 
+ #include <libxml/parser.h>
+ #include <libxml/tree.h>
+@@ -40,6 +41,140 @@
+ 
+ namespace
+ {
++    //////// curl log functions
++    void lcl_CurlLogTraceString( std::stringstream &stream, unsigned char *ptr, size_t size)
++    {
++        size_t i;
++
++        std::string auxs;
++        for(i=0; i<size; i++) {
++            char x =
++                (  ( ptr[i] == 0xd || ptr[i] == 0xa) || ( ptr[i] >= 0x20 && ptr[i] < 0x80 ) ) ? ptr[i] : '.';
++            auxs += x;
++        }
++        stream << auxs;
++    }
++
++    void lcl_CurlLogTraceHeaderString( std::string& text, std::stringstream &stream, unsigned char *ptr, size_t size)
++    {
++        size_t i;
++
++        std::string auxs( text );
++        for(i=0; i<size; i++) {
++            char x =
++                ( /*( ptr[i] == 0xd || ptr[i] == 0xa) ||*/ (  ptr[i] >= 0x20 && ptr[i] < 0x80 ) ) ? ptr[i] : '.';
++            auxs += x;
++            if(x == 0xa && i<(size-1))
++                auxs += text;
++        }
++        stream << auxs;
++    }
++
++    void lcl_CurlLogTraceHex( std::stringstream &stream, unsigned char *ptr, size_t size )
++    {
++        size_t i;
++        size_t c;
++        unsigned int width=0x10;
++
++        for(i=0; i<size; i+= width) {
++            stream << " " << std::setw(4) << std::fixed << std::setprecision(4)
++                   << std::hex
++                   << static_cast<long>( i ) << ": ";
++
++            /* show hex to the left */
++            for(c = 0; c < width; c++) {
++                if(i+c < size)
++                    stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<unsigned int>(ptr[i+c]) << " ";
++                else
++                    stream << "   ";
++            }
++            /* show data on the right */
++            std::string auxs;
++            for(c = 0; (c < width) && (i+c < size); c++) {
++                char x = (ptr[i+c] >= 0x20 && ptr[i+c] < 0x80) ? ptr[i+c] : '.';
++                auxs += x;
++            }
++            stream << auxs << "\n"; /* newline */
++        }
++    }
++
++    void lcl_CurlLogTraceHeader(std::string& text, std::stringstream& stream, unsigned char* ptr, size_t size)
++    {
++        lcl_CurlLogTraceHeaderString( text, stream, ptr, size );
++    }
++
++    void lcl_CurlLogTraceData(std::stringstream &stream, unsigned char *ptr, size_t size)
++    {
++        stream << std::setw(10) << std::fixed << std::setprecision(10)
++               << static_cast<long>( size );
++        stream << " bytes (0x"
++               << std::setfill('0') << std::setw(8) << std::fixed << std::setprecision(8) << std::hex
++               << std::uppercase << static_cast<long>( size )  << std::nouppercase << std::dec << ")\n";
++
++        lcl_CurlLogTraceString( stream, ptr, size );
++        lcl_CurlLogTraceHex( stream, ptr, size );
++    }
++
++    int lcl_CurlLogTrace( CURL *handle, curl_infotype type,
++                          char *data, size_t size,
++                          void *userp ) // pointer passed to curl with CURLOPT_DEBUGDATA, not used here
++    {
++        (void) userp;/* prevent compiler warning */
++
++        std::stringstream outstream;
++
++        // print a sort of id:
++        // uncomment this if you use multiple curl instances
++        outstream << "curl:" << std::setfill('0') << std::setw(16) << std::fixed << std::setprecision(16) << std::hex << reinterpret_cast<long>(handle) << ": ";
++        std::string astring;
++
++        switch (type)
++        {
++            case CURLINFO_TEXT:
++                if ( data[size - 1] == 0xa ) // sometimes the text_info is not line-termined
++                    data[size - 1] = 0;
++                outstream << "* " << data;
++                break;
++            case CURLINFO_HEADER_OUT:
++                astring =  "> ";
++                lcl_CurlLogTraceHeader( astring, outstream, reinterpret_cast<unsigned char *>(data), size );
++                break;
++            case CURLINFO_DATA_OUT:
++                outstream << "> Send data";
++                lcl_CurlLogTraceData(outstream, reinterpret_cast<unsigned char *>(data), size);
++                break;
++            case CURLINFO_SSL_DATA_OUT:
++                outstream << "> Send SSL data";
++                lcl_CurlLogTraceData(outstream, reinterpret_cast<unsigned char *>(data), size);
++                break;
++            case CURLINFO_HEADER_IN:
++                astring = "< ";
++                lcl_CurlLogTraceHeader( astring, outstream, reinterpret_cast<unsigned char *>(data), size);
++                break;
++            case CURLINFO_DATA_IN:
++                outstream << "< Recv data";
++                lcl_CurlLogTraceData(outstream, reinterpret_cast<unsigned char *>(data), size);
++                break;
++            case CURLINFO_SSL_DATA_IN:
++                outstream << "< Recv SSL data";
++                lcl_CurlLogTraceData(outstream, reinterpret_cast<unsigned char *>(data), size);
++                break;
++            default:
++                outstream << "CURLINFO_ type non managed, see vurl on-line documentation at <https://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html>\n";
++                break;
++        }
++
++        //call here the session call back to send the string to LO proper
++        
++        if ( libcmis::SessionFactory::getLibcmisDebugLog() != nullptr )
++        {
++            (libcmis::SessionFactory::getLibcmisDebugLog())( outstream.str() );
++        }
++        else
++            cout << outstream.str() << std::endl;
++        return 0;
++    }
++
+     size_t lcl_getHeaders( void *ptr, size_t size, size_t nmemb, void *userdata )
+     {
+         libcmis::HttpResponse* response = static_cast< libcmis::HttpResponse* >( userdata );
+@@ -243,6 +378,9 @@
+ 
+     libcmis::HttpResponsePtr response( new libcmis::HttpResponse( ) );
+ 
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_CurlLogTrace);
++    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
++
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEFUNCTION, lcl_bufferData );
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEDATA, response->getData( ).get( ) );
+ 
+@@ -304,6 +442,9 @@
+ 
+     libcmis::HttpResponsePtr response( new libcmis::HttpResponse( ) );
+ 
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_CurlLogTrace);
++    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
++
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEFUNCTION, lcl_bufferData );
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEDATA, response->getData( ).get( ) );
+ 
+@@ -390,6 +531,9 @@
+ 
+     libcmis::HttpResponsePtr response( new libcmis::HttpResponse( ) );
+ 
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_CurlLogTrace);
++    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
++
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEFUNCTION, lcl_bufferData );
+     curl_easy_setopt( m_curlHandle, CURLOPT_WRITEDATA, response->getData( ).get( ) );
+ 
+@@ -473,6 +617,9 @@
+     curl_easy_reset( m_curlHandle );
+     initProtocols( );
+ 
++    curl_easy_setopt( m_curlHandle, CURLOPT_DEBUGFUNCTION, lcl_CurlLogTrace);
++    curl_easy_setopt( m_curlHandle, CURLOPT_VERBOSE, 1 );
++
+     curl_easy_setopt( m_curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE" );
+     try
+     {
+Only in cmis-create-patch/src/libcmis: http-session.cxx~
+diff -aru cmis-create-patch/old-src/libcmis/session-factory.cxx cmis-create-patch/src/libcmis/session-factory.cxx
+--- cmis-create-patch/old-src/libcmis/session-factory.cxx	2016-03-01 17:14:26.000000000 +0100
++++ cmis-create-patch/src/libcmis/session-factory.cxx	2016-08-19 16:33:47.122410129 +0200
+@@ -38,7 +38,8 @@
+ {
+     AuthProviderPtr SessionFactory::s_authProvider;
+     OAuth2AuthCodeProvider SessionFactory::s_oauth2AuthCodeProvider;
+-
++    LibcmisDebugLog SessionFactory::s_libcmisDebugLog;
++    
+     string SessionFactory::s_proxy;
+     string SessionFactory::s_noProxy;
+     string SessionFactory::s_proxyUser;
+Only in cmis-create-patch/src/libcmis: session-factory.cxx~
+diff -aru cmis-create-patch/old-src/libcmis/session-factory.hxx cmis-create-patch/src/libcmis/session-factory.hxx
+--- cmis-create-patch/old-src/libcmis/session-factory.hxx	2016-03-01 17:14:26.000000000 +0100
++++ cmis-create-patch/src/libcmis/session-factory.hxx	2016-08-19 17:15:11.003989243 +0200
+@@ -46,6 +46,14 @@
+     typedef char* ( *OAuth2AuthCodeProvider )( const char* authUrl,
+         const char* username, const char* password );
+ 
++    // call back for logging, used for curl, for now
++    // function signature is derived from CURLOPT_DEBUGFUNCTION
++    // see:
++    // <https://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html>
++    // with specific cur parameter remapped to be curl independend
++    // since it will be used from curl to send debug info
++    typedef void ( *LibcmisDebugLog )( const std::string & logstring );
++
+     class AuthProvider 
+     {
+         public:
+@@ -92,6 +100,8 @@
+ 
+             static OAuth2AuthCodeProvider s_oauth2AuthCodeProvider;
+ 
++            static LibcmisDebugLog s_libcmisDebugLog;
++
+             static CertValidationHandlerPtr s_certValidationHandler;
+ 
+         public:
+@@ -99,6 +109,9 @@
+             static void setAuthenticationProvider( AuthProviderPtr provider ) { s_authProvider = provider; }
+             static AuthProviderPtr getAuthenticationProvider( ) { return s_authProvider; }
+             
++            static void setLibcmisDebugLog( LibcmisDebugLog provider ) { s_libcmisDebugLog = provider; }
++            static LibcmisDebugLog getLibcmisDebugLog() { return s_libcmisDebugLog; }
++
+             static void setOAuth2AuthCodeProvider( OAuth2AuthCodeProvider provider ) { s_oauth2AuthCodeProvider = provider; }
+             static OAuth2AuthCodeProvider getOAuth2AuthCodeProvider( ) { return s_oauth2AuthCodeProvider; }
+ 
+Only in cmis-create-patch/src/libcmis: session-factory.hxx~
