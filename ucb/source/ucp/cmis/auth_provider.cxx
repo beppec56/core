@@ -121,6 +121,11 @@ namespace cmis
         return strdup( "" );
     }
 
+    void AuthProvider::libcmisDebugLog( const std::string &logstring )
+    {
+        SAL_WARN( "ucb.ucp.cmis", logstring );
+    }
+
     char* AuthProvider::gdriveAuthCodeFallback( const char* /*url*/,
             const char* /*username*/,
             const char* /*password*/ )
