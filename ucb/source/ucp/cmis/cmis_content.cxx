@@ -364,6 +364,8 @@ namespace cmis
             AuthProvider aAuthProvider(xEnv, m_xIdentifier->getContentIdentifier(), m_aURL.getBindingUrl());
             AuthProvider::setXEnv( xEnv );
 
+            libcmis::SessionFactory::setLibcmisDebugLog( aAuthProvider.libcmisDebugLog );
+
             string rUsername = OUSTR_TO_STDSTR( m_aURL.getUsername( ) );
             string rPassword = OUSTR_TO_STDSTR( m_aURL.getPassword( ) );
 

@@ -39,6 +39,7 @@ namespace cmis
                     const char* /*username*/,
                     const char* /*password*/ );
 
+            static void libcmisDebugLog( const std::string &logstring );
             static void setXEnv( const css::uno::Reference< css::ucb::XCommandEnvironment>& xEnv );
             static css::uno::Reference< css::ucb::XCommandEnvironment> getXEnv();
 
