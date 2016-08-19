@@ -593,7 +593,7 @@ NeonSession::NeonSession( const rtl::Reference< DAVSessionFactory > & rSessionFa
     m_aScheme    = theUri.GetScheme();
     m_aHostName  = theUri.GetHost();
     m_nPort      = theUri.GetPort();
-    SAL_INFO( "ucb.ucp.webdav", "NeonSession ctor - URL <" << inUri << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "NeonSession ctor - URL <" << inUri << ">" );
 }
 
 NeonSession::~NeonSession( )
@@ -847,7 +847,7 @@ void NeonSession::OPTIONS( const OUString & inPath,
 {
 
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "OPTIONS - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "OPTIONS - relative URL <" << inPath << ">" );
 
     rOptions.reset();
 
@@ -874,7 +874,7 @@ void NeonSession::OPTIONS( const OUString & inPath,
             OUString aHeaderValue( OUString::createFromAscii( value ) );
 
             // display the single header
-            SAL_INFO( "ucb.ucp.webdav", "OPTIONS - received header: " << aHeaderName << ":" << aHeaderValue );
+            SAL_INFO_DL( "ucb.ucp.webdav", "OPTIONS - received header: " << aHeaderName << ":" << aHeaderValue );
 
             if ( aHeaderName == "allow" )
             {
@@ -967,16 +967,16 @@ void NeonSession::PROPFIND( const OUString & inPath,
 
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
 
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     { //debug
-        SAL_INFO( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
+        SAL_INFO_DL( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
          for(std::vector< OUString >::const_iterator it = inPropNames.begin();
              it < inPropNames.end(); ++it)
          {
-            SAL_INFO( "ucb.ucp.webdav", "PROPFIND - property requested: " << *it );
+            SAL_INFO_DL( "ucb.ucp.webdav", "PROPFIND - property requested: " << *it );
          }
     } //debug
-#endif
+//#endif
 
     Init( rEnv );
 
@@ -999,7 +999,7 @@ void NeonSession::PROPFIND( const OUString & inPath,
     throw( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
+    SAL_INFO_DL( "ucb.ucp.webdav", "PROPFIND - relative URL: <" << inPath << "> Depth: " << inDepth );
 
     Init( rEnv );
 
@@ -1011,7 +1011,7 @@ void NeonSession::PROPFIND( const OUString & inPath,
                                     ioResInfo,
                                     theRetVal );
 
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     { //debug
         for ( std::vector< DAVResourceInfo >::const_iterator itres = ioResInfo.begin();
               itres < ioResInfo.end(); ++itres)
@@ -1019,11 +1019,11 @@ void NeonSession::PROPFIND( const OUString & inPath,
             for ( std::vector< OUString >::const_iterator it = (*itres).properties.begin();
                   it < (*itres).properties.end(); ++it)
             {
-                SAL_INFO( "ucb.ucp.webdav", "PROPFIND - returned property (name only): " << *it );
+                SAL_INFO_DL( "ucb.ucp.webdav", "PROPFIND - returned property (name only): " << *it );
             }
         }
     } //debug
-#endif
+//#endif
 
     HandleError( theRetVal, inPath, rEnv );
 }
@@ -1033,7 +1033,7 @@ void NeonSession::PROPPATCH( const OUString & inPath,
                              const DAVRequestEnvironment & rEnv )
     throw( std::exception )
 {
-    SAL_INFO( "ucb.ucp.webdav", "PROPPATCH - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "PROPPATCH - relative URL <" << inPath << ">" );
 
     /* @@@ Which standard live properties can be set by the client?
            This is a known WebDAV RFC issue ( verified: 04/10/2001 )
@@ -1165,7 +1165,7 @@ void NeonSession::HEAD( const OUString &  inPath,
     throw( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "HEAD - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "HEAD - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1185,7 +1185,7 @@ NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1209,7 +1209,7 @@ void NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1232,7 +1232,7 @@ NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1261,7 +1261,7 @@ void NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1285,7 +1285,7 @@ void NeonSession::PUT( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "PUT - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "PUT - relative URL <" << inPath << ">" );
 
     uno::Sequence< sal_Int8 > aDataToSend;
     if ( !getDataFromInputStream( inInputStream, aDataToSend, false ) )
@@ -1312,7 +1312,7 @@ NeonSession::POST( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
 
     uno::Sequence< sal_Int8 > aDataToSend;
     if ( !getDataFromInputStream( inInputStream, aDataToSend, true ) )
@@ -1346,7 +1346,7 @@ void NeonSession::POST( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "POST - relative URL <" << inPath << ">" );
 
     uno::Sequence< sal_Int8 > aDataToSend;
     if ( !getDataFromInputStream( inInputStream, aDataToSend, true ) )
@@ -1373,7 +1373,7 @@ void NeonSession::MKCOL( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "MKCOL - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "MKCOL - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1391,7 +1391,7 @@ void NeonSession::COPY( const OUString & inSourceURL,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "COPY - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
+    SAL_INFO_DL( "ucb.ucp.webdav", "COPY - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
 
     Init( rEnv );
 
@@ -1418,7 +1418,7 @@ void NeonSession::MOVE( const OUString & inSourceURL,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "MOVE - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
+    SAL_INFO_DL( "ucb.ucp.webdav", "MOVE - inSourceURL: "<<inSourceURL<<" inDestinationURL: "<<inDestinationURL);
 
     Init( rEnv );
 
@@ -1441,7 +1441,7 @@ void NeonSession::DESTROY( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "DESTROY - relative URL <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "DESTROY - relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
@@ -1488,7 +1488,7 @@ void NeonSession::LOCK( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "LOCK (create) - relative URL: <" << inPath << ">" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "LOCK (create) - relative URL: <" << inPath << ">" );
 
     // before issuing the lock command,
     // better check first if we already have one on this href
@@ -1570,14 +1570,14 @@ void NeonSession::LOCK( const OUString & inPath,
         aTokens[ 0 ] = OUString::createFromAscii( theLock->token );
         rLock.LockTokens = aTokens;
 
-        SAL_INFO( "ucb.ucp.webdav", "LOCK (create) - Created lock for <" << makeAbsoluteURL( inPath )
+        SAL_INFO_DL( "ucb.ucp.webdav", "LOCK (create) - Created lock for <" << makeAbsoluteURL( inPath )
                   << "> token: <" << theLock->token << "> timeout: " << theLock->timeout << " sec.");
     }
     else
     {
         ne_lock_destroy( theLock );
 
-        SAL_INFO( "ucb.ucp.webdav", "LOCK (create) - Obtaining lock for <"
+        SAL_INFO_DL( "ucb.ucp.webdav", "LOCK (create) - Obtaining lock for <"
                   << makeAbsoluteURL( inPath ) << " failed!" );
     }
 
@@ -1590,13 +1590,13 @@ bool NeonSession::LOCK( NeonLock * pLock,
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
 
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     {
         char * p = ne_uri_unparse( &(pLock->uri) );
-        SAL_INFO( "ucb.ucp.webdav", "LOCK (refresh) - relative URL: <" << p << "> token: <" << pLock->token << ">" );
+        SAL_INFO_DL( "ucb.ucp.webdav", "LOCK (refresh) - relative URL: <" << p << "> token: <" << pLock->token << ">" );
         ne_free( p );
     }
-#endif
+//#endif
 
     // refresh existing lock.
 
@@ -1608,7 +1608,7 @@ bool NeonSession::LOCK( NeonLock * pLock,
         rlastChanceToSendRefreshRequest
             = lastChanceToSendRefreshRequest( startCall, pLock->timeout );
 
-        SAL_INFO( "ucb.ucp.webdav", "LOCK (refresh) - Lock successfully refreshed." );
+        SAL_INFO_DL( "ucb.ucp.webdav", "LOCK (refresh) - Lock successfully refreshed." );
         return true;
     }
     else
@@ -1634,7 +1634,7 @@ void NeonSession::UNLOCK( const OUString & inPath,
     if ( !theLock )
         throw DAVException( DAVException::DAV_NOT_LOCKED );
 
-    SAL_INFO( "ucb.ucp.webdav", "UNLOCK - relative URL: <" << inPath << "> token: <" << theLock->token << ">"  );
+    SAL_INFO_DL( "ucb.ucp.webdav", "UNLOCK - relative URL: <" << inPath << "> token: <" << theLock->token << ">"  );
     Init( rEnv );
 
     int theRetVal = ne_unlock( m_pHttpSession, theLock );
@@ -1646,7 +1646,7 @@ void NeonSession::UNLOCK( const OUString & inPath,
     }
     else
     {
-        SAL_INFO( "ucb.ucp.webdav", "UNLOCK - Unlocking of <"
+        SAL_INFO_DL( "ucb.ucp.webdav", "UNLOCK - Unlocking of <"
                   << makeAbsoluteURL( inPath ) << "> failed." );
     }
 
@@ -1657,34 +1657,34 @@ bool NeonSession::UNLOCK( NeonLock * pLock )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
 
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     {
         char * p = ne_uri_unparse( &(pLock->uri) );
-        SAL_INFO( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << "> token: <" << pLock->token << ">"   );
+        SAL_INFO_DL( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << "> token: <" << pLock->token << ">"   );
         ne_free( p );
     }
-#endif
+//#endif
 
     if ( ne_unlock( m_pHttpSession, pLock ) == NE_OK )
     {
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     {
         char * p = ne_uri_unparse( &(pLock->uri) );
-        SAL_INFO( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << "> token: <" << pLock->token << "> succeeded." );
+        SAL_INFO_DL( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << "> token: <" << pLock->token << "> succeeded." );
         ne_free( p );
     }
-#endif
+//#endif
         return true;
     }
     else
     {
-#if defined SAL_LOG_INFO
+//#if defined SAL_LOG_INFO
     {
         char * p = ne_uri_unparse( &(pLock->uri) );
-        SAL_INFO( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << "> token: <" << pLock->token << "> failed!" );
+        SAL_INFO_DL( "ucb.ucp.webdav", "UNLOCK (from store) - relative URL: <" << p << "> token: <" << pLock->token << "> failed!" );
         ne_free( p );
     }
-#endif
+//#endif
         return false;
     }
 }
@@ -1692,7 +1692,7 @@ bool NeonSession::UNLOCK( NeonLock * pLock )
 void NeonSession::abort()
     throw ( std::exception )
 {
-    SAL_INFO( "ucb.ucp.webdav", "neon commands cannot be aborted" );
+    SAL_INFO_DL( "ucb.ucp.webdav", "neon commands cannot be aborted" );
 }
 
 const ucbhelper::InternetProxyServer & NeonSession::getProxySettings() const
@@ -1884,7 +1884,7 @@ void NeonSession::HandleError( int nError,
         case NE_REDIRECT:
         {
             NeonUri aUri( ne_redirect_location( m_pHttpSession ) );
-            SAL_INFO( "ucb.ucp.webdav", "DAVException::DAV_HTTP_REDIRECT: new URI: " << aUri.GetURI() );
+            SAL_INFO_DL( "ucb.ucp.webdav", "DAVException::DAV_HTTP_REDIRECT: new URI: " << aUri.GetURI() );
             throw DAVException(
                 DAVException::DAV_HTTP_REDIRECT, aUri.GetURI() );
         }
@@ -1986,7 +1986,7 @@ int NeonSession::GET( ne_session * sess,
         {
             char buffer[8192];
 
-            SAL_INFO( "ucb.ucp.webdav", "GET - received header: " << name << ": " << value );
+            SAL_INFO_DL( "ucb.ucp.webdav", "GET - received header: " << name << ": " << value );
             ne_snprintf(buffer, sizeof buffer, "%s: %s", name, value);
             runResponseHeaderHandler(userdata, buffer);
         }
