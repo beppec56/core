@@ -900,11 +900,12 @@ bool SfxDispatcher::GetShellAndSlot_Impl(sal_uInt16 nSlot, SfxShell** ppShell,
         const SfxSlot** ppSlot, bool bOwnShellsOnly, bool bModal, bool bRealSlot)
 {
     SFX_STACK(SfxDispatcher::GetShellAndSlot_Impl);
-
+    SAL_INFO( "debug", "SfxDispatcher::GetShellAndSlot_Impl - nSlot: " << nSlot );
     Flush();
     SfxSlotServer aSvr;
     if ( FindServer_(nSlot, aSvr, bModal) )
     {
+        SAL_INFO( "debug", "SfxDispatcher::GetShellAndSlot_Impl - nSlot: " << nSlot << " - FOUND!" );
         if ( bOwnShellsOnly && aSvr.GetShellLevel() >= xImp->aStack.size() )
             return false;
 
@@ -1899,6 +1900,7 @@ bool SfxDispatcher::FillState_(const SfxSlotServer& rSvr, SfxItemSet& rState,
     const SfxSlot *pSlot = rSvr.GetSlot();
     if ( pSlot && IsLocked( pSlot->GetSlotId() ) )
     {
+        SAL_INFO( "debug", "SfxDispatcher::FillState_ - bInvalidateOnUnlock");
         xImp->bInvalidateOnUnlock = true;
         return false;
     }
@@ -1911,16 +1913,22 @@ bool SfxDispatcher::FillState_(const SfxSlotServer& rSvr, SfxItemSet& rState,
             return false;
 
         // Determine the object and call the Message of this object
+        SAL_INFO( "debug", "SfxDispatcher::FillState_ - Determine the object and call the Message of this object: SfxSlot::GetSlotId(): "<<pSlot->GetSlotId());
         SfxShell *pSh = GetShell(rSvr.GetShellLevel());
         DBG_ASSERT(pSh, "ObjectShell not found");
 
         SfxStateFunc pFunc;
 
         if (pRealSlot)
+        {
+            SAL_INFO( "debug", "SfxDispatcher::FillState_ - its a pRealSlot");
             pFunc = pRealSlot->GetStateFnc();
+        }
         else
+        {
+            SAL_INFO( "debug", "SfxDispatcher::FillState_ - NOT a pRealSlot");
             pFunc = pSlot->GetStateFnc();
-
+        }
         pSh->CallState( pFunc, rState );
 #ifdef DBG_UTIL
         // To examine the conformity of IDL (SlotMap) and current Items

@@ -68,6 +68,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <svl/whiter.hxx>
+
 using namespace ::com::sun::star;
 using namespace ::com::sun::star::uno;
 using namespace ::com::sun::star::util;
@@ -324,6 +326,7 @@ void SfxBindings::Update_Impl
     if ( pSet )
     {
         // Query Status
+        SAL_INFO( "debug", "SfxBindings::Update_Impl" );
         if ( rDispat.FillState_( *pMsgServer, *pSet, pRealSlot ) )
         {
             // Post Status
@@ -1332,6 +1335,13 @@ SfxItemSet* SfxBindings::CreateSet_Impl
     }
     pRanges[j] = 0; // terminating NULL
     SfxItemSet *pSet = new SfxItemSet(rPool, pRanges.get());
+
+    SfxWhichIter aIter( *pSet );
+
+    for ( sal_uInt16 nWhich = aIter.FirstWhich(); nWhich; nWhich = aIter.NextWhich() )
+    {
+        SAL_INFO( "debug", "SfxBindings::CreateSet_Impl - SID_??:" << nWhich );
+    }
     pRanges.reset();
     return pSet;
 }
@@ -1440,6 +1450,7 @@ void SfxBindings::UpdateControllers_Impl
 
 IMPL_LINK_TYPED( SfxBindings, NextJob, Timer *, pTimer, void )
 {
+    SAL_INFO( "debug", "IMPL_LINK_TYPED( SfxBindings, NextJob, Timer *, pTimer, void )" );
     NextJob_Impl(pTimer);
 }
 

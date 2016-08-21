@@ -2597,6 +2597,7 @@ bool SfxBaseModel::getBoolPropertyValue( const OUString& rName ) throw ( Runtime
             }
         }
     }
+    SAL_INFO( "debug", "SfxBaseModel::getBoolPropertyValue - get prop: " << rName << ", bValue: " << bValue );
     return bValue;
 }
 

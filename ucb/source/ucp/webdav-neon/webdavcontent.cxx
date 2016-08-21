@@ -1179,7 +1179,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
     const OUString& rContentId )
 {
     // Note: Empty sequence means "get values of all supported properties".
-
+    SAL_INFO( "debug", "Content::getPropertyValues" );
     rtl::Reference< ::ucbhelper::PropertyValueSet > xRow
         = new ::ucbhelper::PropertyValueSet( rxContext );
 
@@ -1258,6 +1258,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                 const uno::Reference< ucb::XCommandEnvironment >& xEnv )
     throw ( uno::Exception, std::exception )
 {
+    SAL_INFO( "debug", "Content::getPropertyValues" );
     std::unique_ptr< ContentProperties > xProps;
     std::unique_ptr< ContentProperties > xCachedProps;
     std::unique_ptr< DAVResourceAccess > xResAccess;

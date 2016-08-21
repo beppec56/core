@@ -897,6 +897,7 @@ void SfxObjectShell::ExecFile_Impl(SfxRequest &rReq)
 void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
 {
     SfxWhichIter aIter( rSet );
+    SAL_INFO( "debug", "SfxObjectShell::GetState_Impl - for  SfxItemSet N.of Items: " <<  rSet.Count());
 
     for ( sal_uInt16 nWhich = aIter.FirstWhich(); nWhich; nWhich = aIter.NextWhich() )
     {
@@ -904,6 +905,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
         {
             case SID_DOCTEMPLATE :
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_DOCTEMPLATE");
                 if ( !GetFactory().GetTemplateFilter() )
                     rSet.DisableItem( nWhich );
                 break;
@@ -915,6 +917,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
                     Reference< XCmisDocument > xCmisDoc( GetModel(), uno::UNO_QUERY );
                     uno::Sequence< document::CmisProperty> aCmisProperties = xCmisDoc->getCmisProperties();
 
+                    SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_CHECKOUT ("<<nWhich<<")" );
                     if ( xCmisDoc->isVersionable( ) && aCmisProperties.hasElements( ) )
                     {
                         // Loop over the CMIS Properties to find cmis:isVersionSeriesCheckedOut
@@ -947,6 +950,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
             case SID_CANCELCHECKOUT:
             case SID_CHECKIN:
                 {
+                    SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_CHECKIN, SID_CANCELCHECKOUT ("<<nWhich<<")" );
                     bool bShow = false;
                     Reference< XCmisDocument > xCmisDoc( GetModel(), uno::UNO_QUERY );
                     uno::Sequence< document::CmisProperty> aCmisProperties = xCmisDoc->getCmisProperties( );
@@ -979,6 +983,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
 
             case SID_VERSION:
                 {
+                    SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_VERSION ("<<nWhich<<")" );
                     SfxObjectShell *pDoc = this;
                     SfxViewFrame* pFrame = GetFrame();
                     if ( !pFrame )
@@ -999,6 +1004,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
                 }
             case SID_SAVEDOC:
                 {
+                    SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_SAVEDOC ("<<nWhich<<")" );
                     if ( !IsReadOnlyMedium() )
                         rSet.Put(SfxStringItem(
                             nWhich, SfxResId(STR_SAVEDOC).toString()));
@@ -1008,12 +1014,15 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
                 break;
 
             case SID_DOCINFO:
+            {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_DOCINFO ("<<nWhich<<")" );
                 if ( pImpl->eFlags & SfxObjectShellFlags::NODOCINFO )
                     rSet.DisableItem( nWhich );
                 break;
-
+            }
             case SID_CLOSEDOC:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_CLOSEDOC("<<nWhich<<")" );
                 SfxObjectShell *pDoc = this;
                 SfxViewFrame *pFrame = GetFrame();
                 if ( pFrame && pFrame->GetFrame().GetParentFrame() )
@@ -1034,6 +1043,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
 
             case SID_SAVEASDOC:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_SAVEASDOC ("<<nWhich<<")" );
                 if( !( pImpl->nLoadedFlags & SfxLoadedFlags::MAINDOCUMENT ) )
                 {
                     rSet.DisableItem( nWhich );
@@ -1048,6 +1058,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
 
             case SID_SAVEACOPY:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_SAVEACOPY ("<<nWhich<<")" );
                 if( !( pImpl->nLoadedFlags & SfxLoadedFlags::MAINDOCUMENT ) )
                 {
                     rSet.DisableItem( nWhich );
@@ -1063,29 +1074,34 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
             case SID_EXPORTDOCASPDF:
             case SID_DIRECTEXPORTDOCASPDF:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_EXPORTDOCASPDF, SID_DIRECTEXPORTDOCASPDF ("<<nWhich<<")" );
                 break;
             }
 
             case SID_DOC_MODIFIED:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_DOC_MODIFIED ("<<nWhich<<")" );
                 rSet.Put( SfxBoolItem( SID_DOC_MODIFIED, IsModified() ) );
                 break;
             }
 
             case SID_MODIFIED:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_MODIFIED ("<<nWhich<<")" );
                 rSet.Put( SfxBoolItem( SID_MODIFIED, IsModified() ) );
                 break;
             }
 
             case SID_DOCINFO_TITLE:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_DOCINFO_TITLE ("<<nWhich<<")" );
                 rSet.Put( SfxStringItem(
                     SID_DOCINFO_TITLE, getDocProperties()->getTitle() ) );
                 break;
             }
             case SID_FILE_NAME:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_FILE_NAME ("<<nWhich<<")" );
                 if( GetMedium() && HasName() )
                     rSet.Put( SfxStringItem(
                         SID_FILE_NAME, GetMedium()->GetName() ) );
@@ -1098,6 +1114,7 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
             }
             case SID_MACRO_SIGNATURE:
             {
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_MACRO_SIGNATURE ("<<nWhich<<")" );
                 // the slot makes sense only if there is a macro in the document
                 if ( pImpl->documentStorageHasMacros() || pImpl->aMacroMode.hasMacroLibrary() )
                     rSet.Put( SfxUInt16Item( SID_MACRO_SIGNATURE, static_cast<sal_uInt16>(GetScriptingSignatureState()) ) );
@@ -1105,6 +1122,9 @@ void SfxObjectShell::GetState_Impl(SfxItemSet &rSet)
                     rSet.DisableItem( nWhich );
                 break;
             }
+            default:
+                SAL_INFO( "debug", "SfxObjectShell::GetState_Impl(SfxItemSet &rSet) - SID_??:" << nWhich );
+                break;
         }
     }
 }

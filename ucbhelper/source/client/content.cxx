@@ -419,6 +419,7 @@ Reference< XCommandInfo > Content::getCommands()
 Reference< XPropertySetInfo > Content::getProperties()
     throw( CommandAbortedException, RuntimeException, Exception )
 {
+    SAL_INFO( "debug", "Content::getProperties() [getPropertySetInfo] <" << getURL() <<">" );
     Command aCommand;
     aCommand.Name     = "getPropertySetInfo";
     aCommand.Handle   = -1; // n/a
