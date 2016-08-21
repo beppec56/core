@@ -324,6 +324,7 @@ void SfxBindings::Update_Impl
     if ( pSet )
     {
         // Query Status
+        SAL_INFO( "debug", "SfxBindings::Update_Impl" );
         if ( rDispat.FillState_( *pMsgServer, *pSet, pRealSlot ) )
         {
             // Post Status
@@ -1440,6 +1441,7 @@ void SfxBindings::UpdateControllers_Impl
 
 IMPL_LINK_TYPED( SfxBindings, NextJob, Timer *, pTimer, void )
 {
+    SAL_INFO( "debug", "IMPL_LINK_TYPED( SfxBindings, NextJob, Timer *, pTimer, void )" );
     NextJob_Impl(pTimer);
 }
 

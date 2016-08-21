@@ -1920,7 +1920,7 @@ bool SfxDispatcher::FillState_(const SfxSlotServer& rSvr, SfxItemSet& rState,
             pFunc = pRealSlot->GetStateFnc();
         else
             pFunc = pSlot->GetStateFnc();
-
+        SAL_INFO( "debug", "SfxDispatcher::FillState_" );
         pSh->CallState( pFunc, rState );
 #ifdef DBG_UTIL
         // To examine the conformity of IDL (SlotMap) and current Items

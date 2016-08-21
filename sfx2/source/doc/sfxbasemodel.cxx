@@ -2602,21 +2602,25 @@ bool SfxBaseModel::getBoolPropertyValue( const OUString& rName ) throw ( Runtime
 
 sal_Bool SAL_CALL SfxBaseModel::isVersionable( ) throw ( RuntimeException, std::exception )
 {
+    SAL_INFO( "debug", "SfxBaseModel::isVersionable - get prop IsVersionable" );
     return getBoolPropertyValue( "IsVersionable" );
 }
 
 sal_Bool SAL_CALL SfxBaseModel::canCheckOut( ) throw ( RuntimeException, std::exception )
 {
+    SAL_INFO( "debug", "SfxBaseModel::canCheckOut - get prop CanCheckOut" );
     return getBoolPropertyValue( "CanCheckOut" );
 }
 
 sal_Bool SAL_CALL SfxBaseModel::canCancelCheckOut( ) throw ( RuntimeException, std::exception )
 {
+    SAL_INFO( "debug", "SfxBaseModel::canCancelCheckOut - get prop CanCancelCheckOut" );
     return getBoolPropertyValue( "CanCancelCheckOut" );
 }
 
 sal_Bool SAL_CALL SfxBaseModel::canCheckIn( ) throw ( RuntimeException, std::exception )
 {
+    SAL_INFO( "debug", "SAL_CALL SfxBaseModel::canCheckIn - get prop CanCheckIn" );
     return getBoolPropertyValue( "CanCheckIn" );
 }
 
