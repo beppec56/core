@@ -129,6 +129,42 @@ Content::Content(
 
         NeonUri aURI( Identifier->getContentIdentifier() );
         m_aEscapedTitle = aURI.GetPathBaseName();
+        // if not yet done, add the UCB CMIS properties
+        if ( !m_xCachedProps.get() )
+        {
+            SAL_INFO( "debug", "===========------------>>>>>>>>>>>>>>> m_xCachedProps EMPTY!" );
+            // add here the UCB properties for CMIS, in this implementation of webdav
+            // they are at a value of FALSE, unchangeable since this WebDAV provider doesn't
+            // support versioning
+            std::unique_ptr< ContentProperties > xProps;
+            DAVResource aDavRes;
+            aDavRes.uri = Identifier->getContentIdentifier();
+            DAVPropertyValue thePropertyValue;
+
+            thePropertyValue.Name = "IsVersionable";
+            thePropertyValue.IsCaseSensitive = false;
+            thePropertyValue.Value <<= false;
+            aDavRes.properties.push_back( thePropertyValue );
+
+            thePropertyValue.Name = "CanCheckOut";
+            thePropertyValue.IsCaseSensitive = false;
+            thePropertyValue.Value <<= false;
+            aDavRes.properties.push_back( thePropertyValue );
+
+            thePropertyValue.Name = "CanCancelCheckOut";
+            thePropertyValue.IsCaseSensitive = false;
+            thePropertyValue.Value <<= false;
+            aDavRes.properties.push_back( thePropertyValue );
+
+            thePropertyValue.Name = "CanCheckIn";
+            thePropertyValue.IsCaseSensitive = false;
+            thePropertyValue.Value <<= false;
+            aDavRes.properties.push_back( thePropertyValue );
+
+            xProps.reset( new ContentProperties( aDavRes ) );
+            m_xCachedProps.reset( new CachableContentProperties( *xProps.get() ) );
+        }
+
     }
     catch ( DAVException const & )
     {

@@ -106,6 +106,41 @@ bool ContentProvider::getProperty(
                     cppu::UnoType<OUString>::get(),
                     beans::PropertyAttribute::BOUND ) );
 
+            // UCB properties for CMIS operation
+            // needed for client interaction
+            // added to false falues
+            m_pProps->insert(
+                beans::Property(
+                    OUString( "IsVersionable" ),
+                    -1,
+                    cppu::UnoType<bool>::get(),
+                    beans::PropertyAttribute::BOUND
+                        | beans::PropertyAttribute::READONLY ) );
+
+            m_pProps->insert(
+                beans::Property(
+                    OUString( "CanCheckOut" ),
+                    -1,
+                    cppu::UnoType<bool>::get(),
+                    beans::PropertyAttribute::BOUND
+                        | beans::PropertyAttribute::READONLY ) );
+
+            m_pProps->insert(
+                beans::Property(
+                    OUString( "CanCancelCheckOut" ),
+                    -1,
+                    cppu::UnoType<bool>::get(),
+                    beans::PropertyAttribute::BOUND
+                        | beans::PropertyAttribute::READONLY ) );
+
+            m_pProps->insert(
+                beans::Property(
+                    OUString( "CanCheckIn" ),
+                    -1,
+                    cppu::UnoType<bool>::get(),
+                    beans::PropertyAttribute::BOUND
+                        | beans::PropertyAttribute::READONLY ) );
+
             // Optional UCB properties.
 
             m_pProps->insert(
