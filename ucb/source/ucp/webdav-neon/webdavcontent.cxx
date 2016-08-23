@@ -829,6 +829,8 @@ void Content::addProperty( const ucb::PropertyCommandArgument& aCmdArg,
     bool bIsSpecial = DAVProperties::isUCBSpecialProperty(
         aCmdArg.Property.Name, aSpecialName );
 
+    SAL_INFO( "ucb.ucp.webdav", " bIsSpecial: " << bIsSpecial << " Property.Name: " << aCmdArg.Property.Name << ", aSpecialName: " << aSpecialName );
+
     // Note: This requires network access!
     if ( getPropertySetInfo( xEnv, false /* don't cache data */ )
              ->hasPropertyByName(
@@ -1626,6 +1628,7 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         xResAccess.reset( new DAVResourceAccess( *m_xResAccess.get() ) );
     }
 
+    SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues" );
     uno::Sequence< uno::Any > aRet( rValues.getLength() );
     uno::Sequence< beans::PropertyChangeEvent > aChanges( rValues.getLength() );
     sal_Int32 nChanged = 0;
@@ -1653,10 +1656,12 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
 
     const beans::PropertyValue* pValues = rValues.getConstArray();
     sal_Int32 nCount = rValues.getLength();
+    SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues, nCount: " << nCount );
     for ( sal_Int32 n = 0; n < nCount; ++n )
     {
         const beans::PropertyValue& rValue = pValues[ n ];
         const OUString & rName = rValue.Name;
+        SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues, rName: " << rName );
 
         beans::Property aTmpProp;
         xProvider->getProperty( rName, aTmpProp );
@@ -1747,6 +1752,7 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         }
         else
         {
+            SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues Optional Props");
 
             // Optional props.
 
@@ -1762,7 +1768,8 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
             if ( !xInfo->hasPropertyByName(
                      bIsSpecial ? aSpecialName : rName ) )
             {
-                // Check, whether property exists. Skip otherwise.
+                SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues Optional Props");
+                 // Check, whether property exists. Skip otherwise.
                 // PROPPATCH::set would add the property automatically, which
                 // is not allowed for "setPropertyValues" command!
                 aRet[ n ] <<= beans::UnknownPropertyException(
@@ -1809,6 +1816,7 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
             }
             else
             {
+                SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues Optional Props");
                 if ( getResourceType( xEnv, xResAccess ) == DAV )
                 {
                     // Property value will be set on server.
@@ -1821,17 +1829,20 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
                 }
                 else
                 {
-                    // Property value will be stored in local property store.
+                    SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues Optional Props");
+                     // Property value will be stored in local property store.
                     if ( !bTriedToGetAdditionalPropSet &&
                          !xAdditionalPropSet.is() )
                     {
-                        xAdditionalPropSet
+                        SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues Optional Props");
+                         xAdditionalPropSet
                             = getAdditionalPropertySet( false );
                         bTriedToGetAdditionalPropSet = true;
                     }
 
                     if ( xAdditionalPropSet.is() )
                     {
+                        SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues Optional Props");
                         try
                         {
                             uno::Any aOldValue
@@ -1877,6 +1888,8 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         }
     } // for
 
+    SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues");
+
     if ( !bTransient && !aProppatchValues.empty() )
     {
         try
@@ -1884,6 +1897,7 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
             // clean cached value of PROPFIND property names
             // PROPPATCH can change them
             removeCachedPropertyNames( xResAccess->getURL() );
+            SAL_WARN( "ucb.ucp.webdav"," - Content::setPropertyValues Optional Props");
             // Set property values at server.
             aStaticDAVOptionsCache.removeDAVOptions( xResAccess->getURL() );
             xResAccess->PROPPATCH( aProppatchValues, xEnv );

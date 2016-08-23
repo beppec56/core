@@ -64,6 +64,8 @@
 #include <com/sun/star/logging/DocumentIOLogRing.hpp>
 #include <com/sun/star/logging/XSimpleLogRing.hpp>
 #include <com/sun/star/beans/PropertyValue.hpp>
+#include <com/sun/star/beans/PropertyAttribute.hpp>
+#include <com/sun/star/beans/XPropertyContainer.hpp>
 #include <com/sun/star/security/DocumentSignatureInformation.hpp>
 #include <com/sun/star/security/DocumentDigitalSignatures.hpp>
 #include <tools/urlobj.hxx>
@@ -1077,6 +1079,51 @@ void SfxMedium::LockOrigFileOnDemand( bool bLoading, bool bNoUI )
         catch ( const uno::Exception& )
         {
             SAL_WARN( "sfx.doc", "Locking exception: WebDAV while trying to lock the file" );
+        }
+        {//test && debug
+            // create a command env specific
+            uno::Reference< task::XInteractionHandler > xCHandlerProp;
+            xCHandlerProp.set( task::InteractionHandler::createWithParent( ::comphelper::getProcessComponentContext() , nullptr), UNO_QUERY_THROW);
+
+            Reference< css::ucb::XCommandEnvironment > xComEnvProp = new ::ucbhelper::CommandEnvironment(
+                xCHandlerProp, Reference< css::ucb::XProgressHandler >() );
+
+            ucbhelper::Content aContentProp(
+                GetURLObject().GetMainURL( INetURLObject::NO_DECODE ),
+                xComEnvProp, comphelper::getProcessComponentContext() );
+
+            try
+            {
+                // get underlying Content Provider
+                OUString aTheProp( "MyPrivateDavProperty" );
+                css::uno::Reference< css::ucb::XContent >   rContentProp =  aContentProp.get();
+                if( rContentProp.is() )
+                {
+                    OUString aPropDef( "" );
+                    // Obtain the property container
+                    uno::Reference< XPropertyContainer > xProperties( rContentProp.get(), UNO_QUERY );
+                    if( xProperties.is() )
+                    {
+                        SAL_WARN( "ucb.ucp.webdav"," GOT XPropertyContainer!" );
+                        // add the test property
+                        xProperties->addProperty( aTheProp, css::beans::PropertyAttribute::REMOVABLE, css::uno::makeAny( aPropDef ) );
+                        SAL_WARN( "ucb.ucp.webdav","=-----------------> Added the test property" );
+                        OUString aStr( "My value string" );
+                        SAL_WARN( "ucb.ucp.webdav","=-----------------> set value" );
+                        aContentProp.setPropertyValue( aTheProp, css::uno::makeAny( aStr ) );
+                        OUString aPropValRet;
+                        SAL_WARN( "ucb.ucp.webdav","=-----------------> get value" );
+                        aContentProp.getPropertyValue( aTheProp ) >>= aPropValRet;
+                        SAL_WARN( "ucb.ucp.webdav","=----------------->  returned prop value: '" << aPropValRet << "'" );
+                        xProperties->removeProperty( aTheProp );
+                        SAL_WARN( "ucb.ucp.webdav","=-----------------> Removed the test property" );
+                    }
+                }
+            }
+            catch( uno::Exception& e )
+            {
+                SAL_WARN( "ucb.ucp.webdav"," Exception: " << e.Message );
+            }
         }
         return;
     }

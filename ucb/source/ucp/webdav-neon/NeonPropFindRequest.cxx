@@ -117,6 +117,7 @@ extern "C" int NPFR_propfind_iter( void* userdata,
     bool bHasValue = false;
     if ( DAVProperties::isUCBDeadProperty( *pname ) )
     {
+        SAL_INFO( "ucb.ucp.webdav", "NPFR_propfind_iter - found dead property" );
         // DAV dead property added by WebDAV UCP?
         if ( UCBDeadPropertyValue::createFromXML(
                  value, thePropertyValue.Value ) )
