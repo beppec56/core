@@ -3,7 +3,7 @@
 # configuration for windows
 
 #get the branch point
-. ../conf-get-branch-point-lo51.sh
+. ./conf-get-branch-point-lo513.sh
 
 . ../gdrive-lohs-credential.shinc
 
