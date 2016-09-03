@@ -111,7 +111,6 @@ oslFileError oslTranslateFileError (/*DWORD*/ unsigned long dwError)
     {
         if (dwError == errtable[i].oscode)
         {
-            OSL_TRACE_DL( "Win API error: dwError %08x (%u)", dwError, dwError );
             return (oslFileError)(errtable[i].errnocode);
         }
     }
