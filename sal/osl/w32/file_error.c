@@ -110,13 +110,17 @@ oslFileError oslTranslateFileError (/*DWORD*/ unsigned long dwError)
     for (i = 0; i < n; ++i )
     {
         if (dwError == errtable[i].oscode)
+        {
+            OSL_TRACE_DL( "Win API error: dwError %08x (%u)", dwError, dwError );
             return (oslFileError)(errtable[i].errnocode);
+        }
     }
 
     /* The error code wasn't in the table.  We check for a range of
        osl_File_E_ACCES errors or exec failure errors (ENOEXEC).
        Otherwise osl_File_E_INVAL is returned.
     */
+    OSL_TRACE_DL( "=------>>>> Win API error NOT in table: dwError %08x (%u)", dwError, dwError );
     if ( (dwError >= MIN_EACCES_RANGE) && (dwError <= MAX_EACCES_RANGE) )
         return osl_File_E_ACCES;
     else if ( (dwError >= MIN_EXEC_ERROR) && (dwError <= MAX_EXEC_ERROR) )
