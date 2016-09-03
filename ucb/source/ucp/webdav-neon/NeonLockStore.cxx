@@ -64,7 +64,7 @@ private:
 
 void TickerThread::execute()
 {
-    SAL_INFO( "ucb.ucp.webdav", "TickerThread: start." );
+    SAL_INFO_DL( "ucb.ucp.webdav", "TickerThread: start." );
 
     // we have to go through the loop more often to be able to finish ~quickly
     const int nNth = 25;
@@ -84,7 +84,7 @@ void TickerThread::execute()
         salhelper::Thread::wait( aTV );
     }
 
-    SAL_INFO( "ucb.ucp.webdav", "TickerThread: stop." );
+    SAL_INFO_DL( "ucb.ucp.webdav", "TickerThread: stop." );
 }
 
 NeonLockStore::NeonLockStore()

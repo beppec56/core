@@ -55,7 +55,7 @@ void process_headers( ne_request * req,
 
             while ( it != end )
             {
-                SAL_INFO( "ucb.ucp.webdav", "HEAD - requested header: " << (*it) );
+                SAL_INFO_DL( "ucb.ucp.webdav", "HEAD - requested header: " << (*it) );
                 ++it;
             }
         }
@@ -66,7 +66,7 @@ void process_headers( ne_request * req,
         OUString aHeaderName( OUString::createFromAscii( name ) );
         OUString aHeaderValue( OUString::createFromAscii( value ) );
 
-        SAL_INFO( "ucb.ucp.webdav", "HEAD - received header: " << aHeaderName << ":" << aHeaderValue);
+        SAL_INFO_DL( "ucb.ucp.webdav", "HEAD - received header: " << aHeaderName << ":" << aHeaderValue);
 
         // Note: Empty vector means that all headers are requested.
         bool bIncludeIt = ( rHeaderNames.empty() );
