@@ -9,6 +9,7 @@
 
 ./autogen.sh \
 --with-distro=LibreOfficeWin32 \
+--enable-release-build \
 --with-vendor="Acca Esse, I-10067" \
 --with-gdrive-client-id="$GDRIVE_CLIENT_ID" \
 --with-gdrive-client-secret="$GDRIVE_CLIENT_SECRET" \
