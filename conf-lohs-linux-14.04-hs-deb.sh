@@ -19,4 +19,7 @@
 --with-lang='en-US it fr de pt-BR' \
 --with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g')$(echo :$(git log -n1 --format=%h)) based on $ROOT_BRANCH:$BRANCH_POINT2" \
 
-make scp2.clean
+echo "Cleaning scp2..."
+make scp2.clean 2>&1 > /dev/null
+cat autogen.lastrun
+

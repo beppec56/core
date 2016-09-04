@@ -29,6 +29,7 @@
 
 echo "Cleaning scp2..."
 d:/lode/opt/bin/make scp2.clean 2>&1 > /dev/null
+cat autogen.lastrun
 
 exit
 
