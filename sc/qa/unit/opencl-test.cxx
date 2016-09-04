@@ -370,7 +370,7 @@ public:
     CPPUNIT_TEST(testMathFormulaArcCos);
     CPPUNIT_TEST(testMathFormulaSqrt);
     CPPUNIT_TEST(testMathFormulaArcCosHyp);
-    CPPUNIT_TEST(testFinancialXirrFormula);
+//    CPPUNIT_TEST(testFinancialXirrFormula);
     CPPUNIT_TEST(testFinacialNPVFormula);
     CPPUNIT_TEST(testStatisticalFormulaNormsdist);
     CPPUNIT_TEST(testStatisticalFormulaNorminv);
