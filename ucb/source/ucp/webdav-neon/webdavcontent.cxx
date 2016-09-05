@@ -110,18 +110,11 @@ namespace
         aPartialGet.push_back( DAVRequestHeader( OUString( "Range" ), // see <https://tools.ietf.org/html/rfc7233#section-3.1>
                                                  OUString( "bytes=0-0" ) ) );
 
-        for ( std::vector< rtl::OUString >::const_iterator it = aHeaderNames.begin();
-              it != aHeaderNames.end(); ++it )
+        if ( ( std::find( aHeaderNames.begin(),
+                          aHeaderNames.end(),
+                          "Content-Length" ) ) != aHeaderNames.end() )
         {
-            if ( *it == "Content-Length" )
-            {
-                bIsRequestSize = true;
-                break;
-            }
-        }
-
-        if ( bIsRequestSize )
-        {
+            bIsRequestSize = true;
             // we need to know if the server accepts range requests for a resource
             // and the range unit it uses
             aHeaderNames.push_back( OUString( "Accept-Ranges" ) ); // see <https://tools.ietf.org/html/rfc7233#section-2.3>
