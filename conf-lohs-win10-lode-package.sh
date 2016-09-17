@@ -24,7 +24,7 @@
 --with-help \
 --with-myspell-dicts \
 --disable-dependency-tracking \
---enable-mergelibs \
+--disable-mergelibs \
 \
 --with-build-version="$(date +"%Y-%m-%d %H:%M:%S") - Rev. $(git branch |grep "*" | sed 's/* //g')$(echo :$(git log -n1 --format=%h)) based on $ROOT_BRANCH:$BRANCH_POINT2" \
 
