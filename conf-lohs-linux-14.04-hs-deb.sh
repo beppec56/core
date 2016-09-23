@@ -14,7 +14,7 @@
 --with-gdrive-client-secret="$GDRIVE_CLIENT_SECRET" \
 --with-external-tar=/srv5/git/LO/externals \
 --disable-kde4 \
---disable-gio \
+--enable-gio \
  \
 --with-package-format="deb" \
 --with-lang='en-US it fr de pt-BR' \
