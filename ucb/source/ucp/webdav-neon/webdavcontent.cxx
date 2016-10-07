@@ -3923,12 +3923,6 @@ Content::ResourceType Content::getResourceType(
             {
                 eResourceType = NON_DAV;
             }
-            else
-            {
-                //resource doesn't exist
-                if ( networkAccessAllowed != nullptr )
-                    *networkAccessAllowed = false;
-          }
         }
     }
 
