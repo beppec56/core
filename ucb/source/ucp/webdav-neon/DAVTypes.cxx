@@ -34,7 +34,6 @@ DAVOptions::DAVOptions() :
 {
 }
 
-
 DAVOptions::DAVOptions( const DAVOptions & rOther ) :
     m_isClass1( rOther.m_isClass1 ),
     m_isClass2( rOther.m_isClass2 ),
@@ -50,11 +49,9 @@ DAVOptions::DAVOptions( const DAVOptions & rOther ) :
 {
 }
 
-
 DAVOptions::~DAVOptions()
 {
 }
-
 
 bool DAVOptions::operator==( const DAVOptions& rOpts ) const
 {
@@ -79,11 +76,9 @@ DAVOptionsCache::DAVOptionsCache()
 {
 }
 
-
 DAVOptionsCache::~DAVOptionsCache()
 {
 }
-
 
 bool DAVOptionsCache::getDAVOptions( const OUString & rURL, DAVOptions & rDAVOptions )
 {
@@ -113,7 +108,6 @@ bool DAVOptionsCache::getDAVOptions( const OUString & rURL, DAVOptions & rDAVOpt
     }
 }
 
-
 void DAVOptionsCache::removeDAVOptions( const OUString & rURL )
 {
     osl::MutexGuard aGuard( m_aMutex );
@@ -127,7 +121,6 @@ void DAVOptionsCache::removeDAVOptions( const OUString & rURL )
         m_aTheCache.erase( it );
     }
 }
-
 
 void DAVOptionsCache::addDAVOptions( DAVOptions & rDAVOptions, const sal_uInt32 nLifeTime )
 {
@@ -147,6 +140,32 @@ void DAVOptionsCache::addDAVOptions( DAVOptions & rDAVOptions, const sal_uInt32 
     rDAVOptions.setStaleTime( t1.Seconds + nLifeTime );
 
     m_aTheCache[ aEncodedUrl ] = rDAVOptions;
+}
+
+void DAVOptionsCache::addDAVOptionsIfNotCached( DAVOptions & rDAVOptions, const sal_uInt32 nLifeTime )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aURL( rDAVOptions.getURL() );
+
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( aURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+    rDAVOptions.setURL( aEncodedUrl );
+
+// unchanged, it may be used to access a server
+    OUString aRedirURL( rDAVOptions.getRedirectedURL() );
+    rDAVOptions.setRedirectedURL( aRedirURL );
+
+    // check if already cached
+    DAVOptionsMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        rDAVOptions.setStaleTime( t1.Seconds + nLifeTime );
+
+        m_aTheCache[ aEncodedUrl ] = rDAVOptions;
+    }
 }
 
 sal_uInt16 DAVOptionsCache::getHttpResponseStatusCode( const OUString & rURL, OUString & rHttpResponseStatusText )

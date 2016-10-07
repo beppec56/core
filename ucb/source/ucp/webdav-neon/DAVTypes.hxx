@@ -174,6 +174,8 @@ namespace webdav_ucp
         void removeDAVOptions( const OUString & rURL );
         void addDAVOptions( DAVOptions & rDAVOptions, const sal_uInt32 nLifeTime );
 
+        void addDAVOptionsIfNotCached( DAVOptions & rDAVOptions, const sal_uInt32 nLifeTime );
+
         /** return the cached value of HTTP response status code
             If the cached value is found stale, it is removed.
 
