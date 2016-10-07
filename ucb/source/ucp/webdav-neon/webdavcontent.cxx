@@ -1645,6 +1645,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                                  aLastException.getStatus() == SC_NOT_FOUND )
                             {
                                 SAL_WARN( "ucb.ucp.webdav", "HEAD probably not implemented: fall back to a partial GET" );
+                                aStaticDAVOptionsCache.setHeadAllowed( aTargetURL, false );
                                 lcl_sendPartialGETRequest( bError,
                                                            aLastException,
                                                            aMissingProps,

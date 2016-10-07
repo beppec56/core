@@ -174,6 +174,29 @@ sal_uInt16 DAVOptionsCache::getHttpResponseStatusCode( const OUString & rURL, OU
     return 0;
 }
 
+void DAVOptionsCache::setHeadAllowed( const OUString & rURL, const bool HeadAllowed )
+{
+    osl::MutexGuard aGuard( m_aMutex );
+    OUString aEncodedUrl( ucb_impl::urihelper::encodeURI( NeonUri::unescape( rURL ) ) );
+    normalizeURLLastChar( aEncodedUrl );
+
+    DAVOptionsMap::iterator it;
+    it = m_aTheCache.find( aEncodedUrl );
+    if ( it != m_aTheCache.end() )
+    {
+        // first check for stale
+        TimeValue t1;
+        osl_getSystemTime( &t1 );
+        if( (*it).second.getStaleTime() < t1.Seconds )
+        {
+            m_aTheCache.erase( it );
+            return;
+        }
+        // check if the resource was present on server
+        (*it).second.setHeadAllowed( HeadAllowed );
+    }
+}
+
 bool DAVOptionsCache::isHeadAllowed( const OUString & rURL )
 {
     osl::MutexGuard aGuard( m_aMutex );

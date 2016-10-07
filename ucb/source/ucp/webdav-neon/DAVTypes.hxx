@@ -190,6 +190,8 @@ namespace webdav_ucp
 
         bool isHeadAllowed( const OUString & rURL );
 
+        void setHeadAllowed( const OUString & rURL, bool HeadAllowed = true );
+
     private:
 
         /// remove the last '/' in aUrl, if it exists
