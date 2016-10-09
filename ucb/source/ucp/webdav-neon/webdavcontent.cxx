@@ -1655,11 +1655,25 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                                                            xEnv );
                                 m_bDidGetOrHead = !bError;
                             }
-                        } // TODO cache the http error if not yet cached
+                        }
 
                         if ( bError )
                         {
-                            //TODO cache the http error if not yet cached
+                            DAVOptions aDAVOptionsException;
+
+                            aDAVOptions.setURL( aTargetURL );
+                            // check if the error was SC_NOT_FOUND, meaning that the
+                            // GET fall back didn't succeeded and the element is really missing
+                            // we will consider the resource SC_GONE for some time
+                            sal_uInt16 ResponseStatusCode =
+                                ( aLastException.getStatus() == SC_NOT_FOUND ) ?
+                                SC_GONE :
+                                aLastException.getStatus();
+                            aDAVOptionsException.setHttpResponseStatusCode( ResponseStatusCode );
+                            aDAVOptionsException.setHttpResponseStatusText( aLastException.getData() );
+                            aStaticDAVOptionsCache.addDAVOptions( aDAVOptionsException,
+                                                                  m_nOptsCacheLifeNotFound );
+
                             if ( !shouldAccessNetworkAfterException( aLastException ) )
                             {
                                 cancelCommandExecution( aLastException, xEnv );
