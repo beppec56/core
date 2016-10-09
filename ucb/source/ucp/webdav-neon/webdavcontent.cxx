@@ -1683,7 +1683,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                             aStaticDAVOptionsCache.updateCachedOption( aDAVOptionsException,
                                                                        m_nOptsCacheLifeNotFound );
 
-                            if ( !shouldAccessNetworkAfterException( aLastException ) )
+                            if ( ResponseStatusCode != SC_GONE && !shouldAccessNetworkAfterException( aLastException ) )
                             {
                                 cancelCommandExecution( aLastException, xEnv );
                                 // unreachable
@@ -2340,8 +2340,9 @@ uno::Any Content::open(
                     // as a consequence of getPropertyValues()
                     DAVOptions aDAVOptions;
                     getResourceOptions( xEnv, aDAVOptions, xResAccess );
+                    sal_uInt16 ResponseStatusCode = aDAVOptions.getHttpResponseStatusCode();
 
-                    if ( aDAVOptions.getHttpResponseStatusCode() != SC_NONE )
+                    if ( ResponseStatusCode != SC_NONE && ResponseStatusCode != SC_GONE )
                     {
                         // throws exception as if there was a server error, a DAV exception
                         throw DAVException( DAVException::DAV_HTTP_ERROR,
