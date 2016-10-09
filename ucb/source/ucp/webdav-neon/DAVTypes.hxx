@@ -152,6 +152,7 @@ namespace webdav_ucp
             m_sHttpResponseStatusText.clear();
         };
 
+        DAVOptions & operator=( const DAVOptions& rOpts );
         bool operator==( const DAVOptions& rOpts ) const;
 
     };

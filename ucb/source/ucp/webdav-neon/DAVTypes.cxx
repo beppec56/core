@@ -53,6 +53,22 @@ DAVOptions::~DAVOptions()
 {
 }
 
+DAVOptions & DAVOptions::operator=( const DAVOptions& rOpts )
+{
+    m_isClass1 = rOpts.m_isClass1;
+    m_isClass2 = rOpts.m_isClass2;
+    m_isClass3 = rOpts.m_isClass3;
+    m_isLocked = rOpts.m_isLocked;
+    m_isHeadAllowed = rOpts.m_isHeadAllowed;
+    m_aAllowedMethods = rOpts.m_aAllowedMethods;
+    m_nStaleTime = rOpts.m_nStaleTime;
+    m_sURL = rOpts.m_sURL;
+    m_sRedirectedURL = rOpts.m_sRedirectedURL;
+    m_nHttpResponseStatusCode = rOpts.m_nHttpResponseStatusCode;
+    m_sHttpResponseStatusText = rOpts.m_sHttpResponseStatusText;
+    return *this;
+}
+
 bool DAVOptions::operator==( const DAVOptions& rOpts ) const
 {
     return
