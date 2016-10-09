@@ -126,15 +126,18 @@ namespace webdav_ucp
         void setRequestedTimeLife( const sal_uInt32 nRequestedTimeLife ) { m_nRequestedTimeLife = nRequestedTimeLife; };
 
         std::shared_ptr<DavURLObject> getURL() const {
+            SAL_INFO( "ucb.ucp.webdav", "DAVOptions::getURL() - <" << m_rURL->GetMainURL()  << ">" );
             return std::shared_ptr<DavURLObject>( m_rURL );
         };
 
         void setURL( const std::shared_ptr<DavURLObject> rURL ) {
             m_rURL = rURL;
+            SAL_INFO( "ucb.ucp.webdav", "DAVOptions::setURL() - <" << m_rURL->GetMainURL() << ">" );
         };
 
         void clearURL() {
             m_rURL = std::make_shared<DavURLObject>( DavURLObject() );
+            SAL_INFO( "ucb.ucp.webdav", "DAVOptions::clearURL() - <" << m_rURL->GetMainURL() << ">" );
         };
 
         const OUString & getRedirectedURL() const { return m_sRedirectedURL; };
@@ -148,10 +151,14 @@ namespace webdav_ucp
         bool isLocked() const { return m_isLocked; };
 
         sal_uInt16 getHttpResponseStatusCode() const { return m_nHttpResponseStatusCode; };
-        void setHttpResponseStatusCode( const sal_uInt16 nHttpResponseStatusCode ) { m_nHttpResponseStatusCode = nHttpResponseStatusCode; };
+        void setHttpResponseStatusCode( const sal_uInt16 nHttpResponseStatusCode ) {
+            SAL_INFO( "ucb.ucp.webdav", "setHttpResponseStatusCode() - nHttpResponseStatusCode: " << nHttpResponseStatusCode );
+            m_nHttpResponseStatusCode = nHttpResponseStatusCode; };
 
         const OUString & getHttpResponseStatusText() const { return m_sHttpResponseStatusText; };
-        void setHttpResponseStatusText( const OUString & rHttpResponseStatusText ) { m_sHttpResponseStatusText = rHttpResponseStatusText; };
+        void setHttpResponseStatusText( const OUString & rHttpResponseStatusText ) {
+            SAL_INFO( "ucb.ucp.webdav", "rHttpResponseStatusText: " << rHttpResponseStatusText );
+            m_sHttpResponseStatusText = rHttpResponseStatusText; };
 
         void init() {
             m_isClass1 = false;
@@ -166,10 +173,14 @@ namespace webdav_ucp
             m_sRedirectedURL.clear();
             m_nHttpResponseStatusCode = 0;
             m_sHttpResponseStatusText.clear();
+            SAL_INFO( "ucb.ucp.webdav", "init()" );
         };
 
         DAVOptions & operator=( const DAVOptions& rOpts );
         bool operator==( const DAVOptions& rOpts ) const;
+
+        //debug: print string rapresentation of the options
+        std::shared_ptr<std::string>  toString() const;
 
     };
 
