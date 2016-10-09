@@ -158,7 +158,7 @@ void DAVOptionsCache::addDAVOptions( DAVOptions & rDAVOptions, const sal_uInt32 
     m_aTheCache[ aEncodedUrl ] = rDAVOptions;
 }
 
-void DAVOptionsCache::addDAVOptionsIfNotCached( DAVOptions & rDAVOptions, const sal_uInt32 nLifeTime )
+void DAVOptionsCache::updateCachedOption( DAVOptions & rDAVOptions, const sal_uInt32 nLifeTime )
 {
     osl::MutexGuard aGuard( m_aMutex );
     OUString aURL( rDAVOptions.getURL() );
@@ -176,11 +176,18 @@ void DAVOptionsCache::addDAVOptionsIfNotCached( DAVOptions & rDAVOptions, const 
     it = m_aTheCache.find( aEncodedUrl );
     if ( it != m_aTheCache.end() )
     {
+        DAVOptions &opts = (*it).second;
+        // exists, set new staletime, only if remaining time is higher
         TimeValue t1;
         osl_getSystemTime( &t1 );
-        rDAVOptions.setStaleTime( t1.Seconds + nLifeTime );
 
-        m_aTheCache[ aEncodedUrl ] = rDAVOptions;
+        if ( ( opts.getStaleTime() - t1.Seconds ) > nLifeTime )
+        {
+            opts.setStaleTime( t1.Seconds + nLifeTime );
+        }
+        // update relevant fields
+        opts.setHttpResponseStatusCode( rDAVOptions.getHttpResponseStatusCode() );
+        opts.setHttpResponseStatusText( rDAVOptions.getHttpResponseStatusText() );
     }
 }
 

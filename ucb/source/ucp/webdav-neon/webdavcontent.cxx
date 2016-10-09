@@ -1590,8 +1590,13 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                         // PROPPATCH can change them
                         removeCachedPropertyNames( aTargetURL );
                         // test if HEAD allowed, if not, throw, will be catched immediately
-                        if ( !aDAVOptions.isHeadAllowed() )
+                        // SC_GONME used internally by us, see comment below
+                        // in the catch scope
+                        if ( aDAVOptions.getHttpResponseStatusCode() != SC_GONE &&
+                             !aDAVOptions.isHeadAllowed() )
+                        {
                             throw DAVException( DAVException::DAV_HTTP_ERROR, "405 Not Implemented", 405 );
+                        }
                         // if HEAD is enabled on this site
                         // check if there is a relevant HTTP response status code cached
                         if ( aDAVOptions.getHttpResponseStatusCode() != SC_NONE )
@@ -1661,18 +1666,22 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                         {
                             DAVOptions aDAVOptionsException;
 
-                            aDAVOptions.setURL( aTargetURL );
+                            aDAVOptionsException.setURL( aTargetURL );
                             // check if the error was SC_NOT_FOUND, meaning that the
                             // GET fall back didn't succeeded and the element is really missing
-                            // we will consider the resource SC_GONE for some time
+                            // we will consider the resource SC_GONE (410) for some time
+                            // we use SC_GONE because has the same meaning of SC_NOT_FOUND (404)
+                            // see:
+                            // <https://tools.ietf.org/html/rfc7231#section-6.5.9> (retrieved 2016-10-09)
+                            // apparently it's not used to mark the missing HEAD method (so far...)
                             sal_uInt16 ResponseStatusCode =
                                 ( aLastException.getStatus() == SC_NOT_FOUND ) ?
                                 SC_GONE :
                                 aLastException.getStatus();
                             aDAVOptionsException.setHttpResponseStatusCode( ResponseStatusCode );
                             aDAVOptionsException.setHttpResponseStatusText( aLastException.getData() );
-                            aStaticDAVOptionsCache.addDAVOptions( aDAVOptionsException,
-                                                                  m_nOptsCacheLifeNotFound );
+                            aStaticDAVOptionsCache.updateCachedOption( aDAVOptionsException,
+                                                                       m_nOptsCacheLifeNotFound );
 
                             if ( !shouldAccessNetworkAfterException( aLastException ) )
                             {
@@ -3744,6 +3753,7 @@ uno::Any Content::MapDAVException( const DAVException & e, bool bWrite )
 bool Content::shouldAccessNetworkAfterException( const DAVException & e )
 {
     if ( ( e.getStatus() == SC_NOT_FOUND ) ||
+         ( e.getStatus() == SC_GONE ) ||
          ( e.getError() == DAVException::DAV_HTTP_TIMEOUT ) ||
          ( e.getError() == DAVException::DAV_HTTP_LOOKUP ) ||
          ( e.getError() == DAVException::DAV_HTTP_CONNECT ) ||
