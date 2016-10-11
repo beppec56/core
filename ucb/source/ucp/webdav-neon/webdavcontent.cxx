@@ -1681,8 +1681,8 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
                                 aLastException.getStatus();
                             aDAVOptionsException.setHttpResponseStatusCode( ResponseStatusCode );
                             aDAVOptionsException.setHttpResponseStatusText( aLastException.getData() );
-                            aStaticDAVOptionsCache.updateCachedOption( aDAVOptionsException,
-                                                                       m_nOptsCacheLifeNotFound );
+                            aStaticDAVOptionsCache.addDAVOptions( aDAVOptionsException,
+                                                                  m_nOptsCacheLifeNotFound );
 
                             if ( !shouldAccessNetworkAfterException( aLastException ) )
                             {
