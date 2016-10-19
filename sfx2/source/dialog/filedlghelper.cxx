@@ -2014,7 +2014,9 @@ namespace
             sPathCheck += ".";
             try
             {
-                ::ucbhelper::Content aContent( sPathCheck, uno::Reference< ucb::XCommandEnvironment >(), comphelper::getProcessComponentContext() );
+                ::ucbhelper::Content aContent( sPathCheck,
+                                               utl::UCBContentHelper::getDefaultCommandEnvironment(),
+                                               comphelper::getProcessComponentContext() );
                 bValid = aContent.isFolder();
             }
             catch( const Exception& ) {}
