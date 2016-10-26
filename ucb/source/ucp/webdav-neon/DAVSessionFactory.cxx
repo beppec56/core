@@ -65,6 +65,7 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
 
     if ( aIt == aEnd )
     {
+        SAL_WARN( "ucb.ucp.webdav", "inUri: " << inUri );
         NeonUri aURI( inUri );
 
         std::unique_ptr< DAVSession > xElement(

@@ -39,6 +39,7 @@
 #include <rtl/uri.hxx>
 #include <rtl/ustrbuf.hxx>
 #include <officecfg/Inet.hxx>
+#include <tools/urlobj.hxx>
 #include <ucbhelper/contentidentifier.hxx>
 #include <ucbhelper/propertyvalueset.hxx>
 #include <ucbhelper/simpleinteractionrequest.hxx>
@@ -230,6 +231,23 @@ Content::Content(
   m_bCollection( false ),
   m_bDidGetOrHead( false )
 {
+    INetURLObject a_URL( Identifier->getContentIdentifier() );
+
+    if ( !a_URL.HasError() )
+    {
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetMainURL: " << a_URL.GetMainURL( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetHost: "  << a_URL.GetHost( INetURLObject::NO_DECODE ));
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetURLPath: " << a_URL.GetURLPath( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::getName: "  << a_URL.getName( INetURLObject::LAST_SEGMENT, true, INetURLObject::NO_DECODE ));
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetParam: " << a_URL.GetParam( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetMark: " << a_URL.GetMark( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetURLNoPass: " << a_URL.GetURLNoPass( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetURLNoMark: " << a_URL.GetURLNoMark( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","INetURLObject:: -------- ");
+    }
+    else
+        SAL_WARN("ucb.ucp.webdav","INetURLObject has ERRORS!");
+
     try
     {
         initOptsCacheLifeTime();

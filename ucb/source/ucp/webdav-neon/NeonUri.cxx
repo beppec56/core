@@ -32,6 +32,7 @@
 #include <rtl/uri.hxx>
 #include <rtl/ustring.hxx>
 #include <rtl/ustrbuf.hxx>
+#include <tools/urlobj.hxx>
 #include "ne_alloc.h"
 #include "NeonUri.hxx"
 #include "DAVException.hxx"
@@ -96,10 +97,16 @@ NeonUri::NeonUri( const OUString & inUri )
         throw DAVException( DAVException::DAV_INVALID_ARG );
 
     // #i77023#
+    INetURLObject aURI( inUri );
     OUString aEscapedUri( ucb_impl::urihelper::encodeURI( inUri ) );
+    OUString aEscapedUri2( aURI.GetMainURL( INetURLObject::NO_DECODE ) );
+
+    SAL_WARN( "ucb.ucp.webdav", "aURI.GetMainURL: " << aURI.GetMainURL( INetURLObject::NO_DECODE ) );
 
     OString theInputUri(
         aEscapedUri.getStr(), aEscapedUri.getLength(), RTL_TEXTENCODING_UTF8 );
+
+    SAL_WARN( "ucb.ucp.webdav", "theInputUri: " << theInputUri << "\naEscapedUri2: " <<  aEscapedUri2 );
 
     ne_uri theUri;
     if ( ne_uri_parse( theInputUri.getStr(), &theUri ) != 0 )
