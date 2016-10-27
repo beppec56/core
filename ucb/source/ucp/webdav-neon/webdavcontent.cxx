@@ -88,6 +88,7 @@
 #include "webdavresultset.hxx"
 #include "ContentProperties.hxx"
 #include "NeonUri.hxx"
+#include "DAVUri.hxx"
 #include "UCBDeadPropertyValue.hxx"
 
 using namespace com::sun::star;
@@ -230,6 +231,25 @@ Content::Content(
   m_bCollection( false ),
   m_bDidGetOrHead( false )
 {
+    DAVUri a_URL( Identifier->getContentIdentifier() );
+
+    if ( !a_URL.HasError() )
+    {
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetMainURL: " << a_URL.GetMainURL( DAVUri::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetHost: "  << a_URL.GetHost( INetURLObject::NO_DECODE ));
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetURLPath: " << a_URL.GetURLPath( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","DAVUri::getName: "  << a_URL.getName( INetURLObject::LAST_SEGMENT, true, INetURLObject::NO_DECODE ));
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetParam: " << a_URL.GetParam( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetMark: " << a_URL.GetMark( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetURLNoPass: " << a_URL.GetURLNoPass( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetURLNoMark: " << a_URL.GetURLNoMark( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetPathQueryFragment: " << a_URL.GetPathQueryFragment() );
+        SAL_WARN("ucb.ucp.webdav","DAVUri::GetPathQueryFragment: " << a_URL.GetPathQueryFragment( INetURLObject::DECODE_WITH_CHARSET ) );
+        SAL_WARN("ucb.ucp.webdav","DAVUri:: -------- ");
+    }
+    else
+        SAL_WARN("ucb.ucp.webdav","DAVUri has ERRORS!");
+
     try
     {
         initOptsCacheLifeTime();
@@ -239,6 +259,7 @@ Content::Content(
                 Identifier->getContentIdentifier() ) );
 
         NeonUri aURI( Identifier->getContentIdentifier() );
+        DAVUri aDavUri( Identifier->getContentIdentifier() );
         m_aEscapedTitle = aURI.GetPathBaseName();
     }
     catch ( DAVException const & )
