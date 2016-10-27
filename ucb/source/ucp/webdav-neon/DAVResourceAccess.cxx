@@ -1097,16 +1097,21 @@ void DAVResourceAccess::initialize()
     osl::Guard< osl::Mutex > aGuard( m_aMutex );
     if ( m_aPath.isEmpty() )
     {
+        DAVUri aDavUri( m_aURL );
         NeonUri aURI( m_aURL );
-        OUString aPath( aURI.GetPath() );
+//        OUString aPath( aURI.GetPath() );
+        OUString aPath( aDavUri.GetPathQueryFragment() );
 
-        /* #134089# - Check URI */
-        if ( aPath.isEmpty() )
-            throw DAVException( DAVException::DAV_INVALID_ARG );
+        SAL_WARN( "ucb.ucp.webdav", "aDavUri.path: " << aDavUri.GetPathQueryFragment() );
+        //      SAL_WARN( "ucb.ucp.webdav", "NeonUri.path: " << aPath );
 
-        /* #134089# - Check URI */
-        if ( aURI.GetHost().isEmpty() )
-            throw DAVException( DAVException::DAV_INVALID_ARG );
+        // /* #134089# - Check URI */
+        // if ( aPath.isEmpty() )
+        //     throw DAVException( DAVException::DAV_INVALID_ARG );
+
+        // /* #134089# - Check URI */
+        // if ( aURI.GetHost().isEmpty() )
+        //     throw DAVException( DAVException::DAV_INVALID_ARG );
 
         if ( !m_xSession.is() || !m_xSession->CanUse( m_aURL, m_aFlags ) )
         {
