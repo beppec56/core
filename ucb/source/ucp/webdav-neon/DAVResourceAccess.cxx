@@ -31,6 +31,7 @@
 
 #include "com/sun/star/task/XInteractionAbort.hpp"
 #include "com/sun/star/ucb/XWebDAVCommandEnvironment.hpp"
+#include <tools/urlobj.hxx>
 
 #include "ucbhelper/simpleauthenticationrequest.hxx"
 #include "comphelper/processfactory.hxx"
@@ -136,6 +137,7 @@ DAVResourceAccess::DAVResourceAccess(
   m_xContext( rxContext ),
   m_nRedirectLimit( 5 )
 {
+    SAL_WARN( "ucb.ucp.webdav", "DAVResourceAccess ctor URL <" << m_aURL << ">" );
 }
 
 
@@ -149,6 +151,7 @@ DAVResourceAccess::DAVResourceAccess( const DAVResourceAccess & rOther )
   m_aRedirectURIs( rOther.m_aRedirectURIs ),
   m_nRedirectLimit( rOther.m_nRedirectLimit )
 {
+    SAL_WARN( "ucb.ucp.webdav", "DAVResourceAccess COPY ctor\nm_aURL <" << m_aURL << ">\nm_aPath <" << m_aPath << ">");
 }
 
 
@@ -164,6 +167,7 @@ DAVResourceAccess & DAVResourceAccess::operator=(
     m_aRedirectURIs   = rOther.m_aRedirectURIs;
     m_nRedirectLimit = rOther.m_nRedirectLimit;
 
+    SAL_WARN( "ucb.ucp.webdav", "DAVResourceAccess operator= URL <" << m_aURL << ">\nPath <" << m_aPath << ">");
     return *this;
 }
 
@@ -1099,6 +1103,11 @@ void DAVResourceAccess::initialize()
     {
         NeonUri aURI( m_aURL );
         OUString aPath( aURI.GetPath() );
+        INetURLObject oURL( m_aURL );
+
+        SAL_WARN( "ucb.ucp.webdav", "DAVResourceAccess initialize m_aURL <" << m_aURL << ">\nPath <" << aPath << ">");
+        SAL_WARN( "ucb.ucp.webdav", "DAVResourceAccess initialize URLObj\nINetURLObject::GetURLPath <"
+                  << oURL.GetURLPath( INetURLObject::NO_DECODE ) << ">");
 
         /* #134089# - Check URI */
         if ( aPath.isEmpty() )

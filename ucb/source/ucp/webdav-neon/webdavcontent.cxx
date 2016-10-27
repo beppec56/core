@@ -237,8 +237,9 @@ Content::Content(
     {
         SAL_WARN("ucb.ucp.webdav","INetURLObject::GetMainURL: " << a_URL.GetMainURL( INetURLObject::NO_DECODE ) );
         SAL_WARN("ucb.ucp.webdav","INetURLObject::GetHost: "  << a_URL.GetHost( INetURLObject::NO_DECODE ));
-        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetURLPath: " << a_URL.GetURLPath( INetURLObject::NO_DECODE ) );
+        SAL_WARN("ucb.ucp.webdav","INetURLObject::GetURLPath: " << a_URL.GetURLPath( INetURLObject::NO_DECODE )w );
         SAL_WARN("ucb.ucp.webdav","INetURLObject::getName: "  << a_URL.getName( INetURLObject::LAST_SEGMENT, true, INetURLObject::NO_DECODE ));
+        SAL_WARN("ucb.ucp.webdav","INetURLObject:: Title: "  << a_URL.getName( INetURLObject::LAST_SEGMENT, true, INetURLObject::DECODE_WITH_CHARSET ));
         SAL_WARN("ucb.ucp.webdav","INetURLObject::GetParam: " << a_URL.GetParam( INetURLObject::NO_DECODE ) );
         SAL_WARN("ucb.ucp.webdav","INetURLObject::GetMark: " << a_URL.GetMark( INetURLObject::NO_DECODE ) );
         SAL_WARN("ucb.ucp.webdav","INetURLObject::GetURLNoPass: " << a_URL.GetURLNoPass( INetURLObject::NO_DECODE ) );
