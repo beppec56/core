@@ -259,6 +259,7 @@ handleCertificateValidationRequest_(
     sal_Int32 failures = rRequest.CertificateValidity;
     bool trustCert = true;
 
+    SAL_WARN("ucb.ucp.wendab","failures: " << failures);
     if ( ((failures & security::CertificateValidity::UNTRUSTED)
              == security::CertificateValidity::UNTRUSTED ) ||
          ((failures & security::CertificateValidity::ISSUER_UNTRUSTED)
@@ -271,6 +272,7 @@ handleCertificateValidationRequest_(
                                               rRequest.Certificate );
     }
 
+    SAL_WARN("ucb.ucp.wendab","trustCert " << trustCert);
     uno::Sequence< uno::Reference< security::XCertificateExtension > > extensions = rRequest.Certificate->getExtensions();
     uno::Sequence< security::CertAltNameEntry > altNames;
     for (sal_Int32 i = 0 ; i < extensions.getLength(); i++){
@@ -341,11 +343,13 @@ handleCertificateValidationRequest_(
 
     if ( trustCert )
     {
+        SAL_WARN("ucb.ucp.wendab","xApprove.is");
         if (xApprove.is())
             xApprove->select();
     }
     else
     {
+        SAL_WARN("ucb.ucp.wendab","xAbort.is");
         if (xAbort.is())
             xAbort->select();
     }

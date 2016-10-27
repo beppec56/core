@@ -357,6 +357,8 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
 {
     OSL_ASSERT( cert );
 
+    SAL_WARN("ucb.ucp.wendab","NeonSession_CertificationNotify");
+
     NeonSession * pSession = static_cast< NeonSession * >( userdata );
     uno::Reference< security::XCertificateContainer > xCertificateContainer;
     try
@@ -368,7 +370,10 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
     }
 
     if ( !xCertificateContainer.is() )
+    {
+        SAL_WARN("ucb.ucp.wendab","xCertificateContainer not found");
         return 1;
+    }
 
     char * dn = ne_ssl_readable_dname( ne_ssl_cert_subject( cert ) );
     OUString cert_subject( dn, strlen( dn ), RTL_TEXTENCODING_UTF8, 0 );
@@ -380,11 +385,13 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
             pSession->getHostName(), cert_subject ) );
 
     if ( certificateContainer != security::CertificateContainerStatus_NOCERT )
+    {
+        SAL_WARN("ucb.ucp.wendab","certificateContainer: " << certificateContainer);
         return
             certificateContainer == security::CertificateContainerStatus_TRUSTED
             ? 0
             : 1;
-
+    }
     uno::Reference< xml::crypto::XSEInitializer > xSEInitializer;
     try
     {
@@ -395,8 +402,10 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
     }
 
     if ( !xSEInitializer.is() )
+    {
+        SAL_WARN("ucb.ucp.wendab","xSEInitializer missing");
         return 1;
-
+    }
     uno::Reference< xml::crypto::XXMLSecurityContext > xSecurityContext(
         xSEInitializer->createSecurityContext( OUString() ) );
 
@@ -441,6 +450,7 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
     sal_Int64 certValidity = xSecurityEnv->verifyCertificate( xEECert,
         ::comphelper::containerToSequence( vecCerts ) );
 
+    SAL_WARN("ucb.ucp.wendab","certValidity " << certValidity);
     if ( pSession->isDomainMatch(
         GetHostnamePart( xEECert.get()->getSubjectName() ) ) )
     {
@@ -479,6 +489,7 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
                 else
                 {
                     // Don't trust cert
+                    SAL_WARN("ucb.ucp.wendab","Don't trust cert");
                     xCertificateContainer->addCertificate(
                         pSession->getHostName(), cert_subject, false );
                     return 1;
@@ -488,6 +499,7 @@ extern "C" int NeonSession_CertificationNotify( void *userdata,
         else
         {
             // Don't trust cert
+            SAL_WARN("ucb.ucp.wendab","Don't trust cert");
             xCertificateContainer->addCertificate(
                 pSession->getHostName(), cert_subject, false );
             return 1;
@@ -1840,7 +1852,7 @@ void NeonSession::HandleError( int nError,
 
             sal_uInt16 code = makeStatusCode( aText );
 
-            SAL_WARN( "ucb.ucp.webdav", "Neon returned NE_ERROR, http response status code was: " << code << " '" << aText << "'" );
+            SAL_WARN( "ucb.ucp.webdav", "Neon returned NE_ERROR, http response status code was: " << code << " '" << aText << "' path: <" << inPath <<">");
             if ( SC_BAD_REQUEST <= code && code < SC_INTERNAL_SERVER_ERROR )
             {
                 // error codes in the range 4xx
