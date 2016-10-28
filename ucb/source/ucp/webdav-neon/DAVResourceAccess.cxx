@@ -153,7 +153,7 @@ DAVResourceAccess::DAVResourceAccess( const DAVResourceAccess & rOther )
   m_nRedirectLimit( rOther.m_nRedirectLimit ),
   m_nID( osl_atomic_increment(&count) )
 {
-    SAL_INFO( "ucb.ucp.webdav", "DAVResourceAccess COPY ctor - nID: "<<m_nID<<", was id: "<< rOther.m_nID<<", Url <"<<m_aURL<<">");
+    SAL_INFO( "ucb.ucp.webdav", "DAVResourceAccess copy ctor - nID: "<<m_nID<<", was id: "<< rOther.m_nID<<", Url <"<<m_aURL<<">");
 }
 
 

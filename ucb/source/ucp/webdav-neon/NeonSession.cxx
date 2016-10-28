@@ -644,13 +644,15 @@ void NeonSession::Init()
     throw (css::uno::RuntimeException, std::exception)
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutexInit );
-    SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_sURI: " << m_sURI );
+    SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << " m_sURI: " << m_sURI );
 
     bool bCreateNewSession = false;
 
     if ( m_pHttpSession == nullptr )
     {
-        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_pHttpSession == nullptr - m_sURI: " << m_sURI );
+        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_pHttpSession == nullptr - niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << " m_sURI: " << m_sURI );
         // Ensure that Neon sockets are initialized
         osl::Guard< osl::Mutex > theGlobalGuard( aGlobalNeonMutex );
         if ( !m_bGlobalsInited )
@@ -690,7 +692,8 @@ void NeonSession::Init()
     }
     else
     {
-        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_pHttpSession != nullptr - m_sURI: " << m_sURI );
+        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_pHttpSession != nullptr - niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << " m_sURI: " << m_sURI );
         // #112271# Check whether proxy settings are still valid (They may
         // change at any time). If not, create new Neon session.
 
@@ -715,7 +718,8 @@ void NeonSession::Init()
 
     if ( bCreateNewSession )
     {
-        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - bCreateNewSession - m_sURI: " << m_sURI );
+        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - bCreateNewSession - niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << " m_sURI: " << m_sURI );
         const sal_Int32    nConnectTimeoutMax = 180;
         const sal_Int32    nConnectTimeoutMin = 2;
         const sal_Int32    nReadTimeoutMax = 180;
@@ -1267,7 +1271,8 @@ NeonSession::GET( const OUString & inPath,
     throw ( std::exception )
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
-    SAL_INFO( "ucb.ucp.webdav", "GET - relative URL <" << inPath << ">" );
+    SAL_INFO( "ucb.ucp.webdav", "GET - niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << " relative URL <" << inPath << ">" );
 
     Init( rEnv );
 
