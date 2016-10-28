@@ -590,6 +590,7 @@ osl::Mutex aGlobalNeonMutex;
 NeonLockStore NeonSession::m_aNeonLockStore;
 
 static int count = 0;
+osl::Mutex aLocalNeonMutex;
 
 NeonSession::NeonSession( const rtl::Reference< DAVSessionFactory > & rSessionFactory,
                           const OUString& inUri,
@@ -622,6 +623,7 @@ NeonSession::~NeonSession( )
     if ( m_pHttpSession )
     {
         {
+            osl::Guard< osl::Mutex > LocalNeonGuard( aLocalNeonMutex );
             osl::Guard< osl::Mutex > theGlobalGuard( aGlobalNeonMutex );
             ne_session_destroy( m_pHttpSession );
         }
@@ -702,6 +704,7 @@ void NeonSession::Init()
 
             // new session needed, destroy old first
             {
+                osl::Guard< osl::Mutex > LocalNeonGuard( aLocalNeonMutex );
                 osl::Guard< osl::Mutex > theGlobalGuard( aGlobalNeonMutex );
                 ne_session_destroy( m_pHttpSession );
             }
@@ -879,110 +882,111 @@ void NeonSession::OPTIONS( const OUString & inPath,
     rOptions.init();
 
     Init( rEnv );
-    int theRetVal;
-
-    ne_request *req = ne_request_create(m_pHttpSession, "OPTIONS", OUStringToOString(
-                                            inPath, RTL_TEXTENCODING_UTF8 ).getStr());
+    int theRetVal = NE_ERROR;
     {
-        osl::Guard< osl::Mutex > theGlobalGuard( aGlobalNeonMutex );
-        theRetVal = ne_request_dispatch(req);
-    }
+        osl::Guard< osl::Mutex > LocalNeonGuard( aLocalNeonMutex );
 
-    //check if http error is in the 200 class (no error)
-    if (theRetVal == NE_OK && ne_get_status(req)->klass != 2) {
-        theRetVal = NE_ERROR;
-    }
-
-    if ( theRetVal == NE_OK )
-    {
-        void *cursor = nullptr;
-        const char *name, *value;
-        while ( ( cursor = ne_response_header_iterate(
-                      req, cursor, &name, &value ) ) != nullptr )
+        ne_request *req = ne_request_create(m_pHttpSession, "OPTIONS", OUStringToOString(
+                                                inPath, RTL_TEXTENCODING_UTF8 ).getStr());
         {
-            OUString aHeaderName( OUString::createFromAscii( name ).toAsciiLowerCase() );
-            OUString aHeaderValue( OUString::createFromAscii( value ) );
+            osl::Guard< osl::Mutex > theGlobalGuard( aGlobalNeonMutex );
+            theRetVal = ne_request_dispatch(req);
+        }
 
-            // display the single header
-            SAL_INFO( "ucb.ucp.webdav", "OPTIONS - received header: " << aHeaderName << ":" << aHeaderValue );
+        //check if http error is in the 200 class (no error)
+        if (theRetVal == NE_OK && ne_get_status(req)->klass != 2) {
+            theRetVal = NE_ERROR;
+        }
+        if ( theRetVal == NE_OK )
+        {
+            void *cursor = nullptr;
+            const char *name, *value;
+            while ( ( cursor = ne_response_header_iterate(
+                          req, cursor, &name, &value ) ) != nullptr )
+            {
+                OUString aHeaderName( OUString::createFromAscii( name ).toAsciiLowerCase() );
+                OUString aHeaderValue( OUString::createFromAscii( value ) );
 
-            if ( aHeaderName == "allow" )
-            {
-                rOptions.setAllowedMethods( aHeaderValue );
-            }
-            else if ( aHeaderName == "dav" )
-            {
-                // check type of dav capability
-                // need to parse the value, token separator: ","
-                // see <http://tools.ietf.org/html/rfc4918#section-10.1>,
-                // <http://tools.ietf.org/html/rfc4918#section-18>,
-                // and <http://tools.ietf.org/html/rfc7230#section-3.2>
-                // we detect the class (1, 2 and 3), other elements (token, URL)
-                // are not used for now
-                // silly parser written using OUString, not very efficient
-                // but quick and esy to write...
-                sal_Int32 nFromIndex = 0;
-                sal_Int32 nNextIndex = 0;
-                while( ( nNextIndex = aHeaderValue.indexOf( ",", nFromIndex ) ) != -1 )
-                { // found a comma
-                    // try to convert from nFromIndex to nNextIndex -1 in a number
-                    // if this is 1 or 2 or 3, use for class setting
-                    sal_Int32 nClass =
-                        aHeaderValue.copy( nFromIndex, nNextIndex - nFromIndex ).toInt32();
-                    switch( nClass )
-                    {
-                        case 1:
-                            rOptions.setClass1();
-                            break;
-                        case 2:
-                            rOptions.setClass2();
-                            break;
-                        case 3:
-                            rOptions.setClass3();
-                            break;
-                        default:
-                            ;
-                    }
-                    // next starting point
-                    nFromIndex = nNextIndex + 1;
-                }
-                // check for last fragment
-                if ( nFromIndex < aHeaderValue.getLength() )
+                // display the single header
+                SAL_INFO( "ucb.ucp.webdav", "OPTIONS - received header: " << aHeaderName << ":" << aHeaderValue );
+
+                if ( aHeaderName == "allow" )
                 {
-                    sal_Int32 nClass = aHeaderValue.copy( nFromIndex ).toInt32();
-                    switch( nClass )
+                    rOptions.setAllowedMethods( aHeaderValue );
+                }
+                else if ( aHeaderName == "dav" )
+                {
+                    // check type of dav capability
+                    // need to parse the value, token separator: ","
+                    // see <http://tools.ietf.org/html/rfc4918#section-10.1>,
+                    // <http://tools.ietf.org/html/rfc4918#section-18>,
+                    // and <http://tools.ietf.org/html/rfc7230#section-3.2>
+                    // we detect the class (1, 2 and 3), other elements (token, URL)
+                    // are not used for now
+                    // silly parser written using OUString, not very efficient
+                    // but quick and esy to write...
+                    sal_Int32 nFromIndex = 0;
+                    sal_Int32 nNextIndex = 0;
+                    while( ( nNextIndex = aHeaderValue.indexOf( ",", nFromIndex ) ) != -1 )
+                    { // found a comma
+                        // try to convert from nFromIndex to nNextIndex -1 in a number
+                        // if this is 1 or 2 or 3, use for class setting
+                        sal_Int32 nClass =
+                            aHeaderValue.copy( nFromIndex, nNextIndex - nFromIndex ).toInt32();
+                        switch( nClass )
+                        {
+                            case 1:
+                                rOptions.setClass1();
+                                break;
+                            case 2:
+                                rOptions.setClass2();
+                                break;
+                            case 3:
+                                rOptions.setClass3();
+                                break;
+                            default:
+                                ;
+                        }
+                        // next starting point
+                        nFromIndex = nNextIndex + 1;
+                    }
+                    // check for last fragment
+                    if ( nFromIndex < aHeaderValue.getLength() )
                     {
-                        case 1:
-                            rOptions.setClass1();
-                            break;
-                        case 2:
-                            rOptions.setClass2();
-                            break;
-                        case 3:
-                            rOptions.setClass3();
-                            break;
-                        default:
-                            ;
+                        sal_Int32 nClass = aHeaderValue.copy( nFromIndex ).toInt32();
+                        switch( nClass )
+                        {
+                            case 1:
+                                rOptions.setClass1();
+                                break;
+                            case 2:
+                                rOptions.setClass2();
+                                break;
+                            case 3:
+                                rOptions.setClass3();
+                                break;
+                            default:
+                                ;
+                        }
                     }
                 }
             }
-        }
-        // if applicable, check for lock state:
-        if( rOptions.isClass2() || rOptions.isClass3() )
-        {
-            //dav with lock possible, check for locked state
-            if ( m_aNeonLockStore.findByUri(
-                     makeAbsoluteURL( inPath ) ) != nullptr )
+            // if applicable, check for lock state:
+            if( rOptions.isClass2() || rOptions.isClass3() )
             {
-                // we own a lock for this URL,
-                // set locked state
-                rOptions.setLocked();
+                //dav with lock possible, check for locked state
+                if ( m_aNeonLockStore.findByUri(
+                         makeAbsoluteURL( inPath ) ) != nullptr )
+                {
+                    // we own a lock for this URL,
+                    // set locked state
+                    rOptions.setLocked();
+                }
             }
         }
+
+        ne_request_destroy(req);
     }
-
-    ne_request_destroy(req);
-
     HandleError( theRetVal, inPath, rEnv );
 }
 
@@ -1199,12 +1203,14 @@ void NeonSession::HEAD( const OUString &  inPath,
     Init( rEnv );
 
     int theRetVal = NE_OK;
-    NeonHeadRequest theRequest( m_pHttpSession,
-                                inPath,
-                                inHeaderNames,
-                                ioResource,
-                                theRetVal );
-
+    {
+        osl::Guard< osl::Mutex > LocalNeonGuard( aLocalNeonMutex );
+        NeonHeadRequest theRequest( m_pHttpSession,
+                                    inPath,
+                                    inHeaderNames,
+                                    ioResource,
+                                    theRetVal );
+    }
     HandleError( theRetVal, inPath, rEnv );
 }
 
@@ -2093,6 +2099,7 @@ int NeonSession::GET( ne_session * sess,
                       bool getheaders,
                       void * userdata )
 {
+    osl::Guard< osl::Mutex > LocalNeonGuard( aLocalNeonMutex );
     //struct get_context ctx;
     ne_request * req = ne_request_create( sess, "GET", uri );
     int ret;
