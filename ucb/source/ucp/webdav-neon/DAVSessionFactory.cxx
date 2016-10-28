@@ -42,7 +42,8 @@ DAVSessionFactory::~DAVSessionFactory()
 rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
                 const OUString & inUri,
                 const uno::Sequence< beans::NamedValue >& rFlags,
-                const uno::Reference< uno::XComponentContext > & rxContext )
+                const uno::Reference< uno::XComponentContext > & rxContext,
+                int nID )
     throw( DAVException )
 {
     m_xContext = rxContext;
@@ -68,7 +69,7 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
         NeonUri aURI( inUri );
 
         std::unique_ptr< DAVSession > xElement(
-            new NeonSession( this, inUri, rFlags, *m_xProxyDecider.get() ) );
+            new NeonSession( this, inUri, rFlags, *m_xProxyDecider.get(), nID ) );
 
         aIt = m_aMap.insert( Map::value_type( inUri, xElement.get() ) ).first;
         aIt->second->m_aContainerIt = aIt;
@@ -91,7 +92,7 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
         // call a little:
         NeonUri aURI( inUri );
 
-        aIt->second = new NeonSession( this, inUri, rFlags, *m_xProxyDecider.get() );
+        aIt->second = new NeonSession( this, inUri, rFlags, *m_xProxyDecider.get(), nID );
         aIt->second->m_aContainerIt = aIt;
         return aIt->second;
     }

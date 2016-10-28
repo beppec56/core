@@ -589,27 +589,36 @@ bool NeonSession::m_bGlobalsInited = false;
 osl::Mutex aGlobalNeonMutex;
 NeonLockStore NeonSession::m_aNeonLockStore;
 
+static int count = 0;
+
 NeonSession::NeonSession( const rtl::Reference< DAVSessionFactory > & rSessionFactory,
                           const OUString& inUri,
                           const uno::Sequence< beans::NamedValue >& rFlags,
-                          const ucbhelper::InternetProxyDecider & rProxyDecider )
+                          const ucbhelper::InternetProxyDecider & rProxyDecider,
+                          int nDavAccessID)
     throw ( std::exception )
     : DAVSession( rSessionFactory )
     , m_nProxyPort( 0 )
+    , m_sURI( inUri )
     , m_aFlags( rFlags )
     , m_pHttpSession( nullptr )
     , m_pRequestData( new RequestDataMap )
     , m_rProxyDecider( rProxyDecider )
+    , m_nID( osl_atomic_increment(&count) )
+    , m_nDavAccessID( nDavAccessID )
 {
     NeonUri theUri( inUri );
     m_aScheme    = theUri.GetScheme();
     m_aHostName  = theUri.GetHost();
     m_nPort      = theUri.GetPort();
-    SAL_INFO( "ucb.ucp.webdav", "NeonSession ctor - URL <" << inUri << ">" );
+    SAL_INFO( "ucb.ucp.webdav", "NeonSession ctor - niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << ", URL <" << m_sURI << ">" );
 }
 
 NeonSession::~NeonSession( )
 {
+    SAL_WARN( "ucb.ucp.webdav", "NeonSession dtor -  niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << "URL <" << m_sURI << ">" );
     if ( m_pHttpSession )
     {
         {
@@ -632,12 +641,14 @@ void NeonSession::Init( const DAVRequestEnvironment & rEnv )
 void NeonSession::Init()
     throw (css::uno::RuntimeException, std::exception)
 {
-    osl::Guard< osl::Mutex > theGuard( m_aMutex );
+    osl::Guard< osl::Mutex > theGuard( m_aMutexInit );
+    SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_sURI: " << m_sURI );
 
     bool bCreateNewSession = false;
 
     if ( m_pHttpSession == nullptr )
     {
+        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_pHttpSession == nullptr - m_sURI: " << m_sURI );
         // Ensure that Neon sockets are initialized
         osl::Guard< osl::Mutex > theGlobalGuard( aGlobalNeonMutex );
         if ( !m_bGlobalsInited )
@@ -677,6 +688,7 @@ void NeonSession::Init()
     }
     else
     {
+        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - m_pHttpSession != nullptr - m_sURI: " << m_sURI );
         // #112271# Check whether proxy settings are still valid (They may
         // change at any time). If not, create new Neon session.
 
@@ -700,6 +712,7 @@ void NeonSession::Init()
 
     if ( bCreateNewSession )
     {
+        SAL_WARN( "ucb.ucp.webdav", "NeonSession::Init - bCreateNewSession - m_sURI: " << m_sURI );
         const sal_Int32    nConnectTimeoutMax = 180;
         const sal_Int32    nConnectTimeoutMin = 2;
         const sal_Int32    nReadTimeoutMax = 180;
@@ -731,6 +744,7 @@ void NeonSession::Init()
         if ( m_aScheme.equalsIgnoreAsciiCase("https") )
         {
             // Set a failure callback for certificate check
+            SAL_WARN( "ucb.ucp.webdav", "NeonSession_CertificationNotify SET - m_sURI: " << m_sURI );
             ne_ssl_set_verify(
                 m_pHttpSession, NeonSession_CertificationNotify, this);
 
@@ -859,7 +873,8 @@ void NeonSession::OPTIONS( const OUString & inPath,
 {
     osl::Guard< osl::Mutex > theGuard( m_aMutex );
 
-    SAL_INFO( "ucb.ucp.webdav", "OPTIONS - relative URL <" << inPath << ">" );
+    SAL_INFO( "ucb.ucp.webdav", "OPTIONS - niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << ", relative URL <" << inPath << ">" );
 
     rOptions.init();
 
@@ -1852,7 +1867,8 @@ void NeonSession::HandleError( int nError,
 
             sal_uInt16 code = makeStatusCode( aText );
 
-            SAL_WARN( "ucb.ucp.webdav", "Neon returned NE_ERROR, http response status code was: " << code << " '" << aText << "' path: <" << inPath <<">");
+            SAL_WARN( "ucb.ucp.webdav", "Neon returned NE_ERROR, http response status code was: " << code << " '" << aText << ", niD: "<< m_nID
+              <<", m_nDavAccessID: " << m_nDavAccessID << "' path: <" << inPath <<">");
             if ( SC_BAD_REQUEST <= code && code < SC_INTERNAL_SERVER_ERROR )
             {
                 // error codes in the range 4xx

@@ -63,6 +63,7 @@ class DAVResourceAccess
     css::uno::Reference< css::uno::XComponentContext > m_xContext;
     std::vector< NeonUri > m_aRedirectURIs;
     sal_uInt32   m_nRedirectLimit;
+    int m_nID;
 
 public:
     DAVResourceAccess( const css::uno::Reference< css::uno::XComponentContext > & rxContext,

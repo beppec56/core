@@ -47,15 +47,20 @@ class NeonSession : public DAVSession
 {
 private:
     osl::Mutex        m_aMutex;
+    osl::Mutex        m_aMutexInit;
     OUString     m_aScheme;
     OUString     m_aHostName;
     OUString     m_aProxyName;
     sal_Int32         m_nPort;
     sal_Int32         m_nProxyPort;
+    //debug
+    OUString    m_sURI;
     css::uno::Sequence< css::beans::NamedValue > m_aFlags;
     HttpSession *     m_pHttpSession;
     void *            m_pRequestData;
     const ucbhelper::InternetProxyDecider & m_rProxyDecider;
+    int m_nID;
+    int m_nDavAccessID;
 
     // @@@ This should really be per-request data. But Neon currently
     // (0.23.5) has no interface for passing per-request user data.
@@ -74,7 +79,8 @@ public:
     NeonSession( const rtl::Reference< DAVSessionFactory > & rSessionFactory,
                  const OUString& inUri,
                  const css::uno::Sequence< css::beans::NamedValue >& rFlags,
-                 const ucbhelper::InternetProxyDecider & rProxyDecider )
+                 const ucbhelper::InternetProxyDecider & rProxyDecider,
+        int nDavAccessID )
         throw ( std::exception );
 
     // DAVSession methods

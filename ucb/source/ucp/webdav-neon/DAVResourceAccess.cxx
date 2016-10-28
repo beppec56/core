@@ -126,6 +126,7 @@ int DAVAuthListener_Impl::authenticate(
 
 // DAVResourceAccess Implementation.
 
+static int count = 1;
 
 DAVResourceAccess::DAVResourceAccess(
     const uno::Reference< uno::XComponentContext > & rxContext,
@@ -134,8 +135,10 @@ DAVResourceAccess::DAVResourceAccess(
 : m_aURL( rURL ),
   m_xSessionFactory( rSessionFactory ),
   m_xContext( rxContext ),
-  m_nRedirectLimit( 5 )
+  m_nRedirectLimit( 5 ),
+  m_nID( osl_atomic_increment(&count) )
 {
+    SAL_INFO( "ucb.ucp.webdav", "DAVResourceAccess ctor - nID: "<<m_nID<<", Url <"<<m_aURL<<">");
 }
 
 
@@ -147,8 +150,10 @@ DAVResourceAccess::DAVResourceAccess( const DAVResourceAccess & rOther )
   m_xSessionFactory( rOther.m_xSessionFactory ),
   m_xContext( rOther.m_xContext ),
   m_aRedirectURIs( rOther.m_aRedirectURIs ),
-  m_nRedirectLimit( rOther.m_nRedirectLimit )
+  m_nRedirectLimit( rOther.m_nRedirectLimit ),
+  m_nID( osl_atomic_increment(&count) )
 {
+    SAL_INFO( "ucb.ucp.webdav", "DAVResourceAccess COPY ctor - nID: "<<m_nID<<", was id: "<< rOther.m_nID<<", Url <"<<m_aURL<<">");
 }
 
 
@@ -1112,9 +1117,10 @@ void DAVResourceAccess::initialize()
         {
             m_xSession.clear();
 
+            SAL_INFO( "ucb.ucp.webdav", "DAVResourceAccess::initialize - create new webdav session - nID: "<<m_nID<<", Url <"<<m_aURL<<">");
             // create new webdav session
             m_xSession
-                = m_xSessionFactory->createDAVSession( m_aURL, m_aFlags, m_xContext );
+                = m_xSessionFactory->createDAVSession( m_aURL, m_aFlags, m_xContext, m_nID);
 
             if ( !m_xSession.is() )
                 return;
