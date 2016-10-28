@@ -1098,6 +1098,7 @@ void DAVResourceAccess::initialize()
     if ( m_aPath.isEmpty() )
     {
         NeonUri aURI( m_aURL );
+        DavURLObject aURI2( m_aURL );
         OUString aPath( aURI.GetPath() );
 
         /* #134089# - Check URI */
@@ -1125,9 +1126,11 @@ void DAVResourceAccess::initialize()
 
         // Success.
         m_aPath = aPath;
+        m_aPath = aURI2.GetPathQueryFragment();
 
         // Not only the path has to be encoded
         m_aURL = aURI.GetURI();
+        m_aURL = aURI2.GetMainURL( INetURLObject::NO_DECODE );
     }
 }
 
