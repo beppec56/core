@@ -83,6 +83,11 @@
 #include <com/sun/star/ucb/XPersistentPropertySet.hpp>
 #include <com/sun/star/uno/XComponentContext.hpp>
 
+#include <com/sun/star/uri/ExternalUriReferenceTranslator.hpp>
+#include <com/sun/star/uri/XExternalUriReferenceTranslator.hpp>
+#include <com/sun/star/uri/UriReferenceFactory.hpp>
+#include <com/sun/star/uri/XUriReferenceFactory.hpp>
+
 #include "webdavcontent.hxx"
 #include "webdavprovider.hxx"
 #include "webdavresultset.hxx"
@@ -230,6 +235,37 @@ Content::Content(
   m_bCollection( false ),
   m_bDidGetOrHead( false )
 {
+    OUString testURL = "http://my.server.org/a fake url/to test/another-url/";
+    testURL = "http://server.biz:8040/aService/a segment/next segment/check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0";
+    testURL = "http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:8040/aService/a segment/next segment";
+    testURL = "http://user.user@server.biz:8040/aService/a segment/next segment/check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0";
+    css::uno::Reference<css::uri::XUriReferenceFactory> m_xUriReferenceFactory = uri::UriReferenceFactory::create( rxContext );
+    const uno::Reference< css::uri::XUriReference > xUriReference = m_xUriReferenceFactory->parse( testURL );
+    if ( xUriReference.is() )
+    {
+        SAL_INFO( "ucb.ucp.webdav", "xUriReference->getUriReference(): " << xUriReference->getUriReference() );
+        SAL_INFO( "ucb.ucp.webdav", "xUriReference->getScheme(): " << xUriReference->getScheme() );
+// missing:        SAL_INFO( "ucb.ucp.webdav", "xUriReference->getPort(): " << xUriReference->getPort() );
+// missing 'user'
+// missing 'password'
+        SAL_INFO( "ucb.ucp.webdav", "xUriReference->getAuthority(): " << xUriReference->getAuthority() );
+        SAL_INFO( "ucb.ucp.webdav", "XUriReference->getPath(): " << xUriReference->getPath() );
+        SAL_INFO( "ucb.ucp.webdav", "XUriReference->getPathSegmentCount(): " << xUriReference->getPathSegmentCount() );
+        SAL_INFO( "ucb.ucp.webdav", "XUriReference->getLastSegment(): " << xUriReference->getPathSegment( xUriReference->getPathSegmentCount()-1 ) );
+        SAL_INFO( "ucb.ucp.webdav", "XUriReference->getQuery(): " << xUriReference->getQuery() )  ;
+        SAL_INFO( "ucb.ucp.webdav", "XUriReference->getFragment(): " << xUriReference->getFragment() );
+        SAL_INFO( "ucb.ucp.webdav", "XUriReference->getSchemeSpecificPart(): " << xUriReference->getSchemeSpecificPart() );
+    }
+    else
+        SAL_INFO( "ucb.ucp.webdav", "xUriReference FAILED!" );
+
+    css::uno::Reference< css::uri::XExternalUriReferenceTranslator > xExternalUriReferenceTranslator = css::uri::ExternalUriReferenceTranslator::create( rxContext );
+    if ( xExternalUriReferenceTranslator.is() )
+    {
+        SAL_INFO( "ucb.ucp.webdav", "xExternalUriReferenceTranslator->translateToInternal(): " << xExternalUriReferenceTranslator->translateToInternal( testURL ) );
+        SAL_INFO( "ucb.ucp.webdav", "xExternalUriReferenceTranslator->translateToExternal(): " << xExternalUriReferenceTranslator->translateToExternal( testURL ) );
+    }
+
     try
     {
         initOptsCacheLifeTime();
