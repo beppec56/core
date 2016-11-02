@@ -56,6 +56,7 @@ extern "C" {
 #include "NeonPropFindRequest.hxx"
 #include "NeonHeadRequest.hxx"
 #include "NeonUri.hxx"
+#include "DAVUri.hxx"
 #include "LinkSequence.hxx"
 #include "UCBDeadPropertyValue.hxx"
 
@@ -1449,8 +1450,8 @@ void NeonSession::MOVE( const OUString & inSourceURL,
 
     Init( rEnv );
 
-    NeonUri theSourceUri( inSourceURL );
-    NeonUri theDestinationUri( inDestinationURL );
+    DAVUri theSourceUri( inSourceURL );
+    DAVUri theDestinationUri( inDestinationURL );
     int theRetVal = ne_move( m_pHttpSession,
                              inOverWrite ? 1 : 0,
                              OUStringToOString(
