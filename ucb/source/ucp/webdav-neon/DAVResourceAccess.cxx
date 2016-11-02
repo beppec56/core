@@ -1097,7 +1097,7 @@ void DAVResourceAccess::initialize()
     osl::Guard< osl::Mutex > aGuard( m_aMutex );
     if ( m_aPath.isEmpty() )
     {
-        NeonUri aURI( m_aURL );
+        DAVUri aURI( m_aURL );
         OUString aPath( aURI.GetPath() );
 
         /* #134089# - Check URI */
@@ -1194,10 +1194,10 @@ bool DAVResourceAccess::detectRedirectCycle(
 {
     osl::Guard< osl::Mutex > aGuard( m_aMutex );
 
-    NeonUri aUri( rRedirectURL );
+    DAVUri aUri( rRedirectURL );
 
-    std::vector< NeonUri >::const_iterator it  = m_aRedirectURIs.begin();
-    std::vector< NeonUri >::const_iterator end = m_aRedirectURIs.end();
+    std::vector< DAVUri >::const_iterator it  = m_aRedirectURIs.begin();
+    std::vector< DAVUri >::const_iterator end = m_aRedirectURIs.end();
 
     // Check for maximum number of redirections
     // according to <https://tools.ietf.org/html/rfc7231#section-6.4>.
@@ -1226,9 +1226,9 @@ void DAVResourceAccess::resetUri()
     osl::Guard< osl::Mutex > aGuard( m_aMutex );
     if ( !m_aRedirectURIs.empty() )
     {
-        std::vector< NeonUri >::const_iterator it  = m_aRedirectURIs.begin();
+        std::vector< DAVUri >::const_iterator it  = m_aRedirectURIs.begin();
 
-        NeonUri aUri( (*it) );
+        DAVUri aUri( (*it) );
         m_aRedirectURIs.clear();
         setURL ( aUri.GetURI() );
         initialize();

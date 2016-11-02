@@ -61,7 +61,7 @@ class DAVResourceAccess
     rtl::Reference< DAVSession > m_xSession;
     rtl::Reference< DAVSessionFactory > m_xSessionFactory;
     css::uno::Reference< css::uno::XComponentContext > m_xContext;
-    std::vector< NeonUri > m_aRedirectURIs;
+    std::vector< DAVUri > m_aRedirectURIs;
     sal_uInt32   m_nRedirectLimit;
 
 public:
