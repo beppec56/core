@@ -28,7 +28,7 @@
 
 #include "DAVSessionFactory.hxx"
 #include "NeonSession.hxx"
-#include "NeonUri.hxx"
+#include "DAVUri.hxx"
 #include <osl/diagnose.h>
 #include <com/sun/star/lang/XMultiServiceFactory.hpp>
 
@@ -65,7 +65,8 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
 
     if ( aIt == aEnd )
     {
-        NeonUri aURI( inUri );
+        // the following statement will throw DAVException if URL is malformed
+        DAVUri( inUri ).verifyUri();
 
         std::unique_ptr< DAVSession > xElement(
             new NeonSession( this, inUri, rFlags, *m_xProxyDecider.get() ) );
@@ -89,7 +90,7 @@ rtl::Reference< DAVSession > DAVSessionFactory::createDAVSession(
         // If URL scheme is different from http or https we definitely
         // have to use a proxy and therefore can optimize the getProxy
         // call a little:
-        NeonUri aURI( inUri );
+        DAVUri( inUri ).verifyUri();
 
         aIt->second = new NeonSession( this, inUri, rFlags, *m_xProxyDecider.get() );
         aIt->second->m_aContainerIt = aIt;

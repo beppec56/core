@@ -150,7 +150,7 @@ namespace webdav_ucp
         if ( m_TheURL.HasError() )
             throw DAVException( DAVException::DAV_INVALID_ARG );
 
-        // the next code verify the URL against neon libray needs
+        // verify the URL against neon libray needs:
         OUString aEscapedUri( GetURI() );
         OString theInputUri(
             aEscapedUri.getStr(), aEscapedUri.getLength(), RTL_TEXTENCODING_UTF8 );
