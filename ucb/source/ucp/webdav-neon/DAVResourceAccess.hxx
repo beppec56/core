@@ -45,7 +45,7 @@
 #include "DAVSession.hxx"
 #include "DAVResource.hxx"
 #include "DAVTypes.hxx"
-#include "NeonUri.hxx"
+#include "DAVUri.hxx"
 
 namespace webdav_ucp
 {
