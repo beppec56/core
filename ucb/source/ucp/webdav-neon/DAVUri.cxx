@@ -35,7 +35,7 @@ DAVUri::~DAVUri()
 OUString DAVUri::unescape( const OUString& theSegment )
 {
     // private base class function member
-    return INetURLObject::decode( theSegment, INetURLObject::DECODE_WITH_CHARSET );
+    return INetURLObject::decode( theSegment, INetURLObject::DECODE_UNAMBIGUOUS );
 }
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab cinoptions=b1,g0,N-s cinkeys+=0=break: */
