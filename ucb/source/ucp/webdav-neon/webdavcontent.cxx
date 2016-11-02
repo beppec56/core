@@ -238,8 +238,7 @@ Content::Content(
                 rSessionFactory,
                 Identifier->getContentIdentifier() ) );
 
-        NeonUri aURI( Identifier->getContentIdentifier() );
-        m_aEscapedTitle = aURI.GetPathBaseName();
+        m_aEscapedTitle = DAVUri( Identifier->getContentIdentifier() ).GetPathBaseName();
     }
     catch ( DAVException const & )
     {

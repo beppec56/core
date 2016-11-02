@@ -67,6 +67,16 @@ namespace webdav_ucp
 
         inline OUString GetPathBaseNameUnescaped() const;
 
+        OUString GetHost() const {
+            return m_TheURL.GetHost();
+        };
+
+        inline OUString GetScheme() const
+            throw ( DAVException );
+
+        inline sal_uInt32 GetPort() const
+            throw ( DAVException );
+
         inline void verifyUri() const
             throw ( DAVException );
 
@@ -154,7 +164,36 @@ namespace webdav_ucp
         ne_uri_free( &theUri );
     }
 
+    inline OUString DAVUri::GetScheme() const
+        throw ( DAVException )
+    {
+        INetProtocol theProto = m_TheURL.GetProtocol();
+
+        if ( theProto == INetProtocol::NotValid )
+            throw DAVException( DAVException::DAV_INVALID_ARG );
+
+        return INetURLObject::GetSchemeName( theProto );
+    }
+
+    inline sal_uInt32 DAVUri::GetPort() const
+        throw ( DAVException )
+    {
+        sal_uInt32 port = m_TheURL.GetPort();
+        if ( port == 0 )
+        {
+            // check the protocol
+            if ( m_TheURL.isSchemeEqualTo( INetProtocol::Http ) )
+                return 80;
+            else if ( m_TheURL.isSchemeEqualTo( INetProtocol::Https ) )
+                return 443;
+            else // we need a port, 0 is not good
+                throw DAVException( DAVException::DAV_INVALID_ARG );
+        }
+        return port;
+    }
+
 }
+
 
 #endif // INCLUDED_UCB_SOURCE_UCP_WEBDAV_NEON_DAVURI_HXX
 

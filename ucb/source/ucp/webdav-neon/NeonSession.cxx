@@ -589,7 +589,7 @@ NeonSession::NeonSession( const rtl::Reference< DAVSessionFactory > & rSessionFa
     , m_pRequestData( new RequestDataMap )
     , m_rProxyDecider( rProxyDecider )
 {
-    NeonUri theUri( inUri );
+    DAVUri theUri( inUri );
     m_aScheme    = theUri.GetScheme();
     m_aHostName  = theUri.GetHost();
     m_nPort      = theUri.GetPort();

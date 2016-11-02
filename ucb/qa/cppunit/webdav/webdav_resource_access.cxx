@@ -34,7 +34,9 @@ namespace
                                      OUString& thePercEncodedURL,
                                      OUString& thePercEncodedTitle,
                                      OUString& thePercDecodedTitle,
-                                     OUString& thePercEncodedPath );
+                                     OUString& thePercEncodedPath,
+                                     OUString& schemeToVerify,
+                                     sal_uInt32 portToVerify );
 
         bool DAVTestURLObjectVerify( OUString& theURL );
 
@@ -110,7 +112,9 @@ namespace
                                                               OUString& thePercEncodedURL,
                                                               OUString& thePercEncodedTitle,
                                                               OUString& thePercDecodedTitle,
-                                                              OUString& thePercEncodedPath )
+                                                              OUString& thePercEncodedPath,
+                                                              OUString& schemeToVerify,
+                                                              sal_uInt32 portToVerify )
     {
         // test percent-encode from human readable to URL
         DAVUri aDavURL( theURL );
@@ -122,6 +126,10 @@ namespace
         CPPUNIT_ASSERT_EQUAL( thePercDecodedTitle, aDavURL.GetPathBaseNameUnescaped() );
         // get path to be used in Web method operations
         CPPUNIT_ASSERT_EQUAL( thePercEncodedPath, aDavURL.GetPath() );
+        // verify scheme
+        CPPUNIT_ASSERT_EQUAL( schemeToVerify, aDavURL.GetScheme() );
+        // verify port
+        CPPUNIT_ASSERT_EQUAL( portToVerify, aDavURL.GetPort() );
     }
 
     bool webdav_resource_access_test::DAVTestURLObjectVerify( OUString& theURL )
@@ -154,7 +162,8 @@ namespace
         OUString thePercEncodedTitle = "check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0";
         OUString thePercDecodedTitle = "check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0";
         OUString thePercEncodedPath  = "/aService/a%20segment/next%20segment/check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0";
-        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath );
+        OUString theScheme =           "http";
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 8040 );
         CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
 
         // again from a bug of another era, plus variations
@@ -163,7 +172,7 @@ namespace
         thePercEncodedTitle = "check.Update?test=true&link=http://myoff.bouncer.os.org/%3Fproduct=MyOffice.org%26os=linuxintel%26lang=en-US%26version=2.2.1";
         thePercDecodedTitle = "check.Update?test=true&link=http://myoff.bouncer.os.org/%3Fproduct=MyOffice.org%26os=linuxintel%26lang=en-US%26version=2.2.1";
         thePercEncodedPath  = "/ProductUpdateService/check.Update?test=true&link=http://myoff.bouncer.os.org/%3Fproduct=MyOffice.org%26os=linuxintel%26lang=en-US%26version=2.2.1";
-        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath );
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 80 );
         CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
 
         // from old dbz#406926, plus variations...
@@ -172,7 +181,8 @@ namespace
         thePercEncodedTitle = "M%C3%A1quina%20de%20Turing";
         thePercDecodedTitle = OStringToOUString( "Máquina de Turing", RTL_TEXTENCODING_UTF8 );
         thePercEncodedPath  = "/myp%60ath/wiki/M%C3%A1quina%20de%20Turing";
-        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath );
+        theScheme =           "https";
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 443 );
         CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
 
         // unicode string path tests
@@ -181,7 +191,7 @@ namespace
         thePercEncodedTitle = "300px-Teor%C3%ADa%20de%20aut%C3%B3matas.svg.png";
         thePercDecodedTitle = OStringToOUString( "300px-Teoría de autómatas.svg.png", RTL_TEXTENCODING_UTF8 );
         thePercEncodedPath  = "/helper/commons/thumb/7/7d/Teor%C3%ADa%20de%20aut%C3%B3matas.svg/300px-Teor%C3%ADa%20de%20aut%C3%B3matas.svg.png";
-        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath );
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 443 );
         CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
 
         // test specific query ,from tdf#99499 (1)
@@ -190,7 +200,8 @@ namespace
         thePercEncodedTitle = "help.png?requestedName=help?requestedName=help?requestedName=help?requestedName=help?requestedName=help";
         thePercDecodedTitle = "help.png?requestedName=help?requestedName=help?requestedName=help?requestedName=help?requestedName=help";
         thePercEncodedPath  = "/web%20export/common/mkt/en/help.png?requestedName=help?requestedName=help?requestedName=help?requestedName=help?requestedName=help";
-        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath );
+        theScheme =           "http";
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 80 );
         CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
 
         // test specific query ,from tdf#99499 (2)
@@ -199,7 +210,8 @@ namespace
         thePercEncodedTitle = "seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
         thePercDecodedTitle = "seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
         thePercEncodedPath  = "/seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
-        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath );
+        theScheme =           "https";
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 443 );
         CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
 
         theURL =              "/my.server";
