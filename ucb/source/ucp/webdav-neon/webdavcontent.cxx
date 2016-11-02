@@ -1351,7 +1351,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
     {
         osl::Guard< osl::Mutex > aGuard( m_aMutex );
 
-        aUnescapedTitle = NeonUri::unescape( m_aEscapedTitle );
+        aUnescapedTitle = DAVUri::unescape( m_aEscapedTitle );
         xIdentifier.set( m_xIdentifier );
         xProvider.set( m_xProvider.get() );
         xResAccess.reset( new DAVResourceAccess( *m_xResAccess.get() ) );

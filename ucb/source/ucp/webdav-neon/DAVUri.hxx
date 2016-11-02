@@ -86,6 +86,8 @@ namespace webdav_ucp
         };
 
         bool operator==( const DAVUri& rOther ) const { return m_TheURL == rOther.m_TheURL; };
+
+        static OUString unescape( const OUString& theSegment );
     };
 
     inline OUString DAVUri::GetPath( INetURLObject::DecodeMechanism eMechanism ) const
