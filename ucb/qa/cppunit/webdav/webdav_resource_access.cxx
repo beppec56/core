@@ -220,6 +220,16 @@ namespace
         theURL =              "http://";
         CPPUNIT_ASSERT_EQUAL( false, DAVTestURLObjectVerify( theURL ) );
 
+        // test quey percent-encoding
+        theURL =              "https://server.org/seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requested Name=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
+        thePercEncodedURL =   "https://server.org/seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requested%20Name=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
+        thePercEncodedTitle = "seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requested%20Name=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
+        thePercDecodedTitle = "seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requested%20Name=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
+        thePercEncodedPath  = "/seal_image.php?customerId=84EDAB68F81B2B31985E5E20392A8AC1&size=105x54&style=normal?requested%20Name=seal_image?requestedName=seal_image?requestedName=seal_image?requestedName=seal_image";
+        theScheme =           "https";
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 443 );
+        CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
+
     }
 
     CPPUNIT_TEST_SUITE_REGISTRATION( webdav_resource_access_test );
