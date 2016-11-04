@@ -230,6 +230,14 @@ namespace
         DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 443 );
         CPPUNIT_ASSERT_EQUAL( true, DAVTestURLObjectVerify( theURL ) );
 
+        theURL =              "https://example.com/foo%3Fbar?baz";
+        thePercEncodedURL =   "https://example.com/foo%3Fbar?baz";
+        thePercEncodedTitle = "foo%3Fbar?baz";
+        thePercDecodedTitle = "foo%3Fbar?baz";
+        thePercEncodedPath  = "/foo%3Fbar?baz";
+        theScheme =           "https";
+        DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 443 );
+
     }
 
     CPPUNIT_TEST_SUITE_REGISTRATION( webdav_resource_access_test );
