@@ -87,7 +87,7 @@
 #include "webdavprovider.hxx"
 #include "webdavresultset.hxx"
 #include "ContentProperties.hxx"
-#include "NeonUri.hxx"
+#include "DAVUri.hxx"
 #include "UCBDeadPropertyValue.hxx"
 
 using namespace com::sun::star;
@@ -1667,7 +1667,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
 
         // might trigger HTTP redirect.
         // Therefore, title must be updated here.
-        NeonUri aUri( xResAccess->getURL() );
+        DAVUri aUri( xResAccess->getURL() );
         aUnescapedTitle = aUri.GetPathBaseNameUnescaped();
 
         if ( eType == UNKNOWN )
@@ -1784,7 +1784,7 @@ uno::Reference< sdbc::XRow > Content::getPropertyValues(
             m_xCachedProps->addProperties( *xProps.get() );
 
         m_xResAccess.reset( new DAVResourceAccess( *xResAccess.get() ) );
-        m_aEscapedTitle = NeonUri::escapeSegment( aUnescapedTitle );
+        m_aEscapedTitle = DAVUri::escapeSegment( aUnescapedTitle );
     }
 
     return xResultRow;
@@ -1889,7 +1889,7 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
                 {
                     try
                     {
-                        NeonUri aURI( xIdentifier->getContentIdentifier() );
+                        DAVUri aURI( xIdentifier->getContentIdentifier() );
                         aOldTitle = aURI.GetPathBaseNameUnescaped();
 
                         if ( aNewValue != aOldTitle )
@@ -2105,13 +2105,13 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         if ( aNewURL.lastIndexOf( '/' ) != ( aNewURL.getLength() - 1 ) )
             aNewURL += "/";
 
-        aNewURL += NeonUri::escapeSegment( aNewTitle );
+        aNewURL += DAVUri::escapeSegment( aNewTitle );
 
         uno::Reference< ucb::XContentIdentifier > xNewId
             = new ::ucbhelper::ContentIdentifier( aNewURL );
 
-        NeonUri sourceURI( xIdentifier->getContentIdentifier() );
-        NeonUri targetURI( xNewId->getContentIdentifier() );
+        DAVUri sourceURI( xIdentifier->getContentIdentifier() );
+        DAVUri targetURI( xNewId->getContentIdentifier() );
 
         try
         {
@@ -2174,7 +2174,7 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         aEvent.OldValue     = uno::makeAny( aOldTitle );
         aEvent.NewValue     = uno::makeAny( aNewTitle );
 
-        m_aEscapedTitle     = NeonUri::escapeSegment( aNewTitle );
+        m_aEscapedTitle     = DAVUri::escapeSegment( aNewTitle );
 
         aChanges.getArray()[ nChanged ] = aEvent;
         nChanged++;
@@ -2719,7 +2719,7 @@ void Content::insert(
                         OUString aTitle;
                         try
                         {
-                            NeonUri aURI( aURL );
+                            DAVUri aURI( aURL );
                             aTitle = aURI.GetPathBaseNameUnescaped();
                         }
                         catch ( DAVException const & )
@@ -2809,8 +2809,8 @@ void Content::transfer(
         xResAccess.reset( new DAVResourceAccess( *m_xResAccess.get() ) );
     }
 
-    NeonUri sourceURI( rArgs.SourceURL );
-    NeonUri targetURI( xIdentifier->getContentIdentifier() );
+    DAVUri sourceURI( rArgs.SourceURL );
+    DAVUri targetURI( xIdentifier->getContentIdentifier() );
 
     OUString aTargetURI;
     try
@@ -3945,11 +3945,11 @@ Content::ResourceType Content::getResourceType(
                 try
                 {
                     // extract host name and connection port
-                    NeonUri   theUri( rURL );
+                    DAVUri   theUri( rURL );
                     OUString  aHostName  = theUri.GetHost();
                     sal_Int32 nPort      = theUri.GetPort();
                     throw DAVException( DAVException::DAV_HTTP_TIMEOUT,
-                                        NeonUri::makeConnectionEndPointString( aHostName,
+                                        DAVUri::makeConnectionEndPointString( aHostName,
                                                                                nPort ) );
                 }
                 catch ( DAVException& exp )
