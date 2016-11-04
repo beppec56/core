@@ -12,7 +12,7 @@
 
 #include "DAVTypes.hxx"
 #include "../inc/urihelper.hxx"
-#include "NeonUri.hxx"
+#include "DAVUri.hxx"
 
 using namespace webdav_ucp;
 using namespace com::sun::star;
