@@ -17,6 +17,10 @@
 
 namespace webdav_ucp
 {
+#define DEFAULT_HTTP_PORT       80
+#define DEFAULT_HTTPS_PORT      443
+#define DEFAULT_FTP_PORT        21
+
 
     /// class to manage URI used in WebDAV
     // URI naming scheme (from URI RFC):
@@ -87,7 +91,23 @@ namespace webdav_ucp
 
         bool operator==( const DAVUri& rOther ) const { return m_TheURL == rOther.m_TheURL; };
 
-        static OUString unescape( const OUString& theSegment );
+        void SetScheme ( const OUString& rScheme );
+
+        /// this function is meant to add the target folder the last segment
+        // of the path.
+        // It's used in transfert operation only!
+        void AppendPath (const OUString& rPath);
+
+        /// This function escapes only the last segment,
+        // please do not use for anything else!
+        static OUString escapeSegment( const OUString& rTheSegment );
+
+        /// This function unescapes only the last segment,
+        // please do not use for anything else!
+        static OUString unescape( const OUString& rTheSegment );
+
+        static OUString makeConnectionEndPointString( const OUString & rHostName,
+                                                      int nPort );
     };
 
     inline OUString DAVUri::GetPath( INetURLObject::DecodeMechanism eMechanism ) const

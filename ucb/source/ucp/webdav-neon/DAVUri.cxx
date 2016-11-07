@@ -31,11 +31,60 @@ DAVUri::~DAVUri()
 {
 }
 
+void DAVUri::AppendPath ( const OUString& rPath )
+{
+    m_TheURL.Append( rPath );
+}
+
+// void DAVUri::SetScheme ( const OUString& rScheme )
+// {
+//     // create a new INetUrlObject using the current, but changing the protocols
+
+//     INetURLObject aURL = m_TheURL;
+
+
+// }
+
 // static
-OUString DAVUri::unescape( const OUString& theSegment )
+OUString DAVUri::escapeSegment( const OUString& rTheSegment )
 {
     // private base class function member
-    return INetURLObject::decode( theSegment, INetURLObject::DECODE_UNAMBIGUOUS );
+    return INetURLObject::encode( rTheSegment, INetURLObject::PART_PCHAR, INetURLObject::WAS_ENCODED );
+}
+
+// static
+// unescape
+OUString DAVUri::unescape( const OUString& rTheSegment )
+{
+    // private base class function member
+    return INetURLObject::decode( rTheSegment, INetURLObject::DECODE_UNAMBIGUOUS );
+}
+
+//static
+OUString DAVUri::makeConnectionEndPointString( const OUString & rHostName,
+                                               int nPort )
+{
+    OUStringBuffer aBuf;
+
+    // Is host a numeric IPv6 address?
+    if ( ( rHostName.indexOf( ':' ) != -1 ) &&
+         ( rHostName[ 0 ] != '[' ) )
+    {
+        aBuf.append( "[" );
+        aBuf.append( rHostName );
+        aBuf.append( "]" );
+    }
+    else
+    {
+        aBuf.append( rHostName );
+    }
+
+    if ( ( nPort != DEFAULT_HTTP_PORT ) && ( nPort != DEFAULT_HTTPS_PORT ) )
+    {
+        aBuf.append( ":" );
+        aBuf.append( OUString::number( nPort ) );
+    }
+    return aBuf.makeStringAndClear();
 }
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab cinoptions=b1,g0,N-s cinkeys+=0=break: */

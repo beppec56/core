@@ -88,6 +88,7 @@
 #include "webdavresultset.hxx"
 #include "ContentProperties.hxx"
 #include "DAVUri.hxx"
+#include "NeonUri.hxx"
 #include "UCBDeadPropertyValue.hxx"
 
 using namespace com::sun::star;
@@ -2110,8 +2111,8 @@ uno::Sequence< uno::Any > Content::setPropertyValues(
         uno::Reference< ucb::XContentIdentifier > xNewId
             = new ::ucbhelper::ContentIdentifier( aNewURL );
 
-        DAVUri sourceURI( xIdentifier->getContentIdentifier() );
-        DAVUri targetURI( xNewId->getContentIdentifier() );
+        NeonUri sourceURI( xIdentifier->getContentIdentifier() );
+        NeonUri targetURI( xNewId->getContentIdentifier() );
 
         try
         {
@@ -2809,8 +2810,8 @@ void Content::transfer(
         xResAccess.reset( new DAVResourceAccess( *m_xResAccess.get() ) );
     }
 
-    DAVUri sourceURI( rArgs.SourceURL );
-    DAVUri targetURI( xIdentifier->getContentIdentifier() );
+    NeonUri sourceURI( rArgs.SourceURL );
+    NeonUri targetURI( xIdentifier->getContentIdentifier() );
 
     OUString aTargetURI;
     try
