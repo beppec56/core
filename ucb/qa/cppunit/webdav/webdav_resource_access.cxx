@@ -29,6 +29,7 @@ namespace
 
         void tearDown() override;
 
+        void DAVTestUserInfo();
         void DAVTestRetries();
         void DAVTestURLObjectHelper( OUString& theURL,
                                      OUString& thePercEncodedURL,
@@ -47,6 +48,7 @@ namespace
         // because these macros are need by auto register mechanism.
 
         CPPUNIT_TEST_SUITE( webdav_resource_access_test );
+        CPPUNIT_TEST( DAVTestUserInfo );
         CPPUNIT_TEST( DAVTestRetries );
         CPPUNIT_TEST( DAVTestURLObject );
         CPPUNIT_TEST_SUITE_END();
@@ -59,6 +61,14 @@ namespace
 
     void webdav_resource_access_test::tearDown()
     {
+    }
+
+    void webdav_resource_access_test::DAVTestUserInfo()
+    {
+        OUString theURL = "http://user%40anothername@server.biz:8040/aService/asegment/nextsegment/check.this";
+        DAVUri aDavURL( theURL );
+        // TODO add userinfo to DAVUri
+//        CPPUNIT_ASSERT_EQUAL( OUString( "" ) , theURL.GetUserInfo() );
     }
 
     // test when http connection should retry
@@ -237,6 +247,14 @@ namespace
         thePercEncodedPath  = "/foo%3Fbar?baz";
         theScheme =           "https";
         DAVTestURLObjectHelper( theURL, thePercEncodedURL, thePercEncodedTitle, thePercDecodedTitle, thePercEncodedPath, theScheme, 443 );
+
+        theURL = OStringToOUString( "Máquina de Turing: desambiguación.test", RTL_TEXTENCODING_UTF8 );
+        // NOTE: escapeSegment is only meant to be used to escape the last segment of the path without query and/or fragment
+        CPPUNIT_ASSERT_EQUAL( OUString( "M%C3%A1quina%20de%20Turing:%20desambiguaci%C3%B3n.test"), DAVUri::escapeSegment( theURL ) );
+
+        theURL = "M%C3%A1quina%20de%20Turing:%20desambiguaci%C3%B3n.test";
+        OUString aResult = OStringToOUString( "Máquina de Turing: desambiguación.test", RTL_TEXTENCODING_UTF8 );
+        CPPUNIT_ASSERT_EQUAL( aResult, DAVUri::unescape( theURL ) );
 
     }
 

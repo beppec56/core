@@ -41,7 +41,16 @@ namespace
         CPPUNIT_ASSERT_EQUAL( OUString( "server.biz" ), aURI.GetHost() );
         CPPUNIT_ASSERT_EQUAL( OUString( "user%40anothername" ), aURI.GetUserInfo() );
         CPPUNIT_ASSERT_EQUAL( sal_Int32( 8040 ), aURI.GetPort() );
+        CPPUNIT_ASSERT_EQUAL( OUString( "http://user%40anothername@server.biz:8040/aService/asegment/nextsegment/check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0"),
+                              aURI.GetURI() );
+        CPPUNIT_ASSERT_EQUAL( OUString( "user%40anothername"), aURI.GetUserInfo() );
         CPPUNIT_ASSERT_EQUAL( OUString( "/aService/asegment/nextsegment/check.this?test=true&link=http://anotherserver.com/%3Fcheck=theapplication%26os=linuxintel%26lang=en-US%26version=5.2.0" ), aURI.GetPath( ) );
+        aURL = OStringToOUString( "Máquina de Turing: desambiguación.test", RTL_TEXTENCODING_UTF8 );
+        // NOTE: escapeSegment is only meant to be used to escape the last segment of the path without query and/or fragment
+        CPPUNIT_ASSERT_EQUAL( OUString( "M%C3%A1quina%20de%20Turing:%20desambiguaci%C3%B3n.test"), NeonUri::escapeSegment( aURL ) );
+        aURL = "M%C3%A1quina%20de%20Turing:%20desambiguaci%C3%B3n.test";
+        OUString aResult = OStringToOUString( "Máquina de Turing: desambiguación.test", RTL_TEXTENCODING_UTF8 );
+        CPPUNIT_ASSERT_EQUAL( aResult, NeonUri::unescape( aURL ) );
     }
 
     CPPUNIT_TEST_SUITE_REGISTRATION( webdav_local_test );
