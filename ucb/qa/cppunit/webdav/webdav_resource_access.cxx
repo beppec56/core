@@ -256,6 +256,15 @@ namespace
         OUString aResult = OStringToOUString( "Máquina de Turing: desambiguación.test", RTL_TEXTENCODING_UTF8 );
         CPPUNIT_ASSERT_EQUAL( aResult, DAVUri::unescape( theURL ) );
 
+// //INetURLObject FAIL        theURL = "http://user%40anothername@server.biz:8040/aService/asegment";
+//         theURL = "http://server.biz:8040/aService/asegment";
+// //INetURLObject FAIL         theURL = "http://useranothername@server.biz:8040/aService/asegment";
+//         DAVUri aURI2( theURL );
+//         //      CPPUNIT_ASSERT_EQUAL( true, aURI2.verifyUri() );
+//         OUString newPATH = "a very simple path.test";
+//         aURI2.AppendPath( newPATH ); // FAIL: need to append WITHOUT encoding
+//         CPPUNIT_ASSERT_EQUAL( OUString( "http://user%40anothername@server.biz:8040/aService/asegment/a very simple path.test" ),
+//                               aURI2.GetURI() );
     }
 
     CPPUNIT_TEST_SUITE_REGISTRATION( webdav_resource_access_test );

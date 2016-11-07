@@ -51,6 +51,13 @@ namespace
         aURL = "M%C3%A1quina%20de%20Turing:%20desambiguaci%C3%B3n.test";
         OUString aResult = OStringToOUString( "Máquina de Turing: desambiguación.test", RTL_TEXTENCODING_UTF8 );
         CPPUNIT_ASSERT_EQUAL( aResult, NeonUri::unescape( aURL ) );
+        aURL = "http://user%40anothername@server.biz:8040/aService/asegment";
+        NeonUri aURI2( aURL );
+        OUString newPATH = "a very simple path.test";
+        aURI2.AppendPath( newPATH );
+        CPPUNIT_ASSERT_EQUAL( OUString( "http://user%40anothername@server.biz:8040/aService/asegment/a very simple path.test" ),
+                              aURI2.GetURI() );
+
     }
 
     CPPUNIT_TEST_SUITE_REGISTRATION( webdav_local_test );
